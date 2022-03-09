@@ -43,6 +43,7 @@ import { isPlatform, ScrollDetail } from "@ionic/core";
 
 import {
   barcodeOutline,
+  callOutline,
   cameraOutline,
   checkmarkOutline,
   closeOutline,
@@ -392,8 +393,110 @@ const Home: React.FC = () => {
 
   return (
     <IonPage className="container">
-      <IonModal className="modal1" isOpen={showOrderInfoModal} onIonModalDidDismiss={() => setShowOrderInfoModal(false)} >
-        <IonContent>Modal Content</IonContent>
+      <IonModal
+        className="modal1"
+        isOpen={showOrderInfoModal}
+        onIonModalDidDismiss={() => setShowOrderInfoModal(false)}
+      >
+        <IonHeader>
+          <IonToolbar style={{ padding: "0 15px" }}>
+            <IonButtons slot="end">
+              <IonButton
+                style={{
+                  fontWeight: 700,
+                }}
+                onClick={() => setShowOrderInfoModal(false)}
+              >
+                Podstawowe informacje
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent>
+          <IonList>
+            {/* <IonItem>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: "25px",
+                  textDecoration: "underline",
+                }}
+              >
+                <IonIcon src={callOutline} />+ 48 785 234 222
+              </div>
+            </IonItem> */}
+            <IonItem>
+              <IonLabel>Adres</IonLabel>
+              <IonLabel className="wrap">
+                <div style={{ fontWeight: 700, fontSize: "21px" }}>
+                  Rodzinna 15/2
+                </div>
+
+                <div style={{ fontWeight: 300 }}>Gdańsk 80-243</div>
+              </IonLabel>
+            </IonItem>
+            <IonItem>
+              <IonLabel>Numer telefonu</IonLabel>
+              <IonLabel
+                color="secondary"
+                style={{
+                  fontWeight: 700,
+                  fontSize: "21px",
+                  textDecoration: "underline",
+                }}
+              >
+                <IonIcon
+                  src={callOutline}
+                  style={{
+                    marginRight: "10px",
+                    fontSize: "20px",
+                    transform: "translateY(4px)",
+                  }}
+                />
+                785 234 222
+              </IonLabel>
+            </IonItem>
+            {/* <IonItem>
+              <IonLabel>Numer klienta</IonLabel>
+              <IonLabel>03452</IonLabel>
+            </IonItem> */}
+          </IonList>
+
+          <IonListHeader>
+            <IonLabel style={{ fontWeight: 700 }}>Wiadomość</IonLabel>
+          </IonListHeader>
+          <IonList>
+            <IonItem>
+              <IonLabel
+                className="wrap"
+                style={{ fontSize: "20px", fontWeight: 300 }}
+              >
+                Lorem ipsum dolor sit, amet consectetur adipisicing elit.
+                Officia nam eum explicabo temporibus ab eius recusandae rem
+                aspernatur molestiae fuga? Lorem ipsum dolor sit, amet
+                consectetudae rem aspernatur molestiae fuga?Lorem ipsum dur
+                molestiae fuga?
+              </IonLabel>
+            </IonItem>
+          </IonList>
+          <IonListHeader>
+            <IonLabel style={{ fontWeight: 700 }}>Diety</IonLabel>
+          </IonListHeader>
+          <IonList>
+            <IonItem>
+              <IonLabel>Standard 1500</IonLabel>
+            </IonItem>
+
+            <IonItem>
+              <IonLabel>Wege 2000</IonLabel>
+            </IonItem>
+          </IonList>
+          <IonListHeader>
+            <IonLabel style={{ fontWeight: 700 }}>
+              Numer klienta: 03353
+            </IonLabel>
+          </IonListHeader>
+        </IonContent>
       </IonModal>
 
       {/* {scanning ? (
