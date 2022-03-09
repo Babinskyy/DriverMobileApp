@@ -1,0 +1,7 @@
+{
+  "name": "Broccoli",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}
