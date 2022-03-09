@@ -1,8 +1,105 @@
-.hide-bg
-{
+.hide-bg {
 	display: none !important;
 }
 
 .invisible {
 	visibility: hidden;
+}
+
+
+.container {
+
+	.list-order {
+
+		.item-container {
+
+			--border-color: #919191;
+			position: relative;
+
+			.icon-scan {
+
+				font-size: 50px;
+				margin-right: 20px;
+
+			}
+
+			.address {
+				font-size: 25px;
+				font-weight: 700;
+			}
+
+			.icon-navigation {
+				font-size: 30px;
+				margin-right: 20px;
+			}
+
+			.item-diet {
+				--min-height: 40px;
+			}
+		}
+
+	}
+
+	.scan-square {
+
+		position: absolute;
+		width: 70vw;
+		height: 70vw;
+		top: 45%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		border-radius: 8px;
+		opacity: 0.5;
+
+	}
+
+	.order-photo {
+		height: 55px;
+		width: 90%;
+		margin-left: auto;
+		margin-right: auto;
+		display: block;
+		margin-bottom: 11px;
+
+		ion-label {
+			font-size: 21px;
+			margin-top: 4px;
+		}
+
+		ion-icon {
+			margin-left: 10px;
+			font-size: 27px;
+		}
+
+	}
+
+	.scan-info-container {
+		position: relative;
+		border-top-right-radius: 25px;
+		border-top-left-radius: 25px;
+
+		.diet-item {
+			--min-height: 40px;
+			margin-bottom: 5px;
+		}
+
+		.icon {
+			margin-right: 5px;
+			font-size: 28px;
+		}
+
+		.diet-type-label {
+			margin: 0;
+			font-size: 18px;
+			font-weight: 600;
+			letter-spacing: 0.5px;
+		}
+	}
+}
+
+
+
+ion-label.wrap {
+	text-overflow: unset !important;
+	white-space: break-spaces !important;
 }

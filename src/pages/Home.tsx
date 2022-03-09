@@ -28,7 +28,6 @@ import {
   IonFabButton,
 } from "@ionic/react";
 
-
 import React, {
   useState,
   useCallback,
@@ -39,11 +38,7 @@ import React, {
   RefObject,
 } from "react";
 
-
 import { isPlatform, ScrollDetail } from "@ionic/core";
-
-
-
 
 import {
   barcodeOutline,
@@ -57,7 +52,6 @@ import {
   toggle,
 } from "ionicons/icons";
 
-
 import {
   BarcodeScanner,
   SupportedFormat,
@@ -67,8 +61,7 @@ import "./Home.scss";
 
 // import { Vibration } from '@awesome-cordova-plugins/vibration';
 
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
-
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 
 const MapPopover: React.FC<{
   onHide: () => void;
@@ -109,7 +102,6 @@ const MapPopover: React.FC<{
 );
 
 const Home: React.FC = () => {
-
   const headerRef = useRef<HTMLIonHeaderElement>(null);
 
   const [headerScrollTop, setHeaderScrollTop] = useState(0);
@@ -145,7 +137,6 @@ const Home: React.FC = () => {
   };
 
   const startScan = async (index: number) => {
-    
     setChoosedItem(items[index]);
 
     // BarcodeScanner.hideBackground(); // make background of WebView transparent
@@ -160,13 +151,13 @@ const Home: React.FC = () => {
 
     let newScan = true;
 
-    await BarcodeScanner.startScanning({ targetedFormats: [SupportedFormat.QR_CODE] }, (result) => {
-
-      if(result.hasContent)
-      {
+    await BarcodeScanner.startScanning(
+      { targetedFormats: [SupportedFormat.QR_CODE] },
+      (result) => {
+        if (result.hasContent) {
           console.log(result.content); // log the raw scanned content
           setScanningResult(result.content ?? "");
-          
+
           // stopScan();
           // setScanning(false);
 
@@ -183,20 +174,22 @@ const Home: React.FC = () => {
           setChoosedItem(undefined);
           setChoosedItem(temp[index]);
 
-          console.log("test:")
-          console.log()
+          console.log("test:");
+          console.log();
 
-          if(temp[index] == choosedItem || temp[index].diets?.every((e) => { return e.scanned == false }))
-          {
+          if (
+            temp[index] == choosedItem ||
+            temp[index].diets?.every((e) => {
+              return e.scanned == false;
+            })
+          ) {
             // Vibration.vibrate(500);
-          }
-          else
-          {
-            (new Audio("https://www.myinstants.com/media/sounds/applepay.mp3")).play();
+          } else {
+            new Audio(
+              "https://www.myinstants.com/media/sounds/applepay.mp3"
+            ).play();
             //NativeAudio.play("success");
           }
-          
-          
 
           // let itemCount = ( items.filter((element) => {
           //   return (element?.diets?.every((e) => {
@@ -205,20 +198,11 @@ const Home: React.FC = () => {
           // }).length - 1 );
 
           // setChoosedItem(undefined);
-          
 
           //startScan(index);
-
-         
-
+        }
       }
-
-    });
-
-    
-
-    
-
+    );
   };
 
   const stopScan = () => {
@@ -263,52 +247,95 @@ const Home: React.FC = () => {
     {
       address: "Leśny Stok 4",
       lat: "54,376804",
-      lng: "18,582949"
+      lng: "18,582949",
+      diets: [
+        {
+          name: "Dieta standard 1800kcal",
+          scanned: false,
+        },
+      ],
     },
     {
       address: "Rodzinna 15",
       lat: "54,376377",
-      lng: "18,58399"
+      lng: "18,58399",
+      diets: [
+        {
+          name: "Dieta standard 1800kcal",
+          scanned: false,
+        },
+        {
+          name: "Dieta wege 2000kcal",
+          scanned: false,
+        },
+      ],
     },
     {
       address: "Reymonta 34/26",
       lat: "54,37737",
-      lng: "18,583952"
+      lng: "18,583952",
+      diets: [
+        {
+          name: "Dieta wege 2000kcal",
+          scanned: false,
+        },
+      ],
     },
     {
       address: "Dekerta 7/4",
       lat: "54,38073",
-      lng: "18,598017"
+      lng: "18,598017",
+      diets: [
+        {
+          name: "Dieta wege 2000kcal",
+          scanned: false,
+        },
+      ],
     },
     {
       address: "Kołłątaja 7/47",
       lat: "54,380356",
-      lng: "18,597185"
+      lng: "18,597185",
+      diets: [
+        {
+          name: "Dieta standard 1800kcal",
+          scanned: false,
+        },
+        {
+          name: "Dieta wege 2000kcal",
+          scanned: false,
+        },
+      ],
     },
     {
       address: "Sosnowa 7/31",
       lat: "54,377438",
-      lng: "18,601013"
+      lng: "18,601013",
+      diets: [
+        {
+          name: "Dieta standard 1800kcal",
+          scanned: false,
+        },
+      ],
     },
-    {
-      address: "Batorego 32b/6",
-      lat: "54,377743",
-      lng: "18,598196"
-    },
-    {
-      address: "Partyzantów 63b/9",
-      lat: "54,37935",
-      lng: "18,592789"
-    },
-    {
-      address: "De Gaullea 1a/7",
-      lat: "54,379936",
-      lng: "18,60149"
-    },
+    // {
+    //   address: "Batorego 32b/6",
+    //   lat: "54,377743",
+    //   lng: "18,598196",
+    // },
+    // {
+    //   address: "Partyzantów 63b/9",
+    //   lat: "54,37935",
+    //   lng: "18,592789",
+    // },
+    // {
+    //   address: "De Gaullea 1a/7",
+    //   lat: "54,379936",
+    //   lng: "18,60149",
+    // },
   ]);
 
   useEffect(() => {
-
     // NativeAudio.preloadSimple( 'success', 'applepay.mp3');
 
     if (items.length > 0) {
@@ -316,15 +343,13 @@ const Home: React.FC = () => {
         let temp = items;
 
         const randomInt = (max: number, min: number) => {
-          return Math.floor(Math.random() * (max - min)) + min
-        }
+          return Math.floor(Math.random() * (max - min)) + min;
+        };
 
         temp.map((e) => {
-
           let rand = randomInt(1, 4);
 
-          switch(rand)
-          {
+          switch (rand) {
             case 1:
               e.diets = [
                 {
@@ -353,19 +378,17 @@ const Home: React.FC = () => {
                 },
               ];
           }
-
         });
 
         setItems(temp);
 
-        console.log(temp)
-
+        console.log(temp);
       }
     }
   }, []);
 
   return (
-    <IonPage>
+    <IonPage className="container">
       {/* {scanning ? (
         <div style={{ visibility: "hidden" }}>
           <CustomHeaderFade
@@ -409,20 +432,19 @@ const Home: React.FC = () => {
         />
       )} */}
 
-<IonHeader className={ scanning ? "invisible" : "" } ref={headerRef} collapse="fade" translucent={isPlatform("mobile")} mode={"md"} >
-      <IonToolbar>
-      <IonTitle>
-              <div
-                className={"fade-header "}
-              >
-                siema
-              </div>
-            </IonTitle>
+      <IonHeader
+        className={scanning ? "invisible" : ""}
+        ref={headerRef}
+        collapse="fade"
+        translucent={isPlatform("mobile")}
+        mode={"md"}
+      >
+        <IonToolbar>
+          <IonTitle>
+            <div className={"fade-header "}>siema</div>
+          </IonTitle>
         </IonToolbar>
-        
-        </IonHeader>
-
-
+      </IonHeader>
 
       {scanning ? (
         <>
@@ -452,79 +474,63 @@ const Home: React.FC = () => {
         fullscreen={true}
         className={"background-lightgrey " + (scanning ? "hide-bg" : "")}
       >
-
-        <IonReorderGroup
-          disabled={disabled}
-          onIonItemReorder={(event) => {
-            //setItems(items.splice(event.detail.to, 0, items.splice(event.detail.from, 1)[0]))
-            // setItems(event.detail.complete(items));
-          }}
-        >
+        <IonList className="list-order">
           {items.map((e, i) => {
             return (
               <IonItem
+                className="item-container"
                 disabled={
                   e?.diets?.every((_e) => {
                     return _e.scanned;
                   }) && !e.photo
                 }
                 lines="full"
-                style={{
-                  position: "relative",
-                }}
               >
                 <IonLabel>
                   <IonItem lines="none">
-                    {i ==
-                    items.filter((element) => {
-                      return (
-                        element?.diets?.every((e) => {
-                          return e.scanned;
-                        }) && !element.photo
-                      );
-                    }).length ? (
-                      <IonIcon
-                        color="primary"
-                        slot="start"
-                        style={{ fontSize: "30px", marginRight: "20px" }}
-                        icon={
+                    <IonIcon
+                      className="icon-scan"
+                      color="primary"
+                      slot="start"
+                      icon={
+                        e?.diets?.every((_e) => {
+                          return _e.scanned;
+                        })
+                          ? cameraOutline
+                          : barcodeOutline
+                      }
+                      onClick={(event) => {
+                        if (
                           e?.diets?.every((_e) => {
                             return _e.scanned;
                           })
-                            ? cameraOutline
-                            : barcodeOutline
-                        }
-                        onClick={(event) => {
-                          if (
-                            e?.diets?.every((_e) => {
-                              return _e.scanned;
-                            })
-                          ) {
-                          } else {
-                            // setChoosedItem(e);
+                        ) {
+                        } else {
+                          checkPermission();
 
-                            checkPermission();
-
-                            const body = document.querySelector("body");
-                            if (body) {
-                              body.style.background = "transparent";
-                            }
-                            setScanning(true);
-                            startScan(i);
+                          const body = document.querySelector("body");
+                          if (body) {
+                            body.style.background = "transparent";
                           }
-                        }}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                    <IonLabel>
-                      <h4 style={{ margin: "6px 9px 6px" }}>{e.address}</h4>
-                      <p style={{ margin: "6px 9px 6px" }}>Gdańsk 42-500</p>
+                          setScanning(true);
+                          startScan(i);
+                        }
+                      }}
+                    />
+
+                    <IonLabel
+                      className="wrap"
+                      onClick={() => {
+                        console.log("click");
+                      }}
+                    >
+                      <h4 className="address">{e.address}</h4>
+                      <p>Gdańsk 42-500</p>
                     </IonLabel>
                   </IonItem>
                   {e.diets?.map((_e) => {
                     return (
-                      <IonItem style={{ "--min-height": "40px" }} lines="none">
+                      <IonItem className="item-diet" lines="none">
                         <IonIcon
                           color={_e.scanned ? "success" : "danger"}
                           src={_e.scanned ? checkmarkOutline : closeOutline}
@@ -534,54 +540,31 @@ const Home: React.FC = () => {
                     );
                   })}
                 </IonLabel>
-                {i ==
-                items.filter((element) => {
-                  return element?.diets?.every((e) => {
-                    return e.scanned;
-                  });
-                }).length ? (
-                  <>
-                    <IonIcon
-                      color="primary"
-                      style={{ fontSize: "30px", marginRight: "20px" }}
-                      slot="end"
-                      icon={navigateOutline}
-                      onClick={(event) => {
-                        setAddress(e.address);
-                        setLat(e.lat);
-                        setLng(e.lng);
-                        present({
-                          event: event.nativeEvent,
-                        });
-                      }}
-                    />
-                  </>
-                ) : (
-                  <></>
-                )}
-                {/* <IonIcon slot="end" icon={imageOutline} /> */}
+                <IonIcon
+                  className="icon-navigation"
+                  color="primary"
+                  slot="end"
+                  icon={navigateOutline}
+                  onClick={(event) => {
+                    setAddress(e.address);
+                    setLat(e.lat);
+                    setLng(e.lng);
+                    present({
+                      event: event.nativeEvent,
+                    });
+                  }}
+                />
                 <IonRippleEffect />
                 <IonReorder slot="end" />
               </IonItem>
             );
           })}
-        </IonReorderGroup>
+        </IonList>
       </IonContent>
 
       {scanning ? (
         <>
-          <div
-            style={{
-              position: "absolute",
-              width: "70vw",
-              height: "70vw",
-              top: "45%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              borderRadius: "8px",
-              opacity: "0.5",
-            }}
-          >
+          <div className="scan-square">
             <svg viewBox="0 0 100 100">
               <path
                 d="M25,2 L2,2 L2,25"
@@ -609,15 +592,6 @@ const Home: React.FC = () => {
               />
             </svg>
           </div>
-          {/* <div
-            style={{
-              position: "absolute",
-              height: "100vh",
-              width: "100vw",
-              zIndex: "-1",
-              backdropFilter: "blur(2px)",
-            }}
-          /> */}
         </>
       ) : (
         <></>
@@ -625,19 +599,10 @@ const Home: React.FC = () => {
 
       {scanning ? (
         <IonFooter>
-          {choosedItem?.diets?.every((e) => {
-            return e.scanned;
-          }) ? (
+          {true ? (
             <IonButton
+              className="order-photo"
               color="success"
-              style={{
-                height: "51px",
-                width: "90%",
-                marginLeft: "auto",
-                marginRight: "auto",
-                display: "block",
-                marginBottom: "11px",
-              }}
               onClick={async () => {
                 stopScan();
                 setScanning(false);
@@ -648,74 +613,44 @@ const Home: React.FC = () => {
                   resultType: CameraResultType.Uri,
                   source: CameraSource.Camera,
                 });
-              
+
                 // image.webPath will contain a path that can be set as an image src.
                 // You can access the original file using image.path, which can be
                 // passed to the Filesystem API to read the raw data of the image,
                 // if desired (or pass resultType: CameraResultType.Base64 to getPhoto)
                 var imageUrl = image.webPath;
-              
+
                 // Can be set to the src of an image now
                 // imageElement.src = imageUrl;
-
               }}
             >
-              <IonLabel
-                style={{
-                  fontSize: "21px",
-                  marginTop: "4px",
-                }}
-              >
-                ZDJĘCIE DOSTAWY
-              </IonLabel>
-              <IonIcon
-                style={{ marginLeft: "10px", fontSize: "27px" }}
-                src={cameraOutline}
-              />
+              <IonLabel>ZDJĘCIE DOSTAWY</IonLabel>
+              <IonIcon src={cameraOutline} />
             </IonButton>
           ) : (
             <></>
           )}
 
-          <IonItem
-            lines="full"
-            style={{
-              position: "relative",
-              borderTopRightRadius: "20px",
-              borderTopLeftRadius: "20px",
-            }}
-          >
+          <IonItem className="scan-info-container" lines="full">
             <IonLabel>
               <IonItem lines="none">
-                <IonLabel style={{ margin: 0, marginBottom: "15px" }}>
-                  <h4 style={{ margin: "6px 9px 6px" }}>
-                    {choosedItem?.address}
-                  </h4>
-                  <p style={{ margin: "6px 9px 6px" }}>Gdańsk 42-500</p>
+                <IonLabel>
+                  <h4>{choosedItem?.address}</h4>
+                  <p>Gdańsk 42-500</p>
                 </IonLabel>
               </IonItem>
               {choosedItem?.diets?.map((_e) => {
                 return (
                   <IonItem
-                    className="mb-1"
-                    style={{ "--min-height": "40px" }}
+                    className="diet-item"
                     lines="none"
                     color={_e.scanned ? "success" : "danger"}
                   >
                     <IonIcon
-                      style={{ marginRight: "5px", fontSize: "28px" }}
+                      className="icon"
                       src={_e.scanned ? checkmarkOutline : closeOutline}
                     />
-                    <IonLabel
-                      style={{
-                        margin: "0",
-                        fontSize: "18px",
-                        fontWeight: "600",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      {_e.name}
-                    </IonLabel>
+                    <IonLabel className="diet-type-label">{_e.name}</IonLabel>
                   </IonItem>
                 );
               })}
