@@ -111,3 +111,13 @@ ion-label.wrap {
 	text-overflow: unset !important;
 	white-space: break-spaces !important;
 }
+
+ion-modal.modal1 {
+	backdrop-filter: blur(3px);
+	padding-top: 110px;
+}
+
+ion-modal.modal1::part(content) {
+	border-top-left-radius: 13px;
+	border-top-right-radius: 13px;
+}

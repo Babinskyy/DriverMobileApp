@@ -392,7 +392,7 @@ const Home: React.FC = () => {
 
   return (
     <IonPage className="container">
-      <IonModal isOpen={showOrderInfoModal}>
+      <IonModal className="modal1" isOpen={showOrderInfoModal} onIonModalDidDismiss={() => setShowOrderInfoModal(false)} >
         <IonContent>Modal Content</IonContent>
       </IonModal>
 
