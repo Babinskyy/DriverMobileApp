@@ -253,7 +253,7 @@ const Home: React.FC = () => {
       lng: "18,582949",
       diets: [
         {
-          name: "Dieta standard 1800kcal",
+          name: "Dieta standard 1500kcal",
           scanned: false,
         },
       ],
@@ -264,7 +264,7 @@ const Home: React.FC = () => {
       lng: "18,58399",
       diets: [
         {
-          name: "Dieta standard 1800kcal",
+          name: "Dieta standard 1500kcal",
           scanned: false,
         },
         {
@@ -301,7 +301,7 @@ const Home: React.FC = () => {
       lng: "18,597185",
       diets: [
         {
-          name: "Dieta standard 1800kcal",
+          name: "Dieta standard 1500kcal",
           scanned: false,
         },
         {
@@ -316,7 +316,7 @@ const Home: React.FC = () => {
       lng: "18,601013",
       diets: [
         {
-          name: "Dieta standard 1800kcal",
+          name: "Dieta standard 1500kcal",
           scanned: false,
         },
       ],
@@ -356,7 +356,7 @@ const Home: React.FC = () => {
             case 1:
               e.diets = [
                 {
-                  name: "Dieta standard 1800kcal",
+                  name: "Dieta standard 1500kcal",
                   scanned: false,
                 },
                 {
@@ -368,7 +368,7 @@ const Home: React.FC = () => {
             case 2:
               e.diets = [
                 {
-                  name: "Dieta standard 1800kcal",
+                  name: "Dieta standard 1500kcal",
                   scanned: false,
                 },
               ];
