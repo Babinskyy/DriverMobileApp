@@ -26,6 +26,7 @@ import {
   useIonPopover,
   IonFab,
   IonFabButton,
+  IonModal,
 } from "@ionic/react";
 
 import React, {
@@ -112,6 +113,8 @@ const Home: React.FC = () => {
   const [address, setAddress] = useState("");
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
+
+  const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
 
   const [present, dismiss] = useIonPopover(MapPopover, {
     onHide: () => dismiss(),
@@ -389,6 +392,10 @@ const Home: React.FC = () => {
 
   return (
     <IonPage className="container">
+      <IonModal isOpen={showOrderInfoModal}>
+        <IonContent>Modal Content</IonContent>
+      </IonModal>
+
       {/* {scanning ? (
         <div style={{ visibility: "hidden" }}>
           <CustomHeaderFade
@@ -521,7 +528,7 @@ const Home: React.FC = () => {
                     <IonLabel
                       className="wrap"
                       onClick={() => {
-                        console.log("click");
+                        setShowOrderInfoModal(true);
                       }}
                     >
                       <h4 className="address">{e.address}</h4>
@@ -642,6 +649,7 @@ const Home: React.FC = () => {
               {choosedItem?.diets?.map((_e) => {
                 return (
                   <IonItem
+                    button
                     className="diet-item"
                     lines="none"
                     color={_e.scanned ? "success" : "danger"}
