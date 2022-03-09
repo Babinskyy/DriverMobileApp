@@ -43,6 +43,7 @@ import { isPlatform, ScrollDetail } from "@ionic/core";
 
 import {
   barcodeOutline,
+  call,
   callOutline,
   cameraOutline,
   checkmarkOutline,
@@ -446,7 +447,7 @@ const Home: React.FC = () => {
                 }}
               >
                 <IonIcon
-                  src={callOutline}
+                  src={call}
                   style={{
                     marginRight: "10px",
                     fontSize: "20px",
