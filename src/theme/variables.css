@@ -3,6 +3,9 @@ http://ionicframework.com/docs/theming/ */
 
 /** Ionic CSS Variables **/
 :root {
+
+  --ion-font-family: 'Nunito', sans-serif;
+
   /** primary **/
   --ion-color-primary: #2dd36f;
   --ion-color-primary-rgb: 45, 211, 111;
