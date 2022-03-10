@@ -27,6 +27,7 @@ import {
   IonFab,
   IonFabButton,
   IonModal,
+  useIonAlert,
 } from "@ionic/react";
 
 import React, {
@@ -81,6 +82,8 @@ const Home: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
+
+  const [presentAlert] = useIonAlert();
 
   const [present, dismiss] = useIonPopover(MapPopover, {
     onHide: () => dismiss(),
@@ -688,16 +691,29 @@ const Home: React.FC = () => {
                     lines="none"
                     color={_e.scanned ? "success" : "danger"}
                     onClick={async () => {
-                      // stopScan();
-                      // setScanning(false);
-
-                      const image = await Camera.getPhoto({
-                        quality: 90,
-                        allowEditing: false,
-                        resultType: CameraResultType.Uri,
-                        source: CameraSource.Camera,
+                      presentAlert({
+                        mode: "ios",
+                        cssClass: "missing-qr-alert",
+                        header: "Nie możesz zeksanować kodu QR?",
+                        subHeader:
+                          "Wykonaj zdjęcie diety z nieczytelnym kodem QR",
+                        buttons: [
+                          "Anuluj",
+                          {
+                            text: "Zrób zdjęcie",
+                            handler: async () => {
+                              const image = await Camera.getPhoto({
+                                quality: 90,
+                                allowEditing: false,
+                                resultType: CameraResultType.Uri,
+                                source: CameraSource.Camera,
+                              });
+                              var imageUrl = image.webPath;
+                            },
+                          },
+                        ],
+                        onDidDismiss: (e) => console.log("did dismiss"),
                       });
-                      var imageUrl = image.webPath;
                     }}
                   >
                     <IonIcon
