@@ -62,7 +62,7 @@ import {
 
 import "./Home.scss";
 
-// import { Vibration } from '@awesome-cordova-plugins/vibration';
+import { Vibration } from "@awesome-cordova-plugins/vibration";
 
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 
@@ -155,7 +155,7 @@ const Home: React.FC = () => {
               return e.scanned == false;
             })
           ) {
-            // Vibration.vibrate(500);
+            Vibration.vibrate(500);
           } else {
             new Audio(
               "https://www.myinstants.com/media/sounds/applepay.mp3"
@@ -475,49 +475,6 @@ const Home: React.FC = () => {
         </IonContent>
       </IonModal>
 
-      {/* {scanning ? (
-        <div style={{ visibility: "hidden" }}>
-          <CustomHeaderFade
-            extended={false}
-            headerRef={headerRef}
-            title="Testowa aplikacja"
-            extraButtons={
-              <>
-                <IonButtons slot="start">
-                  <IonButton
-                    onClick={() => {
-                      stopScan();
-                      setScanning(false);
-                    }}
-                  >
-                    <IonIcon slot="icon-only" icon={closeOutline} />
-                  </IonButton>
-                </IonButtons>
-              </>
-            }
-          />
-        </div>
-      ) : (
-        <CustomHeaderFade
-          extended={false}
-          headerRef={headerRef}
-          title="Testowa aplikacja"
-          extraButtons={
-            <>
-              <IonButtons slot="end">
-                <IonButton
-                  onClick={() => {
-                    setDisabled(!disabled);
-                  }}
-                >
-                  <IonIcon slot="icon-only" icon={layersOutline} />
-                </IonButton>
-              </IonButtons>
-            </>
-          }
-        />
-      )} */}
-
       <IonHeader
         className={scanning ? "invisible" : ""}
         ref={headerRef}
@@ -730,6 +687,18 @@ const Home: React.FC = () => {
                     className="diet-item"
                     lines="none"
                     color={_e.scanned ? "success" : "danger"}
+                    onClick={async () => {
+                      // stopScan();
+                      // setScanning(false);
+
+                      const image = await Camera.getPhoto({
+                        quality: 90,
+                        allowEditing: false,
+                        resultType: CameraResultType.Uri,
+                        source: CameraSource.Camera,
+                      });
+                      var imageUrl = image.webPath;
+                    }}
                   >
                     <IonIcon
                       className="icon"
