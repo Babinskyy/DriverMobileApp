@@ -66,43 +66,8 @@ import "./Home.scss";
 
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 
-const MapPopover: React.FC<{
-  onHide: () => void;
-  address: string;
-  lat: string;
-  lng: string;
-}> = ({ onHide, address, lat, lng }) => (
-  <IonList>
-    {/* <IonListHeader>Wybierz </IonListHeader> */}
-    <IonItem
-      button
-      onClick={() => {
-        window.open(
-          "https://www.google.com/maps/dir/?api=1&destination=" +
-            encodeURIComponent("Gdańsk " + address),
-          "_blank"
-        );
-        onHide();
-      }}
-    >
-      Google Maps
-    </IonItem>
-    <IonItem
-      lines="none"
-      button
-      onClick={() => {
-        window.open(
-          // "https://mapa.targeo.pl/" + encodeURIComponent("Gdańsk " + address + "," + lng.replace(",", ".") + "," + lat.replace(",", ".")),
-          "https://mapa.targeo.pl/" + encodeURIComponent("Gdańsk " + address),
-          "_blank"
-        ); //https://mapa.targeo.pl/b%C4%99dzin%20jesionowa%2017,19,19.121525400000003,50.31193999999999
-        onHide();
-      }}
-    >
-      Targeo
-    </IonItem>
-  </IonList>
-);
+import MapPopover from "../components/MapPopover";
+import PhonePopover from "../components/PhonePopover";
 
 const Home: React.FC = () => {
   const headerRef = useRef<HTMLIonHeaderElement>(null);
@@ -113,16 +78,18 @@ const Home: React.FC = () => {
   const [disabled, setDisabled] = useState(true);
 
   const [address, setAddress] = useState("");
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
 
   const [present, dismiss] = useIonPopover(MapPopover, {
     onHide: () => dismiss(),
     address: address,
-    lat: lat,
-    lng: lng,
+  });
+
+  const [presentPhoneNumber, dismissPhoneNumber] = useIonPopover(PhonePopover, {
+    onHide: () => dismiss(),
+    address: address,
   });
 
   const [scanning, setScanning] = useState(false);
@@ -439,24 +406,30 @@ const Home: React.FC = () => {
             <IonItem>
               <IonLabel>Numer telefonu</IonLabel>
               <IonLabel
-                // color="secondary"
+                color="secondary"
+                onClick={(event) => {
+                  setPhoneNumber("785 234 222");
+                  presentPhoneNumber({
+                    event: event.nativeEvent,
+                  });
+                }}
                 style={{
                   fontWeight: 700,
                   fontSize: "21px",
                   textDecoration: "underline",
                 }}
               >
-                <a href="tel:785234222">
-                  <IonIcon
-                    src={call}
-                    style={{
-                      marginRight: "10px",
-                      fontSize: "20px",
-                      transform: "translateY(4px)",
-                    }}
-                  />
-                  785 234 222
-                </a>
+                {/* <a href="tel:785234222"> */}
+                <IonIcon
+                  src={call}
+                  style={{
+                    marginRight: "10px",
+                    fontSize: "20px",
+                    transform: "translateY(4px)",
+                  }}
+                />
+                785 234 222
+                {/* </a> */}
               </IonLabel>
             </IonItem>
             {/* <IonItem>
@@ -660,8 +633,6 @@ const Home: React.FC = () => {
                   icon={navigateOutline}
                   onClick={(event) => {
                     setAddress(e.address);
-                    setLat(e.lat);
-                    setLng(e.lng);
                     present({
                       event: event.nativeEvent,
                     });
