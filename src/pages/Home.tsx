@@ -439,22 +439,24 @@ const Home: React.FC = () => {
             <IonItem>
               <IonLabel>Numer telefonu</IonLabel>
               <IonLabel
-                color="secondary"
+                // color="secondary"
                 style={{
                   fontWeight: 700,
                   fontSize: "21px",
                   textDecoration: "underline",
                 }}
               >
-                <IonIcon
-                  src={call}
-                  style={{
-                    marginRight: "10px",
-                    fontSize: "20px",
-                    transform: "translateY(4px)",
-                  }}
-                />
-                785 234 222
+                <a href="tel:785234222">
+                  <IonIcon
+                    src={call}
+                    style={{
+                      marginRight: "10px",
+                      fontSize: "20px",
+                      transform: "translateY(4px)",
+                    }}
+                  />
+                  785 234 222
+                </a>
               </IonLabel>
             </IonItem>
             {/* <IonItem>
