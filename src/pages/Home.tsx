@@ -1,74 +1,48 @@
-import {
-  IonItem,
-  IonLabel,
-  IonInput,
-  IonContent,
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonGrid,
-  IonCol,
-  IonRow,
-  IonFooter,
-  useIonViewWillEnter,
-  useIonViewDidEnter,
-  useIonViewWillLeave,
-  IonReorderGroup,
-  IonReorder,
-  IonButtons,
-  IonButton,
-  IonIcon,
-  IonRippleEffect,
-  IonRouterLink,
-  IonList,
-  IonListHeader,
-  useIonPopover,
-  IonFab,
-  IonFabButton,
-  IonModal,
-  useIonAlert,
-} from "@ionic/react";
-
-import React, {
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-  ChangeEvent,
-  useMemo,
-  RefObject,
-} from "react";
-
-import { isPlatform, ScrollDetail } from "@ionic/core";
-
-import {
-  barcodeOutline,
-  call,
-  callOutline,
-  cameraOutline,
-  checkmarkOutline,
-  closeOutline,
-  flashlightOutline,
-  imageOutline,
-  layersOutline,
-  navigateOutline,
-  toggle,
-} from "ionicons/icons";
-
+import { Vibration } from "@awesome-cordova-plugins/vibration";
 import {
   BarcodeScanner,
   SupportedFormat,
 } from "@capacitor-community/barcode-scanner";
-
-import "./Home.scss";
-
-import { Vibration } from "@awesome-cordova-plugins/vibration";
-
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
-
+import { isPlatform } from "@ionic/core";
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonListHeader,
+  IonModal,
+  IonPage,
+  IonReorder,
+  IonRippleEffect,
+  IonSearchbar,
+  IonTitle,
+  IonToolbar,
+  useIonAlert,
+  useIonPopover,
+  useIonViewWillLeave,
+} from "@ionic/react";
+import {
+  barcodeOutline,
+  call,
+  cameraOutline,
+  checkmarkOutline,
+  closeOutline,
+  flashlightOutline,
+  navigateOutline,
+  searchOutline,
+} from "ionicons/icons";
+import React, { useEffect, useRef, useState } from "react";
 import MapPopover from "../components/MapPopover";
 import PhonePopover from "../components/PhonePopover";
+import "./Home.scss";
 
 const Home: React.FC = () => {
   const headerRef = useRef<HTMLIonHeaderElement>(null);
@@ -82,6 +56,24 @@ const Home: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
+
+  const [searchText, setSearchText] = useState("");
+
+  useEffect(() => {
+    if (searchText.length > 0) {
+      const tempItems = items.filter((e) => {
+        return (
+          e.diets.some((_e) => {
+            return _e.name.toLowerCase().includes(searchText.toLowerCase());
+          }) || e.address.toLowerCase().includes(searchText.toLowerCase())
+        );
+      });
+
+      setItems(tempItems);
+    } else {
+      setItems(ItemsStatic);
+    }
+  }, [searchText]);
 
   const [presentAlert] = useIonAlert();
 
@@ -163,18 +155,7 @@ const Home: React.FC = () => {
             new Audio(
               "https://www.myinstants.com/media/sounds/applepay.mp3"
             ).play();
-            //NativeAudio.play("success");
           }
-
-          // let itemCount = ( items.filter((element) => {
-          //   return (element?.diets?.every((e) => {
-          //     return e.scanned
-          //   }))
-          // }).length - 1 );
-
-          // setChoosedItem(undefined);
-
-          //startScan(index);
         }
       }
     );
@@ -210,15 +191,14 @@ const Home: React.FC = () => {
 
   type ItemsProps = {
     address: string;
-    diets?: ItemsDietProps[];
+    diets: ItemsDietProps[];
     photo?: boolean;
     lat: string;
     lng: string;
   };
 
   const [choosedItem, setChoosedItem] = useState<ItemsProps | undefined>();
-
-  const [items, setItems] = useState<ItemsProps[]>([
+  const ItemsStatic: ItemsProps[] = [
     {
       address: "Leśny Stok 4",
       lat: "54,376804",
@@ -293,74 +273,9 @@ const Home: React.FC = () => {
         },
       ],
     },
-    // {
-    //   address: "Batorego 32b/6",
-    //   lat: "54,377743",
-    //   lng: "18,598196",
-    // },
-    // {
-    //   address: "Partyzantów 63b/9",
-    //   lat: "54,37935",
-    //   lng: "18,592789",
-    // },
-    // {
-    //   address: "De Gaullea 1a/7",
-    //   lat: "54,379936",
-    //   lng: "18,60149",
-    // },
-  ]);
+  ];
 
-  useEffect(() => {
-    // NativeAudio.preloadSimple( 'success', 'applepay.mp3');
-
-    if (items.length > 0) {
-      if (!items[0].diets) {
-        let temp = items;
-
-        const randomInt = (max: number, min: number) => {
-          return Math.floor(Math.random() * (max - min)) + min;
-        };
-
-        temp.map((e) => {
-          let rand = randomInt(1, 4);
-
-          switch (rand) {
-            case 1:
-              e.diets = [
-                {
-                  name: "Dieta standard 1500kcal",
-                  scanned: false,
-                },
-                {
-                  name: "Dieta wege 2000kcal",
-                  scanned: false,
-                },
-              ];
-              break;
-            case 2:
-              e.diets = [
-                {
-                  name: "Dieta standard 1500kcal",
-                  scanned: false,
-                },
-              ];
-              break;
-            case 3:
-              e.diets = [
-                {
-                  name: "Dieta wege 2000kcal",
-                  scanned: false,
-                },
-              ];
-          }
-        });
-
-        setItems(temp);
-
-        console.log(temp);
-      }
-    }
-  }, []);
+  const [items, setItems] = useState<ItemsProps[]>(ItemsStatic);
 
   return (
     <IonPage className="container">
@@ -385,17 +300,6 @@ const Home: React.FC = () => {
         </IonHeader>
         <IonContent>
           <IonList>
-            {/* <IonItem>
-              <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: "25px",
-                  textDecoration: "underline",
-                }}
-              >
-                <IonIcon src={callOutline} />+ 48 785 234 222
-              </div>
-            </IonItem> */}
             <IonItem>
               <IonLabel>Adres</IonLabel>
               <IonLabel className="wrap">
@@ -422,7 +326,6 @@ const Home: React.FC = () => {
                   textDecoration: "underline",
                 }}
               >
-                {/* <a href="tel:785234222"> */}
                 <IonIcon
                   src={call}
                   style={{
@@ -432,13 +335,8 @@ const Home: React.FC = () => {
                   }}
                 />
                 785 234 222
-                {/* </a> */}
               </IonLabel>
             </IonItem>
-            {/* <IonItem>
-              <IonLabel>Numer klienta</IonLabel>
-              <IonLabel>03452</IonLabel>
-            </IonItem> */}
           </IonList>
 
           <IonListHeader>
@@ -487,7 +385,10 @@ const Home: React.FC = () => {
       >
         <IonToolbar>
           <IonTitle>
-            <div className={"fade-header "}>siema</div>
+            <IonSearchbar
+              value={searchText}
+              onIonChange={(e) => setSearchText(e.detail.value!)}
+            ></IonSearchbar>
           </IonTitle>
         </IonToolbar>
       </IonHeader>
@@ -666,6 +567,8 @@ const Home: React.FC = () => {
 
                 // Can be set to the src of an image now
                 // imageElement.src = imageUrl;
+
+                console.log(image);
               }}
             >
               <IonLabel>ZDJĘCIE DOSTAWY</IonLabel>
@@ -697,6 +600,7 @@ const Home: React.FC = () => {
                         header: "Nie możesz zeksanować kodu QR?",
                         subHeader:
                           "Wykonaj zdjęcie diety z nieczytelnym kodem QR",
+                        message: _e.name,
                         buttons: [
                           "Anuluj",
                           {
