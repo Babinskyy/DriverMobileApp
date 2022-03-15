@@ -27,6 +27,7 @@ import {
   IonToolbar,
   useIonAlert,
   useIonPopover,
+  useIonViewWillEnter,
   useIonViewWillLeave,
 } from "@ionic/react";
 import {
@@ -44,6 +45,9 @@ import MapPopover from "../components/MapPopover";
 import PhonePopover from "../components/PhonePopover";
 import "./Home.scss";
 
+import axios from "axios";
+import { Storage } from "@capacitor/storage";
+
 const Home: React.FC = () => {
   const headerRef = useRef<HTMLIonHeaderElement>(null);
 
@@ -58,6 +62,38 @@ const Home: React.FC = () => {
   const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
 
   const [searchText, setSearchText] = useState("");
+
+  type DietsProps = {
+    id: string;
+    category: string;
+    name: string;
+  };
+
+  useIonViewWillEnter(() => {
+    axios
+      .get("https://broccoliapi.azurewebsites.net/Diets")
+      .then(async (response) => {
+        const diets = response.data.data as DietsProps;
+
+        console.log(diets);
+
+        await setDiets(JSON.stringify(diets));
+
+        await getDiets();
+      });
+  });
+
+  const setDiets = async (value: string) => {
+    await Storage.set({
+      key: "Diets",
+      value: value,
+    });
+  };
+
+  const getDiets = async () => {
+    const { value } = await Storage.get({ key: "Diets" });
+    console.log(value);
+  };
 
   useEffect(() => {
     if (searchText.length > 0) {
@@ -105,12 +141,6 @@ const Home: React.FC = () => {
 
   const startScan = async (index: number) => {
     setChoosedItem(items[index]);
-
-    // BarcodeScanner.hideBackground(); // make background of WebView transparent
-
-    // const result = await BarcodeScanner.startScan({
-    //   targetedFormats: [SupportedFormat.QR_CODE],
-    // });
 
     setTimeout(() => {
       BarcodeScanner.enableTorch();
@@ -261,11 +291,11 @@ const Home: React.FC = () => {
           scanned: false,
         },
         {
-          name: "Dieta standard 1500kcal",
+          name: "Dieta standard 2000kcal",
           scanned: false,
         },
         {
-          name: "Dieta standard 1500kcal",
+          name: "Dieta standard 2500kcal",
           scanned: false,
         },
       ],
@@ -552,7 +582,9 @@ const Home: React.FC = () => {
 
       {scanning ? (
         <IonFooter>
-          {true ? (
+          {choosedItem?.diets.every((e) => {
+            return e.scanned;
+          }) ? (
             <IonButton
               className="order-photo"
               color="success"
@@ -567,15 +599,7 @@ const Home: React.FC = () => {
                   source: CameraSource.Camera,
                 });
 
-                // image.webPath will contain a path that can be set as an image src.
-                // You can access the original file using image.path, which can be
-                // passed to the Filesystem API to read the raw data of the image,
-                // if desired (or pass resultType: CameraResultType.Base64 to getPhoto)
                 var imageUrl = image.webPath;
-
-                // Can be set to the src of an image now
-                // imageElement.src = imageUrl;
-
                 console.log(image);
               }}
             >
