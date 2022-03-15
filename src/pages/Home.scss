@@ -78,9 +78,18 @@
 	}
 
 	.scan-info-container {
-		position: relative;
+		
 		border-top-right-radius: 25px;
 		border-top-left-radius: 25px;
+		// max-height: 200px !important;
+		// overflow: auto;
+
+		.diets-container{
+			
+			max-height: 110px;
+			overflow: auto;
+			
+		}
 
 		h4 {
 			font-size: 22px;

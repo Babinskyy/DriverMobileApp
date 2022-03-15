@@ -260,6 +260,14 @@ const Home: React.FC = () => {
           name: "Dieta wege 2000kcal",
           scanned: false,
         },
+        {
+          name: "Dieta standard 1500kcal",
+          scanned: false,
+        },
+        {
+          name: "Dieta standard 1500kcal",
+          scanned: false,
+        },
       ],
     },
     {
@@ -579,55 +587,57 @@ const Home: React.FC = () => {
           )}
 
           <IonItem className="scan-info-container" lines="full">
-            <IonLabel>
+            <IonLabel style={{ marginBottom: "0" }}>
               <IonItem lines="none">
                 <IonLabel>
                   <h4>{choosedItem?.address}</h4>
                   <p>Gdańsk 42-500</p>
                 </IonLabel>
               </IonItem>
-              {choosedItem?.diets?.map((_e) => {
-                return (
-                  <IonItem
-                    button
-                    className="diet-item"
-                    lines="none"
-                    color={_e.scanned ? "success" : "danger"}
-                    onClick={async () => {
-                      presentAlert({
-                        mode: "ios",
-                        cssClass: "missing-qr-alert",
-                        header: "Nie możesz zeksanować kodu QR?",
-                        subHeader:
-                          "Wykonaj zdjęcie diety z nieczytelnym kodem QR",
-                        message: _e.name,
-                        buttons: [
-                          "Anuluj",
-                          {
-                            text: "Zrób zdjęcie",
-                            handler: async () => {
-                              const image = await Camera.getPhoto({
-                                quality: 90,
-                                allowEditing: false,
-                                resultType: CameraResultType.Uri,
-                                source: CameraSource.Camera,
-                              });
-                              var imageUrl = image.webPath;
+              <div className="diets-container">
+                {choosedItem?.diets?.map((_e) => {
+                  return (
+                    <IonItem
+                      button
+                      className="diet-item"
+                      lines="none"
+                      color={_e.scanned ? "success" : "danger"}
+                      onClick={async () => {
+                        presentAlert({
+                          mode: "ios",
+                          cssClass: "missing-qr-alert",
+                          header: "Nie możesz zeksanować kodu QR?",
+                          subHeader:
+                            "Wykonaj zdjęcie diety z nieczytelnym kodem QR",
+                          message: _e.name,
+                          buttons: [
+                            "Anuluj",
+                            {
+                              text: "Zrób zdjęcie",
+                              handler: async () => {
+                                const image = await Camera.getPhoto({
+                                  quality: 90,
+                                  allowEditing: false,
+                                  resultType: CameraResultType.Uri,
+                                  source: CameraSource.Camera,
+                                });
+                                var imageUrl = image.webPath;
+                              },
                             },
-                          },
-                        ],
-                        onDidDismiss: (e) => console.log("did dismiss"),
-                      });
-                    }}
-                  >
-                    <IonIcon
-                      className="icon"
-                      src={_e.scanned ? checkmarkOutline : closeOutline}
-                    />
-                    <IonLabel className="diet-type-label">{_e.name}</IonLabel>
-                  </IonItem>
-                );
-              })}
+                          ],
+                          onDidDismiss: (e) => console.log("did dismiss"),
+                        });
+                      }}
+                    >
+                      <IonIcon
+                        className="icon"
+                        src={_e.scanned ? checkmarkOutline : closeOutline}
+                      />
+                      <IonLabel className="diet-type-label">{_e.name}</IonLabel>
+                    </IonItem>
+                  );
+                })}
+              </div>
             </IonLabel>
 
             <IonRippleEffect />
