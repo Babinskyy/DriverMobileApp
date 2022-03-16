@@ -73,13 +73,9 @@ const Home: React.FC = () => {
     axios
       .get("https://broccoliapi.azurewebsites.net/Diets")
       .then(async (response) => {
-        const diets = response.data.data as DietsProps;
-
-        console.log(diets);
+        const diets = response.data.data.diets as DietsProps[];
 
         await setDiets(JSON.stringify(diets));
-
-        await getDiets();
       });
   });
 
@@ -92,7 +88,7 @@ const Home: React.FC = () => {
 
   const getDiets = async () => {
     const { value } = await Storage.get({ key: "Diets" });
-    console.log(value);
+    return value;
   };
 
   useEffect(() => {
@@ -150,41 +146,68 @@ const Home: React.FC = () => {
 
     await BarcodeScanner.startScanning(
       { targetedFormats: [SupportedFormat.QR_CODE] },
-      (result) => {
+      async (result) => {
         if (result.hasContent) {
-          console.log(result.content); // log the raw scanned content
-          setScanningResult(result.content ?? "");
+          try {
+            const codes = result.content?.split("|")[1];
 
-          // stopScan();
-          // setScanning(false);
+            setScanningResult(result.content ?? "");
 
-          let temp = items;
+            let temp = items;
 
-          temp[index].diets?.map((_e) => {
-            if (_e.name == result.content) {
-              _e.scanned = true;
+            const { value } = await Storage.get({ key: "Diets" });
+            const val = value;
+
+            if (val && codes) {
+              const collection = JSON.parse(val) as DietsProps[];
+
+              const code = codes.split("/")[0];
+
+              collection.map((e) => {
+                if (code == e.id) {
+                  console.log("if");
+                  console.log(code);
+                  const tempChoosedItem = items[index];
+
+                  console.log("choosedItem " + tempChoosedItem.address);
+                  console.log(tempChoosedItem.address);
+
+                  tempChoosedItem?.diets.map((_e) => {
+                    if (e.name == _e.name) {
+                      _e.scanned = true;
+                    }
+                  });
+
+                  setChoosedItem(tempChoosedItem);
+                }
+              });
             }
-          });
 
-          setItems(temp);
+            temp[index].diets?.map((_e) => {
+              if (_e.name == result.content) {
+                _e.scanned = true;
+              }
+            });
 
-          setChoosedItem(undefined);
-          setChoosedItem(temp[index]);
+            setItems(temp);
 
-          console.log("test:");
-          console.log();
+            setChoosedItem(undefined);
+            setChoosedItem(temp[index]);
 
-          if (
-            temp[index] == choosedItem ||
-            temp[index].diets?.every((e) => {
-              return e.scanned == false;
-            })
-          ) {
-            Vibration.vibrate(500);
-          } else {
-            new Audio(
-              "https://www.myinstants.com/media/sounds/applepay.mp3"
-            ).play();
+            if (
+              temp[index] == choosedItem ||
+              temp[index].diets?.every((e) => {
+                return e.scanned == false;
+              })
+            ) {
+              Vibration.vibrate(500);
+            } else {
+              new Audio(
+                "https://www.myinstants.com/media/sounds/applepay.mp3"
+              ).play();
+            }
+          } catch (error) {
+            console.log(error);
           }
         }
       }
@@ -246,11 +269,11 @@ const Home: React.FC = () => {
       lng: "18,58399",
       diets: [
         {
-          name: "Dieta standard 1500kcal",
+          name: "Slim-1500 KCAL-Standard",
           scanned: false,
         },
         {
-          name: "Dieta wege 2000kcal",
+          name: "Slim-2000 KCAL-Wege",
           scanned: false,
         },
       ],
@@ -283,19 +306,19 @@ const Home: React.FC = () => {
       lng: "18,597185",
       diets: [
         {
-          name: "Dieta standard 1500kcal",
+          name: "Sport-2000 KCAL",
           scanned: false,
         },
         {
-          name: "Dieta wege 2000kcal",
+          name: "Sport-2500 KCAL",
           scanned: false,
         },
         {
-          name: "Dieta standard 2000kcal",
+          name: "Slim-2500 KCAL-Wege + Fish",
           scanned: false,
         },
         {
-          name: "Dieta standard 2500kcal",
+          name: "Slim-2500 KCAL-diet o bardzo niskiej zawartości glutenu i laktozy",
           scanned: false,
         },
       ],
@@ -354,6 +377,7 @@ const Home: React.FC = () => {
                 color="secondary"
                 onClick={(event) => {
                   setPhoneNumber("785 234 222");
+                  console.log("loggg");
                   presentPhoneNumber({
                     event: event.nativeEvent,
                   });
@@ -520,7 +544,9 @@ const Home: React.FC = () => {
                           color={_e.scanned ? "success" : "danger"}
                           src={_e.scanned ? checkmarkOutline : closeOutline}
                         />
-                        <IonLabel style={{ margin: "0" }}>{_e.name}</IonLabel>
+                        <IonLabel style={{ margin: "0" }} className="wrap">
+                          {_e.name}
+                        </IonLabel>
                       </IonItem>
                     );
                   })}
