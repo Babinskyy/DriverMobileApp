@@ -71,6 +71,7 @@ const Home: React.FC = () => {
   type RoutePackagesProps = {
     name: string;
     scanned: boolean;
+    code: string;
   };
   type RouteProps = {
     city: string;
@@ -226,9 +227,14 @@ const Home: React.FC = () => {
                         " " +
                         `${tempChoosedItem.houseNumber}`
                     );
-
+                    console.log("tempChoosedItem.packages");
+                    console.log(tempChoosedItem.packages);
+                    console.log("tempChoosedItem.packages[0].name");
+                    console.log(tempChoosedItem.packages[0].name);
+                    console.log("e.name");
+                    console.log(e.name);
                     tempChoosedItem?.packages.map((_e) => {
-                      if (e.name == _e.name) {
+                      if (e.id == _e.code) {
                         _e.scanned = true;
                       }
                     });
@@ -406,7 +412,7 @@ const Home: React.FC = () => {
             {itemModalInfo?.packages.map((e) => {
               return (
                 <IonItem>
-                  <IonLabel>{e.name}</IonLabel>
+                  <IonLabel className="wrap">{e.name}</IonLabel>
                 </IonItem>
               );
             })}
