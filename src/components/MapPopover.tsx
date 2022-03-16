@@ -9,6 +9,7 @@ const MapPopover: React.FC<{
   <IonList>
     {/* <IonListHeader>Wybierz </IonListHeader> */}
     <IonItem
+      mode="ios"
       button
       onClick={() => {
         window.open(
@@ -22,6 +23,7 @@ const MapPopover: React.FC<{
       Google Maps
     </IonItem>
     <IonItem
+      mode="ios"
       lines="none"
       button
       onClick={() => {

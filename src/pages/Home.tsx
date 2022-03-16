@@ -57,7 +57,7 @@ const Home: React.FC = () => {
   const [disabled, setDisabled] = useState(true);
 
   const [address, setAddress] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
 
   const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
 
@@ -68,13 +68,31 @@ const Home: React.FC = () => {
     category: string;
     name: string;
   };
+  type RoutePackagesProps = {
+    name: string;
+    scanned: boolean;
+  };
+  type RouteProps = {
+    city: string;
+    comment: string;
+    commentExtra: string;
+    houseNumber: string;
+    lat: string;
+    lng: string;
+    postCode: string;
+    packages: RoutePackagesProps[];
+    phone: string;
+    order: number;
+    routeId: string;
+    street: string;
+    customerId: number;
+  };
 
   useIonViewWillEnter(() => {
     axios
       .get("https://broccoliapi.azurewebsites.net/Diets")
       .then(async (response) => {
         const diets = response.data.data.diets as DietsProps[];
-
         await setDiets(JSON.stringify(diets));
       });
   });
@@ -91,20 +109,50 @@ const Home: React.FC = () => {
     return value;
   };
 
-  useEffect(() => {
-    if (searchText.length > 0) {
-      const tempItems = items.filter((e) => {
-        return (
-          e.diets.some((_e) => {
-            return _e.name.toLowerCase().includes(searchText.toLowerCase());
-          }) || e.address.toLowerCase().includes(searchText.toLowerCase())
-        );
-      });
+  useIonViewWillEnter(() => {
+    axios
+      .get("https://broccoliapi.azurewebsites.net/RouteDriver")
+      .then(async (response) => {
+        const route = response.data.data.route as RouteProps[];
 
-      setItems(tempItems);
-    } else {
-      setItems(ItemsStatic);
-    }
+        await setRoute(JSON.stringify(route));
+        const { value } = await Storage.get({ key: "Route" });
+
+        if (value) {
+          const routeCollection = JSON.parse(value) as RouteProps[];
+          console.log(routeCollection[0].street);
+          console.log(routeCollection[0]);
+          console.log(routeCollection);
+        }
+
+        setItems(route);
+      });
+  });
+  const setRoute = async (value: string) => {
+    await Storage.set({
+      key: "Route",
+      value: value,
+    });
+  };
+
+  const getRoute = async () => {
+    const { value } = await Storage.get({ key: "Route" });
+    return value;
+  };
+
+  useEffect(() => {
+    // if (searchText.length > 0) {
+    //   const tempItems = items.filter((e) => {
+    //     return (
+    //       e.diets.some((_e) => {
+    //         return _e.name.toLowerCase().includes(searchText.toLowerCase());
+    //       }) || e.address.toLowerCase().includes(searchText.toLowerCase())
+    //     );
+    //   });
+    //   setItems(tempItems);
+    // } else {
+    //   setItems(ItemsStatic);
+    // }
   }, [searchText]);
 
   const [presentAlert] = useIonAlert();
@@ -136,7 +184,9 @@ const Home: React.FC = () => {
   };
 
   const startScan = async (index: number) => {
-    setChoosedItem(items[index]);
+    if (items) {
+      setChoosedItem(items[index]);
+    }
 
     setTimeout(() => {
       BarcodeScanner.enableTorch();
@@ -167,44 +217,51 @@ const Home: React.FC = () => {
                 if (code == e.id) {
                   console.log("if");
                   console.log(code);
-                  const tempChoosedItem = items[index];
 
-                  console.log("choosedItem " + tempChoosedItem.address);
-                  console.log(tempChoosedItem.address);
+                  const tempChoosedItem = items ? items[index] : undefined;
 
-                  tempChoosedItem?.diets.map((_e) => {
-                    if (e.name == _e.name) {
-                      _e.scanned = true;
-                    }
-                  });
+                  if (tempChoosedItem) {
+                    console.log(
+                      `${tempChoosedItem.street}` +
+                        " " +
+                        `${tempChoosedItem.houseNumber}`
+                    );
 
-                  setChoosedItem(tempChoosedItem);
+                    tempChoosedItem?.packages.map((_e) => {
+                      if (e.name == _e.name) {
+                        _e.scanned = true;
+                      }
+                    });
+
+                    setChoosedItem(tempChoosedItem);
+                  }
                 }
               });
             }
+            if (temp) {
+              temp[index].packages?.map((_e) => {
+                if (_e.name == result.content) {
+                  _e.scanned = true;
+                }
+              });
 
-            temp[index].diets?.map((_e) => {
-              if (_e.name == result.content) {
-                _e.scanned = true;
+              setItems(temp);
+
+              setChoosedItem(undefined);
+              setChoosedItem(temp[index]);
+
+              if (
+                temp[index] == choosedItem ||
+                temp[index].packages?.every((e) => {
+                  return e.scanned == false;
+                })
+              ) {
+                Vibration.vibrate(500);
+              } else {
+                new Audio(
+                  "https://www.myinstants.com/media/sounds/applepay.mp3"
+                ).play();
               }
-            });
-
-            setItems(temp);
-
-            setChoosedItem(undefined);
-            setChoosedItem(temp[index]);
-
-            if (
-              temp[index] == choosedItem ||
-              temp[index].diets?.every((e) => {
-                return e.scanned == false;
-              })
-            ) {
-              Vibration.vibrate(500);
-            } else {
-              new Audio(
-                "https://www.myinstants.com/media/sounds/applepay.mp3"
-              ).play();
             }
           } catch (error) {
             console.log(error);
@@ -250,93 +307,10 @@ const Home: React.FC = () => {
     lng: string;
   };
 
-  const [choosedItem, setChoosedItem] = useState<ItemsProps | undefined>();
-  const ItemsStatic: ItemsProps[] = [
-    {
-      address: "Leśny Stok 4",
-      lat: "54,376804",
-      lng: "18,582949",
-      diets: [
-        {
-          name: "Dieta standard 1500kcal",
-          scanned: false,
-        },
-      ],
-    },
-    {
-      address: "Rodzinna 15",
-      lat: "54,376377",
-      lng: "18,58399",
-      diets: [
-        {
-          name: "Slim-1500 KCAL-Standard",
-          scanned: false,
-        },
-        {
-          name: "Slim-2000 KCAL-Wege",
-          scanned: false,
-        },
-      ],
-    },
-    {
-      address: "Reymonta 34/26",
-      lat: "54,37737",
-      lng: "18,583952",
-      diets: [
-        {
-          name: "Dieta wege 2000kcal",
-          scanned: false,
-        },
-      ],
-    },
-    {
-      address: "Dekerta 7/4",
-      lat: "54,38073",
-      lng: "18,598017",
-      diets: [
-        {
-          name: "Dieta wege 2000kcal",
-          scanned: false,
-        },
-      ],
-    },
-    {
-      address: "Kołłątaja 7/47",
-      lat: "54,380356",
-      lng: "18,597185",
-      diets: [
-        {
-          name: "Sport-2000 KCAL",
-          scanned: false,
-        },
-        {
-          name: "Sport-2500 KCAL",
-          scanned: false,
-        },
-        {
-          name: "Slim-2500 KCAL-Wege + Fish",
-          scanned: false,
-        },
-        {
-          name: "Slim-2500 KCAL-diet o bardzo niskiej zawartości glutenu i laktozy",
-          scanned: false,
-        },
-      ],
-    },
-    {
-      address: "Sosnowa 7/31",
-      lat: "54,377438",
-      lng: "18,601013",
-      diets: [
-        {
-          name: "Dieta standard 1500kcal",
-          scanned: false,
-        },
-      ],
-    },
-  ];
+  const [choosedItem, setChoosedItem] = useState<RouteProps | undefined>();
+  const [itemModalInfo, setItemModalInfo] = useState<RouteProps | undefined>();
 
-  const [items, setItems] = useState<ItemsProps[]>(ItemsStatic);
+  const [items, setItems] = useState<RouteProps[] | undefined>([]);
 
   return (
     <IonPage className="container">
@@ -354,21 +328,28 @@ const Home: React.FC = () => {
                 }}
                 onClick={() => setShowOrderInfoModal(false)}
               >
-                Podstawowe informacje
+                Wróć
               </IonButton>
             </IonButtons>
           </IonToolbar>
         </IonHeader>
         <IonContent>
+          <IonListHeader>
+            <IonLabel style={{ fontWeight: 700 }}>
+              Podstawowe informacje
+            </IonLabel>
+          </IonListHeader>
           <IonList>
             <IonItem>
               <IonLabel>Adres</IonLabel>
-              <IonLabel className="wrap">
+              <IonLabel className="wrap capitalize">
                 <div style={{ fontWeight: 700, fontSize: "21px" }}>
-                  Rodzinna 15/2
+                  {`${itemModalInfo?.street} ${itemModalInfo?.houseNumber}`}
                 </div>
 
-                <div style={{ fontWeight: 300 }}>Gdańsk 80-243</div>
+                <div
+                  style={{ fontWeight: 300 }}
+                >{`${itemModalInfo?.postCode} ${itemModalInfo?.city}`}</div>
               </IonLabel>
             </IonItem>
             <IonItem>
@@ -376,8 +357,8 @@ const Home: React.FC = () => {
               <IonLabel
                 color="secondary"
                 onClick={(event) => {
-                  setPhoneNumber("785 234 222");
-                  console.log("loggg");
+                  setPhoneNumber(itemModalInfo ? itemModalInfo.phone : "");
+
                   presentPhoneNumber({
                     event: event.nativeEvent,
                   });
@@ -396,7 +377,7 @@ const Home: React.FC = () => {
                     transform: "translateY(4px)",
                   }}
                 />
-                785 234 222
+                {`${itemModalInfo?.phone}`}
               </IonLabel>
             </IonItem>
           </IonList>
@@ -410,11 +391,11 @@ const Home: React.FC = () => {
                 className="wrap"
                 style={{ fontSize: "20px", fontWeight: 300 }}
               >
-                Lorem ipsum dolor sit, amet consectetur adipisicing elit.
-                Officia nam eum explicabo temporibus ab eius recusandae rem
-                aspernatur molestiae fuga? Lorem ipsum dolor sit, amet
-                consectetudae rem aspernatur molestiae fuga?Lorem ipsum dur
-                molestiae fuga?
+                <span style={{ fontWeight: 400 }}>
+                  {itemModalInfo?.comment}
+                </span>
+                <br />
+                <span>{itemModalInfo?.commentExtra}</span>
               </IonLabel>
             </IonItem>
           </IonList>
@@ -422,17 +403,17 @@ const Home: React.FC = () => {
             <IonLabel style={{ fontWeight: 700 }}>Diety</IonLabel>
           </IonListHeader>
           <IonList>
-            <IonItem>
-              <IonLabel>Standard 1500</IonLabel>
-            </IonItem>
-
-            <IonItem>
-              <IonLabel>Wege 2000</IonLabel>
-            </IonItem>
+            {itemModalInfo?.packages.map((e) => {
+              return (
+                <IonItem>
+                  <IonLabel>{e.name}</IonLabel>
+                </IonItem>
+              );
+            })}
           </IonList>
           <IonListHeader>
             <IonLabel style={{ fontWeight: 700 }}>
-              Numer klienta: 03353
+              Numer Klienta: {`${itemModalInfo?.customerId}`}
             </IonLabel>
           </IonListHeader>
         </IonContent>
@@ -484,15 +465,13 @@ const Home: React.FC = () => {
         className={"background-lightgrey " + (scanning ? "hide-bg" : "")}
       >
         <IonList className="list-order">
-          {items.map((e, i) => {
+          {items?.map((e, i) => {
             return (
               <IonItem
                 className="item-container"
-                disabled={
-                  e?.diets?.every((_e) => {
-                    return _e.scanned;
-                  }) && !e.photo
-                }
+                disabled={e?.packages?.every((_e) => {
+                  return _e.scanned;
+                })}
                 lines="full"
               >
                 <IonLabel>
@@ -502,7 +481,7 @@ const Home: React.FC = () => {
                       color="primary"
                       slot="start"
                       icon={
-                        e?.diets?.every((_e) => {
+                        e?.packages?.every((_e) => {
                           return _e.scanned;
                         })
                           ? cameraOutline
@@ -510,7 +489,7 @@ const Home: React.FC = () => {
                       }
                       onClick={(event) => {
                         if (
-                          e?.diets?.every((_e) => {
+                          e?.packages?.every((_e) => {
                             return _e.scanned;
                           })
                         ) {
@@ -531,13 +510,14 @@ const Home: React.FC = () => {
                       className="wrap"
                       onClick={() => {
                         setShowOrderInfoModal(true);
+                        setItemModalInfo(e);
                       }}
                     >
-                      <h4 className="address">{e.address}</h4>
-                      <p>Gdańsk 42-500</p>
+                      <h4 className="address capitalize">{`${e.street} ${e.houseNumber}`}</h4>
+                      <p className="capitalize">{`${e.postCode} ${e.city}`}</p>
                     </IonLabel>
                   </IonItem>
-                  {e.diets?.map((_e) => {
+                  {e.packages?.map((_e) => {
                     return (
                       <IonItem className="item-diet" lines="none">
                         <IonIcon
@@ -557,7 +537,7 @@ const Home: React.FC = () => {
                   slot="end"
                   icon={navigateOutline}
                   onClick={(event) => {
-                    setAddress(e.address);
+                    setAddress(`${e.street} ${e.houseNumber}`);
                     present({
                       event: event.nativeEvent,
                     });
@@ -608,7 +588,7 @@ const Home: React.FC = () => {
 
       {scanning ? (
         <IonFooter>
-          {choosedItem?.diets.every((e) => {
+          {choosedItem?.packages.every((e) => {
             return e.scanned;
           }) ? (
             <IonButton
@@ -639,13 +619,13 @@ const Home: React.FC = () => {
           <IonItem className="scan-info-container" lines="full">
             <IonLabel style={{ marginBottom: "0" }}>
               <IonItem lines="none">
-                <IonLabel>
-                  <h4>{choosedItem?.address}</h4>
-                  <p>Gdańsk 42-500</p>
+                <IonLabel className="capitalize">
+                  <h4>{`${choosedItem?.street} ${choosedItem?.houseNumber}`}</h4>
+                  <p>{`${choosedItem?.postCode} ${choosedItem?.city}`}</p>
                 </IonLabel>
               </IonItem>
               <div className="diets-container">
-                {choosedItem?.diets?.map((_e) => {
+                {choosedItem?.packages?.map((_e) => {
                   return (
                     <IonItem
                       button
