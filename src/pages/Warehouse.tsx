@@ -64,6 +64,9 @@ const Warehouse: React.FC = () => {
   const [searchText, setSearchText] = useState("");
 
   const [dietsWithNumber, setDietsWithNumber] = useState<DietsDictionary[]>([]);
+  const [dietsWithNumberStatic, setDietsWithNumberStatic] = useState<
+    DietsDictionary[]
+  >([]);
 
   type DietsDictionary = {
     name: string;
@@ -161,6 +164,7 @@ const Warehouse: React.FC = () => {
           a.name.localeCompare(b.name)
         );
         setDietsWithNumber(arr);
+        setDietsWithNumberStatic(arr);
       });
   });
   const setRoute = async (value: string) => {
@@ -170,24 +174,25 @@ const Warehouse: React.FC = () => {
     });
   };
 
-  const getRoute = async () => {
+  const assignRouteFromStorageToState = async () => {
     const { value } = await Storage.get({ key: "Route" });
-    return value;
+
+    if (value) {
+      const routeCollection = JSON.parse(value) as RouteProps[];
+      setItems(routeCollection);
+    }
   };
 
   useEffect(() => {
-    // if (searchText.length > 0) {
-    //   const tempItems = items.filter((e) => {
-    //     return (
-    //       e.diets.some((_e) => {
-    //         return _e.name.toLowerCase().includes(searchText.toLowerCase());
-    //       }) || e.address.toLowerCase().includes(searchText.toLowerCase())
-    //     );
-    //   });
-    //   setItems(tempItems);
-    // } else {
-    //   setItems(ItemsStatic);
-    // }
+    if (searchText.length > 0) {
+      const tempItems = dietsWithNumberStatic?.filter((e) => {
+        return e.name.toLowerCase().includes(searchText.toLowerCase());
+      });
+      setDietsWithNumber(tempItems);
+    } else {
+      console.log(dietsWithNumberStatic);
+      setDietsWithNumber(dietsWithNumberStatic);
+    }
   }, [searchText]);
 
   const [presentAlert] = useIonAlert();
@@ -218,16 +223,10 @@ const Warehouse: React.FC = () => {
     return false;
   };
 
-  const startScan = async (index: number) => {
-    if (items) {
-      setChoosedItem(items[index]);
-    }
-
+  const startScan = async () => {
     setTimeout(() => {
       BarcodeScanner.enableTorch();
     }, 150);
-
-    let newScan = true;
 
     await BarcodeScanner.startScanning(
       { targetedFormats: [SupportedFormat.QR_CODE] },
@@ -459,7 +458,15 @@ const Warehouse: React.FC = () => {
       )}
       <IonFooter>
         <IonToolbar>
-          <IonTitle></IonTitle>
+          <IonIcon
+            icon={barcodeOutline}
+            className="icon-scan"
+            color="primary"
+            onClick={(e) => {
+              setScanning(true);
+              startScan();
+            }}
+          />
         </IonToolbar>
       </IonFooter>
     </IonPage>

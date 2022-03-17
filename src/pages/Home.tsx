@@ -121,12 +121,10 @@ const Home: React.FC = () => {
 
         if (value) {
           const routeCollection = JSON.parse(value) as RouteProps[];
-          console.log(routeCollection[0].street);
-          console.log(routeCollection[0]);
-          console.log(routeCollection);
         }
 
         setItems(route);
+        setItemsStatic(route);
       });
   });
   const setRoute = async (value: string) => {
@@ -136,24 +134,28 @@ const Home: React.FC = () => {
     });
   };
 
-  const getRoute = async () => {
+  const assignRouteFromStorageToState = async () => {
     const { value } = await Storage.get({ key: "Route" });
-    return value;
+
+    if (value) {
+      const routeCollection = JSON.parse(value) as RouteProps[];
+      setItems(routeCollection);
+    }
   };
 
   useEffect(() => {
-    // if (searchText.length > 0) {
-    //   const tempItems = items.filter((e) => {
-    //     return (
-    //       e.diets.some((_e) => {
-    //         return _e.name.toLowerCase().includes(searchText.toLowerCase());
-    //       }) || e.address.toLowerCase().includes(searchText.toLowerCase())
-    //     );
-    //   });
-    //   setItems(tempItems);
-    // } else {
-    //   setItems(ItemsStatic);
-    // }
+    if (searchText.length > 0) {
+      const tempItems = itemsStatic?.filter((e) => {
+        return (
+          e.packages.some((_e) => {
+            return _e.name.toLowerCase().includes(searchText.toLowerCase());
+          }) || e.street.toLowerCase().includes(searchText.toLowerCase())
+        );
+      });
+      setItems(tempItems);
+    } else {
+      setItems(itemsStatic);
+    }
   }, [searchText]);
 
   const [presentAlert] = useIonAlert();
@@ -227,12 +229,7 @@ const Home: React.FC = () => {
                         " " +
                         `${tempChoosedItem.houseNumber}`
                     );
-                    console.log("tempChoosedItem.packages");
-                    console.log(tempChoosedItem.packages);
-                    console.log("tempChoosedItem.packages[0].name");
-                    console.log(tempChoosedItem.packages[0].name);
-                    console.log("e.name");
-                    console.log(e.name);
+
                     tempChoosedItem?.packages.map((_e) => {
                       if (e.id == _e.code) {
                         _e.scanned = true;
@@ -317,6 +314,7 @@ const Home: React.FC = () => {
   const [itemModalInfo, setItemModalInfo] = useState<RouteProps | undefined>();
 
   const [items, setItems] = useState<RouteProps[] | undefined>([]);
+  const [itemsStatic, setItemsStatic] = useState<RouteProps[] | undefined>([]);
 
   return (
     <IonPage className="container">
