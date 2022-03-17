@@ -61,9 +61,7 @@ const Login: React.FC = () => {
       <IonContent fullscreen={true} className={"background-lightgrey "}>
         <IonImg src={brokulImage} className="image" />
         <div className="container center">
-          <IonItemDivider className="header">
-            Zaloguj się do aplikacji
-          </IonItemDivider>
+          <IonLabel className="header">Zaloguj się do aplikacji</IonLabel>
           <IonItem style={{ marginBottom: "5px" }}>
             <IonInput
               value={text}
