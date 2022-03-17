@@ -24,6 +24,7 @@ import "./theme/fonts.css";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Warehouse from "./pages/Warehouse";
 
 setupIonicReact();
 
@@ -32,6 +33,7 @@ const App: React.FC = () => (
     <IonReactRouter>
       <IonRouterOutlet>
         <Route path="/" exact={true} component={Login} />
+        <Route path="/Warehouse" exact={true} component={Warehouse} />
         <Route path="/home" exact={true} component={Home} />
       </IonRouterOutlet>
     </IonReactRouter>
