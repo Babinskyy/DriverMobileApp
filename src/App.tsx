@@ -1,5 +1,5 @@
 import { Redirect, Route } from "react-router-dom";
-import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
+import { IonApp, IonRouterOutlet, setupIonicReact, useIonLoading, useIonViewWillEnter } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
 /* Core CSS required for Ionic components to work properly */
@@ -25,19 +25,47 @@ import "./theme/fonts.css";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Warehouse from "./pages/Warehouse";
+import { useEffect, useState } from "react";
+
+import api from './services/api';
+import auth from './services/auth.service';
+
+import { User } from "./services/userProps";
 
 setupIonicReact();
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonRouterOutlet>
-        <Route path="/" exact={true} component={Login} />
-        <Route path="/Warehouse" exact={true} component={Warehouse} />
-        <Route path="/home" exact={true} component={Home} />
-      </IonRouterOutlet>
-    </IonReactRouter>
-  </IonApp>
-);
+const App: React.FC = () => {
+
+  // const [presentLoading, dismissLoading] = useIonLoading();
+
+  // useIonViewWillEnter(() => {
+
+  //   async function checkAuthentication() {
+  //     let user = await auth.getCurrentUser() as User;
+
+  //     if(!user.jwtToken)
+  //     {
+        
+  //     }
+
+  //   }
+
+  //   checkAuthentication()
+
+  // })
+
+  return (
+    <IonApp>
+      <IonReactRouter>
+        <IonRouterOutlet>
+          <Route path="/login" exact={true} component={Login} />
+          <Route path="/Warehouse" exact={true} component={Warehouse} />
+          <Route path="/home" exact={true} component={Home} />
+        </IonRouterOutlet>
+      </IonReactRouter>
+    </IonApp>
+  )
+
+};
 
 export default App;

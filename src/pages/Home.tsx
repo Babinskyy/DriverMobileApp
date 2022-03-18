@@ -40,6 +40,7 @@ import {
   closeOutline,
   flashlightOutline,
   navigateOutline,
+  reorderFourOutline,
   searchOutline,
 } from "ionicons/icons";
 import React, { useEffect, useRef, useState } from "react";
@@ -49,6 +50,10 @@ import "./Home.scss";
 
 import axios from "axios";
 import { Storage } from "@capacitor/storage";
+import { Virtuoso } from 'react-virtuoso';
+
+import api from './../services/api';
+import auth from './../services/auth.service';
 
 const Home: React.FC = () => {
   const headerRef = useRef<HTMLIonHeaderElement>(null);
@@ -63,7 +68,7 @@ const Home: React.FC = () => {
 
   const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
 
-  const [searchText, setSearchText] = useState("");
+  // const [searchText, setSearchText] = useState("");
 
   const contentRef = useRef<HTMLIonContentElement>(null);
 
@@ -78,6 +83,7 @@ const Home: React.FC = () => {
     code: string;
   };
   type RouteProps = {
+    id: number;
     city: string;
     comment: string;
     commentExtra: string;
@@ -113,9 +119,21 @@ const Home: React.FC = () => {
     const { value } = await Storage.get({ key: "Diets" });
     return value;
   };
+  
 
-  useIonViewWillEnter(() => {
-    setLoadItemsCount(10);
+  useIonViewWillEnter(async () => {
+    
+    let currentUser = await auth.getCurrentUser();
+
+    console.log(currentUser)
+
+    // auth.login("driver", "driver123").then((response) => {
+    //   console.log(response)
+    // });
+
+    // api.get("/Diets").then((response) => {
+    //   console.log(response.data)
+    // })
 
     axios
       .get("https://broccoliapi.azurewebsites.net/RouteDriver")
@@ -149,7 +167,7 @@ const Home: React.FC = () => {
     }
   };
 
-  useEffect(() => {
+  const filterItems = (searchText: string) => {
     if (searchText.length > 0) {
       const tempItems = itemsStatic?.filter((e) => {
         return (
@@ -163,12 +181,12 @@ const Home: React.FC = () => {
       setItems(itemsStatic);
     }
 
-    if (contentRef.current) {
-      contentRef.current.scrollToTop();
-    }
+    // if (contentRef.current) {
+    //   contentRef.current.scrollToTop();
+    // }
 
-    setLoadItemsCount(10);
-  }, [searchText]);
+    // setLoadItemsCount(10);
+  };
 
   const [presentAlert] = useIonAlert();
 
@@ -452,12 +470,19 @@ const Home: React.FC = () => {
         mode={"md"}
       >
         <IonToolbar>
-          <IonTitle>
             <IonSearchbar
-              value={searchText}
-              onIonChange={(e) => setSearchText(e.detail.value!)}
+              placeholder="Wyszukaj"
+              style={{
+                "--box-shadow": "none",
+                "--background": "none"
+              }}
+              onIonChange={(e) => filterItems(e.detail.value!)}
             ></IonSearchbar>
-          </IonTitle>
+            <IonButtons slot="end">
+                <IonButton onClick={() => console.log("")}>
+                  <IonIcon slot="icon-only" icon={reorderFourOutline} />
+                </IonButton>
+              </IonButtons>
         </IonToolbar>
       </IonHeader>
 
@@ -490,7 +515,7 @@ const Home: React.FC = () => {
         fullscreen={true}
         className={"background-lightgrey " + (scanning ? "hide-bg" : "")}
       >
-        <IonList className="list-order">
+        {/* <IonList className="list-order">
           {items?.slice(0, loadItemsCount).map((e, i) => {
             return (
               <IonItem
@@ -582,7 +607,105 @@ const Home: React.FC = () => {
             loadingSpinner="bubbles"
             loadingText="Loading more data..."
           ></IonInfiniteScrollContent>
-        </IonInfiniteScroll>
+        </IonInfiniteScroll> */}
+
+
+        <Virtuoso
+        overscan={500}
+        className="list-order"
+        style={{ height: '100%' }}
+        totalCount={items?.length}
+        itemContent={(i) => {
+
+          const e = items ? items[i] : undefined;
+
+          return (
+            <IonItem
+              className="item-container"
+              disabled={e?.packages?.every((_e) => {
+                return _e.scanned;
+              })}
+              lines="full"
+            >
+              <div className="counter">
+                {i + 1}/{items?.length}
+              </div>
+              <IonLabel>
+                <IonItem lines="none">
+                  <IonIcon
+                    className="icon-scan"
+                    color="primary"
+                    slot="start"
+                    icon={
+                      e?.packages?.every((_e) => {
+                        return _e.scanned;
+                      })
+                        ? cameraOutline
+                        : barcodeOutline
+                    }
+                    onClick={(event) => {
+                      if (
+                        e?.packages?.every((_e) => {
+                          return _e.scanned;
+                        })
+                      ) {
+                      } else {
+                        checkPermission();
+
+                        const body = document.querySelector("body");
+                        if (body) {
+                          body.style.background = "transparent";
+                        }
+                        setScanning(true);
+                        startScan(i);
+                      }
+                    }}
+                  />
+
+                  <IonLabel
+                    className="wrap"
+                    onClick={() => {
+                      setShowOrderInfoModal(true);
+                      setItemModalInfo(e);
+                    }}
+                  >
+                    <h4 className="address capitalize">{`${e?.street} ${e?.houseNumber}`}</h4>
+                    <p className="capitalize">{`${e?.postCode} ${e?.city}`}</p>
+                  </IonLabel>
+                  <IonIcon
+                    className="icon-navigation"
+                    color="primary"
+                    slot="end"
+                    icon={navigateOutline}
+                    onClick={(event) => {
+                      setAddress(`${e?.street} ${e?.houseNumber}`);
+                      present({
+                        event: event.nativeEvent,
+                      });
+                    }}
+                  />
+                </IonItem>
+                {e?.packages?.map((_e) => {
+                  return (
+                    <IonItem className="item-diet" lines="none">
+                      <IonIcon
+                        color={_e.scanned ? "success" : "danger"}
+                        src={_e.scanned ? checkmarkOutline : closeOutline}
+                      />
+                      <IonLabel style={{ margin: "0" }} className="wrap">
+                        {_e.name}
+                      </IonLabel>
+                    </IonItem>
+                  );
+                })}
+              </IonLabel>
+            </IonItem>
+          );
+        }}
+
+      />
+
+
       </IonContent>
 
       {scanning ? (
@@ -651,7 +774,7 @@ const Home: React.FC = () => {
           )}
 
           <IonItem className="scan-info-container" lines="full">
-            <IonLabel style={{ marginBottom: "0" }}>
+            <IonLabel style={{ marginBottom: "5px", marginTop: "0" }}>
               <IonItem lines="none">
                 <IonLabel className="capitalize">
                   <h4>{`${choosedItem?.street} ${choosedItem?.houseNumber}`}</h4>

@@ -28,7 +28,9 @@ import {
   IonSearchbar,
   IonTitle,
   IonToolbar,
+  NavContext,
   useIonAlert,
+  useIonLoading,
   useIonPopover,
   useIonViewWillEnter,
   useIonViewWillLeave,
@@ -43,7 +45,7 @@ import {
   navigateOutline,
   searchOutline,
 } from "ionicons/icons";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import MapPopover from "../components/MapPopover";
 import PhonePopover from "../components/PhonePopover";
 import "./Login.scss";
@@ -53,8 +55,22 @@ import { Storage } from "@capacitor/storage";
 
 import brokulImage from "../images/brokul-athlete.png";
 
+import api from './../services/api';
+import auth from './../services/auth.service';
+
+import { User } from "./../services/userProps";
+
 const Login: React.FC = () => {
-  const [text, setText] = useState<string>();
+
+
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
+  const {navigate} = useContext(NavContext);
+
+  const [present] = useIonAlert();
+  const [presentLoading, dismissLoading] = useIonLoading();
+
 
   return (
     <IonPage>
@@ -64,22 +80,51 @@ const Login: React.FC = () => {
         <div className="container center">
           <IonItem style={{ marginBottom: "5px" }}>
             <IonInput
-              value={text}
+              value={username}
               placeholder="Login"
-              onIonChange={(e) => setText(e.detail.value!)}
+              onIonChange={(e) => setUsername(e.detail.value!)}
             ></IonInput>
           </IonItem>
 
           <IonItem style={{}}>
             <IonInput
-              value={text}
+              value={password}
               placeholder="Hasło"
-              onIonChange={(e) => setText(e.detail.value!)}
+              onIonChange={(e) => setPassword(e.detail.value!)}
               type="password"
             ></IonInput>
           </IonItem>
           <IonButton
-            routerLink="/home"
+            onClick={async () => {
+
+              presentLoading({
+                spinner: "crescent",
+                message: 'Logowanie...',
+                duration: 10000
+              })
+
+              // navigate("/Home", "forward", "replace")
+
+              await auth.login(username, password).then((response) => {
+                const data = response as User;
+
+                dismissLoading();
+
+                if(data.jwtToken)
+                {
+                  navigate("/Home", "forward", "replace")
+                }
+                else
+                {
+                  present('Niepoprawne dane logowanie', [{ text: 'Zamknij' }])
+                }
+
+              }).catch((exception) => {
+                dismissLoading();
+                present('Niepoprawne dane logowanie', [{ text: 'Zamknij' }])
+              });
+
+            }}
             expand="block"
             color="primary"
             style={{ marginTop: "50px" }}

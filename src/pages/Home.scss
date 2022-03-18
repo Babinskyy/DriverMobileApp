@@ -17,8 +17,18 @@
 
 		.item-container {
 
+			--padding-start: 0;
 			--border-color: #919191;
 			position: relative;
+
+			.counter {
+				position: absolute;
+				z-index: 3;
+				right: 6px;
+				top: 4px;
+				color: var(--ion-color-medium);
+				font-size: 11px;
+			}
 
 			.icon-scan {
 
@@ -28,7 +38,7 @@
 			}
 
 			.address {
-				font-size: 24px;
+				font-size: 20px;
 				font-weight: 700;
 			}
 
