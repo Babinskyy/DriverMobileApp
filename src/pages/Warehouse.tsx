@@ -246,56 +246,6 @@ const Warehouse: React.FC = () => {
               const collection = JSON.parse(val) as DietsProps[];
 
               const code = codes.split("/")[0];
-
-              collection.map((e) => {
-                if (code == e.id) {
-                  console.log("if");
-                  console.log(code);
-
-                  const tempChoosedItem = items ? items[index] : undefined;
-
-                  if (tempChoosedItem) {
-                    console.log(
-                      `${tempChoosedItem.street}` +
-                        " " +
-                        `${tempChoosedItem.houseNumber}`
-                    );
-
-                    tempChoosedItem?.packages.map((_e) => {
-                      if (e.id == _e.code) {
-                        _e.scanned = true;
-                      }
-                    });
-
-                    setChoosedItem(tempChoosedItem);
-                  }
-                }
-              });
-            }
-            if (temp) {
-              temp[index].packages?.map((_e) => {
-                if (_e.name == result.content) {
-                  _e.scanned = true;
-                }
-              });
-
-              setItems(temp);
-
-              setChoosedItem(undefined);
-              setChoosedItem(temp[index]);
-
-              if (
-                temp[index] == choosedItem ||
-                temp[index].packages?.every((e) => {
-                  return e.scanned == false;
-                })
-              ) {
-                Vibration.vibrate(500);
-              } else {
-                new Audio(
-                  "https://www.myinstants.com/media/sounds/applepay.mp3"
-                ).play();
-              }
             }
           } catch (error) {
             console.log(error);

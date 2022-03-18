@@ -14,6 +14,8 @@ import {
   IonFooter,
   IonHeader,
   IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonItem,
   IonLabel,
   IonList,
@@ -63,6 +65,8 @@ const Home: React.FC = () => {
 
   const [searchText, setSearchText] = useState("");
 
+  const contentRef = useRef<HTMLIonContentElement>(null);
+
   type DietsProps = {
     id: string;
     category: string;
@@ -111,6 +115,8 @@ const Home: React.FC = () => {
   };
 
   useIonViewWillEnter(() => {
+    setLoadItemsCount(10);
+
     axios
       .get("https://broccoliapi.azurewebsites.net/RouteDriver")
       .then(async (response) => {
@@ -156,6 +162,12 @@ const Home: React.FC = () => {
     } else {
       setItems(itemsStatic);
     }
+
+    if (contentRef.current) {
+      contentRef.current.scrollToTop();
+    }
+
+    setLoadItemsCount(10);
   }, [searchText]);
 
   const [presentAlert] = useIonAlert();
@@ -316,6 +328,15 @@ const Home: React.FC = () => {
   const [items, setItems] = useState<RouteProps[] | undefined>([]);
   const [itemsStatic, setItemsStatic] = useState<RouteProps[] | undefined>([]);
 
+  const [loadItemsCount, setLoadItemsCount] = useState(10);
+
+  const [isInfiniteDisabled, setInfiniteDisabled] = useState(false);
+  const loadData = (ev: any) => {
+    setLoadItemsCount(loadItemsCount + 10);
+    ev.target.complete();
+    console.log(loadItemsCount);
+  };
+
   return (
     <IonPage className="container">
       <IonModal
@@ -465,11 +486,12 @@ const Home: React.FC = () => {
       )}
 
       <IonContent
+        ref={contentRef}
         fullscreen={true}
         className={"background-lightgrey " + (scanning ? "hide-bg" : "")}
       >
         <IonList className="list-order">
-          {items?.map((e, i) => {
+          {items?.slice(0, loadItemsCount).map((e, i) => {
             return (
               <IonItem
                 className="item-container"
@@ -547,12 +569,20 @@ const Home: React.FC = () => {
                     });
                   }}
                 />
-                <IonRippleEffect />
-                <IonReorder slot="end" />
               </IonItem>
             );
           })}
         </IonList>
+        <IonInfiniteScroll
+          onIonInfinite={loadData}
+          threshold="200px"
+          disabled={isInfiniteDisabled}
+        >
+          <IonInfiniteScrollContent
+            loadingSpinner="bubbles"
+            loadingText="Loading more data..."
+          ></IonInfiniteScrollContent>
+        </IonInfiniteScroll>
       </IonContent>
 
       {scanning ? (
