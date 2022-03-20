@@ -61,11 +61,9 @@ import auth from "./../services/auth.service";
 import { User } from "../services/userProps";
 
 const Home: React.FC = () => {
-
   const { navigate } = useContext(NavContext);
 
   useEffect(() => {
-
     const getUser = async () => {
       const user = (await auth.getCurrentUser()) as User | undefined;
 
@@ -76,7 +74,6 @@ const Home: React.FC = () => {
 
     getUser();
   }, []);
-
 
   const headerRef = useRef<HTMLIonHeaderElement>(null);
 
@@ -371,7 +368,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <IonPage className="container" id="main" >
+    <IonPage className="container" id="main">
       <IonModal
         className="modal1"
         isOpen={showOrderInfoModal}
@@ -498,12 +495,11 @@ const Home: React.FC = () => {
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton> */}
             <IonMenuToggle>
-            <IonButton>
-              <IonIcon slot="icon-only" icon={reorderFourOutline} />
-            </IonButton>
-          </IonMenuToggle>
+              <IonButton>
+                <IonIcon slot="icon-only" icon={reorderFourOutline} />
+              </IonButton>
+            </IonMenuToggle>
           </IonButtons>
-          
         </IonToolbar>
       </IonHeader>
 
@@ -635,7 +631,7 @@ const Home: React.FC = () => {
         ) : (
           <Virtuoso
             // overscan={4000}
-            overscan={500}
+            overscan={2000}
             className="list-order"
             style={{ height: "100%" }}
             totalCount={items?.length}
@@ -734,7 +730,16 @@ const Home: React.FC = () => {
       ) : (
         <IonFooter>
           <IonItem>
-            <IonLabel slot="end">{items?.length}</IonLabel>
+            <IonLabel slot="end">
+              {
+                items?.filter((e) => {
+                  return e.packages?.every((_e) => {
+                    return _e.scanned;
+                  });
+                }).length
+              }
+              /{items?.length}
+            </IonLabel>
           </IonItem>
         </IonFooter>
       )}

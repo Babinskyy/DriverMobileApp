@@ -46,72 +46,16 @@ import auth from "./services/auth.service";
 
 import { User } from "./services/userProps";
 import Startup from "./components/Startup";
+import Menu from "./components/Menu";
 
 setupIonicReact();
 
 const App: React.FC = () => {
-  // const [present, dismiss] = useIonLoading();
-  // const ref = useRef<IonReactRouter>(null);
-
-  // const { navigate } = useContext(NavContext);
-
-  // useEffect(() => {
-  //   if (ref.current) {
-  //     present({
-  //       duration: 10000,
-  //     });
-
-  //     const getUser = async () => {
-  //       const user = (await auth.getCurrentUser()) as User | undefined;
-
-  //       dismiss();
-
-  //       if (user) {
-  //         if (
-  //           ref.current?.history.location.pathname
-  //             .toLowerCase()
-  //             .startsWith("/login")
-  //         ) {
-  //           navigate("/home", "root", "replace");
-  //         }
-  //       } else {
-  //         if (
-  //           !ref.current?.history.location.pathname
-  //             .toLowerCase()
-  //             .startsWith("/login")
-  //         ) {
-  //           navigate("/login", "root", "replace");
-  //         }
-  //       }
-  //     };
-
-  //     getUser();
-  //   }
-  // }, []);
-
   return (
     <IonApp>
-
-      <IonMenu side="start" menuId="first" contentId="main">
-        {/* <IonHeader>
-          <IonToolbar color="primary">
-            <IonTitle>Example Menu</IonTitle>
-          </IonToolbar>
-        </IonHeader> */}
-        <IonContent>
-          <IonList>
-            <IonItem button color="danger" onClick={async () => {
-
-              auth.logout().finally(() => {
-                window.location.replace("/login");
-              });
-
-            }} >Wyloguj</IonItem>
-          </IonList>
-        </IonContent>
-      </IonMenu>
-
       <IonReactRouter>
+        <Menu />
+
         <IonRouterOutlet>
           <Route path="/login" exact={true} component={Login} />
           <Route path="/Warehouse" exact={true} component={Warehouse} />
