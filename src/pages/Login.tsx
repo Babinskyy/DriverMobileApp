@@ -105,7 +105,12 @@ const Login: React.FC = () => {
 
               // navigate("/Home", "forward", "replace")
 
+              
+
               await auth.login(username, password).then((response) => {
+
+                console.log(auth);
+
                 const data = response as User;
 
                 dismissLoading();

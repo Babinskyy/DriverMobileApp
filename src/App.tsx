@@ -36,36 +36,22 @@ setupIonicReact();
 
 const App: React.FC = () => {
 
-  // const [presentLoading, dismissLoading] = useIonLoading();
-
-  // useIonViewWillEnter(() => {
-
-  //   async function checkAuthentication() {
-  //     let user = await auth.getCurrentUser() as User;
-
-  //     if(!user.jwtToken)
-  //     {
-        
-  //     }
-
-  //   }
-
-  //   checkAuthentication()
-
-  // })
-
   return (
     <IonApp>
       <IonReactRouter>
         <IonRouterOutlet>
+          <Route
+            path="/"
+            exact={true}
+            render={() => <Redirect to={"/login"} />}
+          />
           <Route path="/login" exact={true} component={Login} />
           <Route path="/Warehouse" exact={true} component={Warehouse} />
           <Route path="/home" exact={true} component={Home} />
         </IonRouterOutlet>
       </IonReactRouter>
     </IonApp>
-  )
-
+  );
 };
 
 export default App;

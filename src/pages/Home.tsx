@@ -20,6 +20,7 @@ import {
   IonLabel,
   IonList,
   IonListHeader,
+  IonLoading,
   IonModal,
   IonPage,
   IonReorder,
@@ -72,6 +73,11 @@ const Home: React.FC = () => {
 
   const contentRef = useRef<HTMLIonContentElement>(null);
 
+
+  const [loadingList, setLoadingList] = useState(true);
+
+
+
   type DietsProps = {
     id: string;
     category: string;
@@ -100,8 +106,8 @@ const Home: React.FC = () => {
   };
 
   useIonViewWillEnter(() => {
-    axios
-      .get("https://broccoliapi.azurewebsites.net/Diets")
+    api
+      .get("diets")
       .then(async (response) => {
         const diets = response.data.data.diets as DietsProps[];
         await setDiets(JSON.stringify(diets));
@@ -122,23 +128,10 @@ const Home: React.FC = () => {
   
 
   useIonViewWillEnter(async () => {
-    
-    let currentUser = await auth.getCurrentUser();
 
-    console.log(currentUser)
-
-    // auth.login("driver", "driver123").then((response) => {
-    //   console.log(response)
-    // });
-
-    // api.get("/Diets").then((response) => {
-    //   console.log(response.data)
-    // })
-
-    axios
-      .get("https://broccoliapi.azurewebsites.net/RouteDriver")
+    api.get("routes/")
       .then(async (response) => {
-        const route = response.data.data.route as RouteProps[];
+        const route = response.data as RouteProps[];
 
         await setRoute(JSON.stringify(route));
         const { value } = await Storage.get({ key: "Route" });
@@ -149,7 +142,11 @@ const Home: React.FC = () => {
 
         setItems(route);
         setItemsStatic(route);
+
+        setLoadingList(false);
+
       });
+
   });
   const setRoute = async (value: string) => {
     await Storage.set({
@@ -610,7 +607,13 @@ const Home: React.FC = () => {
         </IonInfiniteScroll> */}
 
 
-        <Virtuoso
+        
+        {
+          loadingList
+          ?
+          <IonLoading isOpen={loadingList} />
+          :
+          <Virtuoso
         overscan={500}
         className="list-order"
         style={{ height: '100%' }}
@@ -704,6 +707,8 @@ const Home: React.FC = () => {
         }}
 
       />
+        }
+
 
 
       </IonContent>

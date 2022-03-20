@@ -1,21 +1,24 @@
 import axios from "axios";
 import TokenService from "./token.service";
+import { User } from "./userProps";
+
 const instance = axios.create({
-  baseURL: "http://localhost:4000",
+  withCredentials: true,
+  baseURL: "https://broccoliapi.azurewebsites.net",
   headers: {
     "Content-Type": "application/json",
   },
 });
 instance.interceptors.request.use(
-  (config) => {
-    const token = TokenService.getLocalAccessToken();
+  async (config) => {
+    const token = await TokenService.getLocalAccessToken();
     if (token && config.headers) {
       config.headers["Authorization"] = 'Bearer ' + token;  // for Spring Boot back-end
       // config.headers["x-access-token"] = token; // for Node.js Express back-end
     }
     return config;
   },
-  (error) => {
+  async (error) => {
     return Promise.reject(error);
   }
 );
@@ -25,18 +28,17 @@ instance.interceptors.response.use(
   },
   async (err) => {
     const originalConfig = err.config;
-    if (originalConfig.url !== "/auth/signin" && err.response) {
+    if (originalConfig.url !== "/accounts/authenticate" && err.response) {
       // Access Token was expired
       if (err.response.status === 401 && !originalConfig._retry) {
         originalConfig._retry = true;
         try {
-          const rs = await instance.post("/auth/refreshtoken", {
-            refreshToken: TokenService.getLocalRefreshToken(),
-          });
-          const { accessToken } = rs.data;
-          TokenService.updateLocalAccessToken(accessToken);
+          const rs = await instance.post("/accounts/refresh-token");
+          const { jwtToken } = rs.data as User;
+          TokenService.updateLocalAccessToken(jwtToken);
           return instance(originalConfig);
         } catch (_error) {
+          window.location.replace("/login");
           return Promise.reject(_error);
         }
       }

@@ -4,18 +4,28 @@ import { User } from "./userProps"
 class TokenService {
   async getLocalRefreshToken() {
       const { value } = await Storage.get({ key: "user" });
-    const user = JSON.parse(value ? value : "");
-    return user?.refreshToken;
+    const user = JSON.parse(value ? value : "") as User | undefined;
+    return user?.jwtToken;
   }
   async getLocalAccessToken() {
-    const { value } = await Storage.get({ key: "user" });
-    const user = JSON.parse(value ? value : "");
-    return user?.accessToken;
+
+    try {
+      const { value } = await Storage.get({ key: "user" });
+      const user = JSON.parse(value ? value : "") as User | undefined;
+ 
+      return user?.jwtToken;
+    } catch (error) {
+      return undefined;
+    }
+    
   }
   async updateLocalAccessToken(token: string) {
     const { value } = await Storage.get({ key: "user" });
-    const user = JSON.parse(value ? value : "");
-    user.accessToken = token;
+    const user = JSON.parse(value ? value : "")  as User | undefined;
+    if(user)
+    {
+      user.jwtToken = token;
+    }
     await Storage.set({
         key: "user",
         value: JSON.stringify(user),

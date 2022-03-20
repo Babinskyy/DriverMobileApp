@@ -5,10 +5,10 @@ import { User } from "./userProps"
 class AuthService {
   login(username: string, password: string) {
     return api
-      .post("/Accounts/authenticate", {
+      .post("/accounts/authenticate", {
         username,
         password
-      })
+      },)
       .then(response => {
           const data = response.data as User;
         if (response.data.jwtToken) {
@@ -20,11 +20,12 @@ class AuthService {
   logout() {
     TokenService.removeUser();
   }
-  register(username: string, email: string, password: string) {
-    return api.post("/auth/signup", {
+  register(username: string, password: string, confirmPassword: string, acceptTerms: boolean = true) {
+    return api.post("/accounts/register", {
       username,
-      email,
-      password
+      password,
+      confirmPassword,
+      acceptTerms
     });
   }
   getCurrentUser() {
