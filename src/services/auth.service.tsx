@@ -18,7 +18,9 @@ class AuthService {
       });
   }
   logout() {
-    TokenService.removeUser();
+    return api.post("/accounts/revoke-token", { token: null }).finally(async () => {
+      await TokenService.removeUser();
+    })
   }
   register(username: string, password: string, confirmPassword: string, acceptTerms: boolean = true) {
     return api.post("/accounts/register", {
@@ -28,8 +30,8 @@ class AuthService {
       acceptTerms
     });
   }
-  getCurrentUser() {
-    return TokenService.getUser();
+  async getCurrentUser() {
+    return await TokenService.getUser();
   }
 }
 export default new AuthService();

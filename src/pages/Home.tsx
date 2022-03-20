@@ -21,6 +21,7 @@ import {
   IonList,
   IonListHeader,
   IonLoading,
+  IonMenuToggle,
   IonModal,
   IonPage,
   IonReorder,
@@ -28,7 +29,9 @@ import {
   IonSearchbar,
   IonTitle,
   IonToolbar,
+  NavContext,
   useIonAlert,
+  useIonLoading,
   useIonPopover,
   useIonViewWillEnter,
   useIonViewWillLeave,
@@ -44,7 +47,7 @@ import {
   reorderFourOutline,
   searchOutline,
 } from "ionicons/icons";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import MapPopover from "../components/MapPopover";
 import PhonePopover from "../components/PhonePopover";
 import "./Home.scss";
@@ -55,8 +58,26 @@ import { Virtuoso } from "react-virtuoso";
 
 import api from "./../services/api";
 import auth from "./../services/auth.service";
+import { User } from "../services/userProps";
 
 const Home: React.FC = () => {
+
+  const { navigate } = useContext(NavContext);
+
+  useEffect(() => {
+
+    const getUser = async () => {
+      const user = (await auth.getCurrentUser()) as User | undefined;
+
+      if (!user) {
+        navigate("/login", "root", "replace");
+      }
+    };
+
+    getUser();
+  }, []);
+
+
   const headerRef = useRef<HTMLIonHeaderElement>(null);
 
   const [headerScrollTop, setHeaderScrollTop] = useState(0);
@@ -350,7 +371,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <IonPage className="container">
+    <IonPage className="container" id="main" >
       <IonModal
         className="modal1"
         isOpen={showOrderInfoModal}
@@ -473,10 +494,16 @@ const Home: React.FC = () => {
             onIonChange={(e) => filterItems(e.detail.value!)}
           ></IonSearchbar>
           <IonButtons slot="end">
-            <IonButton onClick={() => console.log("")}>
+            {/* <IonButton onClick={() => console.log("")}>
+              <IonIcon slot="icon-only" icon={reorderFourOutline} />
+            </IonButton> */}
+            <IonMenuToggle>
+            <IonButton>
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton>
+          </IonMenuToggle>
           </IonButtons>
+          
         </IonToolbar>
       </IonHeader>
 

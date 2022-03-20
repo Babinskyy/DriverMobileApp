@@ -61,33 +61,35 @@ import auth from "./../services/auth.service";
 import { User } from "./../services/userProps";
 
 const Login: React.FC = () => {
-  const [presentLoadingPage, dismissLoadingPage] = useIonLoading();
 
   const { navigate } = useContext(NavContext);
-
-  useEffect(() => {
-    presentLoadingPage({
-      duration: 10000,
-    });
-
-    const getUser = async () => {
-      const user = (await auth.getCurrentUser()) as User | undefined;
-
-      if (user) {
-        navigate("/home", "root", "replace");
-      }
-
-      dismissLoadingPage();
-    };
-
-    getUser();
-  }, []);
 
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
   const [present] = useIonAlert();
   const [presentLoading, dismissLoading] = useIonLoading();
+
+
+  // const [presentPageLoading, dismissPageLoading] = useIonLoading();
+  // useEffect(() => {
+
+  //   presentPageLoading({
+  //     duration: 10000,
+  //   });
+
+  //   const getUser = async () => {
+  //     const user = (await auth.getCurrentUser()) as User | undefined;
+
+  //     dismissPageLoading();
+
+  //     if (user) {
+  //       navigate("/home", "root", "replace");
+  //     }
+  //   };
+
+  //   getUser();
+  // }, []);
 
   return (
     <IonPage>
@@ -131,7 +133,7 @@ const Login: React.FC = () => {
                   dismissLoading();
 
                   if (data.jwtToken) {
-                    navigate("/Home", "forward", "replace");
+                    navigate("/", "forward", "replace");
                   } else {
                     present("Niepoprawne dane logowanie", [
                       { text: "Zamknij" },
