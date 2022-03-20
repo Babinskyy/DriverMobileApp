@@ -10,7 +10,12 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/react";
-import { readerOutline } from "ionicons/icons";
+import {
+  carOutline,
+  homeOutline,
+  newspaperOutline,
+  readerOutline,
+} from "ionicons/icons";
 import { useRef } from "react";
 import { useHistory } from "react-router";
 
@@ -25,7 +30,7 @@ const Menu: React.FC = () => {
 
   return (
     <IonMenu
-      style={{ "--max-width": "240px" }}
+      style={{ "--max-width": "250px" }}
       ref={menuRef}
       side="start"
       menuId="first"
@@ -48,6 +53,19 @@ const Menu: React.FC = () => {
             button
             className="menu-item"
             onClick={async () => {
+              history.replace("/");
+              if (menuRef.current) {
+                menuRef.current.setOpen(false);
+              }
+            }}
+          >
+            <IonLabel>Lista dowozów</IonLabel>
+            <IonIcon slot="start" icon={carOutline} />
+          </IonItem>
+          <IonItem
+            button
+            className="menu-item"
+            onClick={async () => {
               history.replace("/Warehouse");
               if (menuRef.current) {
                 menuRef.current.setOpen(false);
@@ -55,10 +73,7 @@ const Menu: React.FC = () => {
             }}
           >
             <IonLabel>Magazyn</IonLabel>
-            <IonIcon slot="start" icon={readerOutline} />
-          </IonItem>
-          <IonItem button className="menu-item" onClick={async () => {}}>
-            Dowozy zakończone
+            <IonIcon slot="start" icon={homeOutline} />
           </IonItem>
         </IonList>
       </IonContent>

@@ -18,6 +18,7 @@ import {
   IonLabel,
   IonList,
   IonListHeader,
+  IonMenuToggle,
   IonModal,
   IonPage,
   IonReorder,
@@ -38,6 +39,7 @@ import {
   closeOutline,
   flashlightOutline,
   navigateOutline,
+  reorderFourOutline,
   searchOutline,
 } from "ionicons/icons";
 import React, { useEffect, useRef, useState } from "react";
@@ -305,12 +307,24 @@ const Warehouse: React.FC = () => {
         mode={"md"}
       >
         <IonToolbar>
-          <IonTitle>
-            <IonSearchbar
-              value={searchText}
-              onIonChange={(e) => setSearchText(e.detail.value!)}
-            ></IonSearchbar>
-          </IonTitle>
+          <IonSearchbar
+            placeholder="Wyszukaj"
+            style={{
+              "--box-shadow": "none",
+              "--background": "none",
+            }}
+            onIonChange={(e) => setSearchText(e.detail.value!)}
+          ></IonSearchbar>
+          <IonButtons slot="end">
+            {/* <IonButton onClick={() => console.log("")}>
+              <IonIcon slot="icon-only" icon={reorderFourOutline} />
+            </IonButton> */}
+            <IonMenuToggle>
+              <IonButton>
+                <IonIcon slot="icon-only" icon={reorderFourOutline} />
+              </IonButton>
+            </IonMenuToggle>
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
 
@@ -345,7 +359,10 @@ const Warehouse: React.FC = () => {
         <IonList className="list-order">
           {dietsWithNumber?.map((e) => {
             return (
-              <IonItem className="item-container" lines="full">
+              <IonItem
+                style={{ "--border-color": "var(--ion-color-medium)" }}
+                lines="full"
+              >
                 <IonLabel>{e.name}</IonLabel>
                 <IonLabel slot="end">
                   {e.scanCount}/{e.count}
