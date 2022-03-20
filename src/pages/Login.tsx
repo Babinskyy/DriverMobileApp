@@ -55,22 +55,39 @@ import { Storage } from "@capacitor/storage";
 
 import brokulImage from "../images/brokul-athlete.png";
 
-import api from './../services/api';
-import auth from './../services/auth.service';
+import api from "./../services/api";
+import auth from "./../services/auth.service";
 
 import { User } from "./../services/userProps";
 
 const Login: React.FC = () => {
+  const [presentLoadingPage, dismissLoadingPage] = useIonLoading();
 
+  const { navigate } = useContext(NavContext);
+
+  useEffect(() => {
+    presentLoadingPage({
+      duration: 10000,
+    });
+
+    const getUser = async () => {
+      const user = (await auth.getCurrentUser()) as User | undefined;
+
+      if (user) {
+        navigate("/home", "root", "replace");
+      }
+
+      dismissLoadingPage();
+    };
+
+    getUser();
+  }, []);
 
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  const {navigate} = useContext(NavContext);
-
   const [present] = useIonAlert();
   const [presentLoading, dismissLoading] = useIonLoading();
-
 
   return (
     <IonPage>
@@ -96,39 +113,35 @@ const Login: React.FC = () => {
           </IonItem>
           <IonButton
             onClick={async () => {
-
               presentLoading({
                 spinner: "crescent",
-                message: 'Logowanie...',
-                duration: 10000
-              })
+                message: "Logowanie...",
+                duration: 10000,
+              });
 
               // navigate("/Home", "forward", "replace")
 
-              
+              await auth
+                .login(username, password)
+                .then((response) => {
+                  console.log(auth);
 
-              await auth.login(username, password).then((response) => {
+                  const data = response as User;
 
-                console.log(auth);
+                  dismissLoading();
 
-                const data = response as User;
-
-                dismissLoading();
-
-                if(data.jwtToken)
-                {
-                  navigate("/Home", "forward", "replace")
-                }
-                else
-                {
-                  present('Niepoprawne dane logowanie', [{ text: 'Zamknij' }])
-                }
-
-              }).catch((exception) => {
-                dismissLoading();
-                present('Niepoprawne dane logowanie', [{ text: 'Zamknij' }])
-              });
-
+                  if (data.jwtToken) {
+                    navigate("/Home", "forward", "replace");
+                  } else {
+                    present("Niepoprawne dane logowanie", [
+                      { text: "Zamknij" },
+                    ]);
+                  }
+                })
+                .catch((exception) => {
+                  dismissLoading();
+                  present("Niepoprawne dane logowanie", [{ text: "Zamknij" }]);
+                });
             }}
             expand="block"
             color="primary"

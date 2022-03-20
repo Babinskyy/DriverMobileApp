@@ -13,7 +13,7 @@ instance.interceptors.request.use(
   async (config) => {
     const token = await TokenService.getLocalAccessToken();
     if (token && config.headers) {
-      config.headers["Authorization"] = 'Bearer ' + token;  // for Spring Boot back-end
+      config.headers["Authorization"] = "Bearer " + token; // for Spring Boot back-end
       // config.headers["x-access-token"] = token; // for Node.js Express back-end
     }
     return config;
@@ -35,7 +35,8 @@ instance.interceptors.response.use(
         try {
           const rs = await instance.post("/accounts/refresh-token");
           const { jwtToken } = rs.data as User;
-          TokenService.updateLocalAccessToken(jwtToken);
+          console.log("jwtToken " + jwtToken);
+          await TokenService.updateLocalAccessToken(jwtToken);
           return instance(originalConfig);
         } catch (_error) {
           window.location.replace("/login");

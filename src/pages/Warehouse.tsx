@@ -47,6 +47,7 @@ import "./Warehouse.scss";
 
 import axios from "axios";
 import { Storage } from "@capacitor/storage";
+import api from "./../services/api";
 
 const Warehouse: React.FC = () => {
   const headerRef = useRef<HTMLIonHeaderElement>(null);
@@ -120,53 +121,50 @@ const Warehouse: React.FC = () => {
     return value;
   };
 
-  useIonViewWillEnter(() => {
-    axios
-      .get("https://broccoliapi.azurewebsites.net/RouteDriver")
-      .then(async (response) => {
-        const route = response.data.data.route as RouteProps[];
+  useIonViewWillEnter(async () => {
+    api.get("routes/").then(async (response) => {
+      const route = response.data as RouteProps[];
 
-        await setRoute(JSON.stringify(route));
-        const { value } = await Storage.get({ key: "Route" });
+      await setRoute(JSON.stringify(route));
+      const { value } = await Storage.get({ key: "Route" });
 
-        if (value) {
-          const routeCollection = JSON.parse(value) as RouteProps[];
-        }
+      if (value) {
+        const routeCollection = JSON.parse(value) as RouteProps[];
+      }
 
-        setItems(route);
+      setItems(route);
 
-        const diets = await getDiets();
+      const diets = await getDiets();
 
-        let dietsDictionary: DietsDictionary[] = [];
+      let dietsDictionary: DietsDictionary[] = [];
 
-        if (diets) {
-          const dietsCollection = JSON.parse(diets) as DietsProps[];
+      if (diets) {
+        const dietsCollection = JSON.parse(diets) as DietsProps[];
 
-          let dietsCounter = 0;
-          route?.map((x) => {
-            x.packages.map((y) => {
-              if (dietsDictionary.some((e) => e.name == y.name)) {
-                dietsDictionary.filter((e) => e.name == y.name)[0].count =
-                  dietsDictionary.filter((e) => e.name == y.name)[0].count + 1;
-              } else {
-                dietsDictionary.push({
-                  name: y.name,
-                  count: 1,
-                  scanCount: 0,
-                });
-              }
-            });
+        let dietsCounter = 0;
+        route?.map((x) => {
+          x.packages.map((y) => {
+            if (dietsDictionary.some((e) => e.name == y.name)) {
+              dietsDictionary.filter((e) => e.name == y.name)[0].count =
+                dietsDictionary.filter((e) => e.name == y.name)[0].count + 1;
+            } else {
+              dietsDictionary.push({
+                name: y.name,
+                count: 1,
+                scanCount: 0,
+              });
+            }
           });
-        }
+        });
+      }
 
-        console.log(dietsDictionary);
-        const arr = dietsDictionary.sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
-        setDietsWithNumber(arr);
-        setDietsWithNumberStatic(arr);
-      });
+      console.log(dietsDictionary);
+      const arr = dietsDictionary.sort((a, b) => a.name.localeCompare(b.name));
+      setDietsWithNumber(arr);
+      setDietsWithNumberStatic(arr);
+    });
   });
+
   const setRoute = async (value: string) => {
     await Storage.set({
       key: "Route",

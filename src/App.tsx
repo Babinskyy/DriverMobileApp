@@ -1,5 +1,11 @@
-import { Redirect, Route } from "react-router-dom";
-import { IonApp, IonRouterOutlet, setupIonicReact, useIonLoading, useIonViewWillEnter } from "@ionic/react";
+import { Redirect, Route, useLocation } from "react-router-dom";
+import {
+  IonApp,
+  IonRouterOutlet,
+  setupIonicReact,
+  useIonLoading,
+  useIonViewWillEnter,
+} from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
 /* Core CSS required for Ionic components to work properly */
@@ -27,24 +33,20 @@ import Login from "./pages/Login";
 import Warehouse from "./pages/Warehouse";
 import { useEffect, useState } from "react";
 
-import api from './services/api';
-import auth from './services/auth.service';
+import api from "./services/api";
+import auth from "./services/auth.service";
 
 import { User } from "./services/userProps";
+import Startup from "./components/Startup";
 
 setupIonicReact();
 
 const App: React.FC = () => {
-
   return (
     <IonApp>
       <IonReactRouter>
         <IonRouterOutlet>
-          <Route
-            path="/"
-            exact={true}
-            render={() => <Redirect to={"/login"} />}
-          />
+          <Route path="/" exact={true} component={Startup} />
           <Route path="/login" exact={true} component={Login} />
           <Route path="/Warehouse" exact={true} component={Warehouse} />
           <Route path="/home" exact={true} component={Home} />

@@ -51,10 +51,10 @@ import "./Home.scss";
 
 import axios from "axios";
 import { Storage } from "@capacitor/storage";
-import { Virtuoso } from 'react-virtuoso';
+import { Virtuoso } from "react-virtuoso";
 
-import api from './../services/api';
-import auth from './../services/auth.service';
+import api from "./../services/api";
+import auth from "./../services/auth.service";
 
 const Home: React.FC = () => {
   const headerRef = useRef<HTMLIonHeaderElement>(null);
@@ -73,10 +73,7 @@ const Home: React.FC = () => {
 
   const contentRef = useRef<HTMLIonContentElement>(null);
 
-
   const [loadingList, setLoadingList] = useState(true);
-
-
 
   type DietsProps = {
     id: string;
@@ -84,6 +81,7 @@ const Home: React.FC = () => {
     name: string;
   };
   type RoutePackagesProps = {
+    id: number;
     name: string;
     scanned: boolean;
     code: string;
@@ -106,12 +104,10 @@ const Home: React.FC = () => {
   };
 
   useIonViewWillEnter(() => {
-    api
-      .get("diets")
-      .then(async (response) => {
-        const diets = response.data.data.diets as DietsProps[];
-        await setDiets(JSON.stringify(diets));
-      });
+    api.get("diets").then(async (response) => {
+      const diets = response.data as DietsProps[];
+      await setDiets(JSON.stringify(diets));
+    });
   });
 
   const setDiets = async (value: string) => {
@@ -125,28 +121,23 @@ const Home: React.FC = () => {
     const { value } = await Storage.get({ key: "Diets" });
     return value;
   };
-  
 
   useIonViewWillEnter(async () => {
+    api.get("routes/").then(async (response) => {
+      const route = response.data as RouteProps[];
 
-    api.get("routes/")
-      .then(async (response) => {
-        const route = response.data as RouteProps[];
+      await setRoute(JSON.stringify(route));
+      const { value } = await Storage.get({ key: "Route" });
 
-        await setRoute(JSON.stringify(route));
-        const { value } = await Storage.get({ key: "Route" });
+      if (value) {
+        const routeCollection = JSON.parse(value) as RouteProps[];
+      }
 
-        if (value) {
-          const routeCollection = JSON.parse(value) as RouteProps[];
-        }
+      setItems(route);
+      setItemsStatic(route);
 
-        setItems(route);
-        setItemsStatic(route);
-
-        setLoadingList(false);
-
-      });
-
+      setLoadingList(false);
+    });
   });
   const setRoute = async (value: string) => {
     await Storage.set({
@@ -260,6 +251,12 @@ const Home: React.FC = () => {
                     tempChoosedItem?.packages.map((_e) => {
                       if (e.id == _e.code) {
                         _e.scanned = true;
+
+                        api
+                          .patch("routes/addresses/packages/" + _e.id, {
+                            isScanned: true,
+                          })
+                          .then(async (response) => {});
                       }
                     });
 
@@ -467,19 +464,19 @@ const Home: React.FC = () => {
         mode={"md"}
       >
         <IonToolbar>
-            <IonSearchbar
-              placeholder="Wyszukaj"
-              style={{
-                "--box-shadow": "none",
-                "--background": "none"
-              }}
-              onIonChange={(e) => filterItems(e.detail.value!)}
-            ></IonSearchbar>
-            <IonButtons slot="end">
-                <IonButton onClick={() => console.log("")}>
-                  <IonIcon slot="icon-only" icon={reorderFourOutline} />
-                </IonButton>
-              </IonButtons>
+          <IonSearchbar
+            placeholder="Wyszukaj"
+            style={{
+              "--box-shadow": "none",
+              "--background": "none",
+            }}
+            onIonChange={(e) => filterItems(e.detail.value!)}
+          ></IonSearchbar>
+          <IonButtons slot="end">
+            <IonButton onClick={() => console.log("")}>
+              <IonIcon slot="icon-only" icon={reorderFourOutline} />
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
 
@@ -606,112 +603,114 @@ const Home: React.FC = () => {
           ></IonInfiniteScrollContent>
         </IonInfiniteScroll> */}
 
-
-        
-        {
-          loadingList
-          ?
+        {loadingList ? (
           <IonLoading isOpen={loadingList} />
-          :
+        ) : (
           <Virtuoso
-        overscan={500}
-        className="list-order"
-        style={{ height: '100%' }}
-        totalCount={items?.length}
-        itemContent={(i) => {
+            // overscan={4000}
+            overscan={500}
+            className="list-order"
+            style={{ height: "100%" }}
+            totalCount={items?.length}
+            itemContent={(i) => {
+              const e = items ? items[i] : undefined;
 
-          const e = items ? items[i] : undefined;
-
-          return (
-            <IonItem
-              className="item-container"
-              disabled={e?.packages?.every((_e) => {
-                return _e.scanned;
-              })}
-              lines="full"
-            >
-              <div className="counter">
-                {i + 1}/{items?.length}
-              </div>
-              <IonLabel>
-                <IonItem lines="none">
-                  <IonIcon
-                    className="icon-scan"
-                    color="primary"
-                    slot="start"
-                    icon={
-                      e?.packages?.every((_e) => {
-                        return _e.scanned;
-                      })
-                        ? cameraOutline
-                        : barcodeOutline
-                    }
-                    onClick={(event) => {
-                      if (
-                        e?.packages?.every((_e) => {
-                          return _e.scanned;
-                        })
-                      ) {
-                      } else {
-                        checkPermission();
-
-                        const body = document.querySelector("body");
-                        if (body) {
-                          body.style.background = "transparent";
-                        }
-                        setScanning(true);
-                        startScan(i);
-                      }
-                    }}
-                  />
-
-                  <IonLabel
-                    className="wrap"
-                    onClick={() => {
-                      setShowOrderInfoModal(true);
-                      setItemModalInfo(e);
-                    }}
-                  >
-                    <h4 className="address capitalize">{`${e?.street} ${e?.houseNumber}`}</h4>
-                    <p className="capitalize">{`${e?.postCode} ${e?.city}`}</p>
-                  </IonLabel>
-                  <IonIcon
-                    className="icon-navigation"
-                    color="primary"
-                    slot="end"
-                    icon={navigateOutline}
-                    onClick={(event) => {
-                      setAddress(`${e?.street} ${e?.houseNumber}`);
-                      present({
-                        event: event.nativeEvent,
-                      });
-                    }}
-                  />
-                </IonItem>
-                {e?.packages?.map((_e) => {
-                  return (
-                    <IonItem className="item-diet" lines="none">
+              return (
+                <IonItem
+                  className="item-container"
+                  disabled={e?.packages?.every((_e) => {
+                    return _e.scanned;
+                  })}
+                  lines="full"
+                >
+                  <div className="counter">
+                    {i + 1}/{items?.length}
+                  </div>
+                  <IonLabel>
+                    <IonItem lines="none">
                       <IonIcon
-                        color={_e.scanned ? "success" : "danger"}
-                        src={_e.scanned ? checkmarkOutline : closeOutline}
+                        className="icon-scan"
+                        color="primary"
+                        slot="start"
+                        icon={
+                          e?.packages?.every((_e) => {
+                            return _e.scanned;
+                          })
+                            ? cameraOutline
+                            : barcodeOutline
+                        }
+                        onClick={(event) => {
+                          if (
+                            e?.packages?.every((_e) => {
+                              return _e.scanned;
+                            })
+                          ) {
+                          } else {
+                            checkPermission();
+
+                            const body = document.querySelector("body");
+                            if (body) {
+                              body.style.background = "transparent";
+                            }
+                            setScanning(true);
+                            startScan(i);
+                          }
+                        }}
                       />
-                      <IonLabel style={{ margin: "0" }} className="wrap">
-                        {_e.name}
+
+                      <IonLabel
+                        className="wrap"
+                        onClick={() => {
+                          setShowOrderInfoModal(true);
+                          setItemModalInfo(e);
+                        }}
+                      >
+                        <h4 className="address capitalize">{`${e?.street} ${e?.houseNumber}`}</h4>
+                        <p className="capitalize">{`${e?.postCode} ${e?.city}`}</p>
                       </IonLabel>
+                      <IonIcon
+                        className="icon-navigation"
+                        color="primary"
+                        slot="end"
+                        icon={navigateOutline}
+                        onClick={(event) => {
+                          setAddress(`${e?.street} ${e?.houseNumber}`);
+                          present({
+                            event: event.nativeEvent,
+                          });
+                        }}
+                      />
                     </IonItem>
-                  );
-                })}
-              </IonLabel>
-            </IonItem>
-          );
-        }}
-
-      />
-        }
-
-
-
+                    {e?.packages?.map((_e) => {
+                      return (
+                        <IonItem className="item-diet" lines="none">
+                          <IonIcon
+                            color={_e.scanned ? "success" : "danger"}
+                            src={_e.scanned ? checkmarkOutline : closeOutline}
+                          />
+                          <IonLabel style={{ margin: "0" }} className="wrap">
+                            {_e.name}
+                          </IonLabel>
+                        </IonItem>
+                      );
+                    })}
+                  </IonLabel>
+                </IonItem>
+              );
+            }}
+          />
+        )}
       </IonContent>
+
+      {scanning ? (
+        <></>
+      ) : (
+        <IonFooter>
+          <IonItem>
+            <IonLabel slot="end">{items?.length}</IonLabel>
+          </IonItem>
+        </IonFooter>
+      )}
 
       {scanning ? (
         <>
