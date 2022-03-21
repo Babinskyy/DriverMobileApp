@@ -319,7 +319,7 @@ const Warehouse: React.FC = () => {
             {/* <IonButton onClick={() => console.log("")}>
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton> */}
-            <IonMenuToggle>
+            <IonMenuToggle style={{ display: "block" }} >
               <IonButton>
                 <IonIcon slot="icon-only" icon={reorderFourOutline} />
               </IonButton>

@@ -3,6 +3,7 @@ import {
   IonFooter,
   IonHeader,
   IonIcon,
+  IonImg,
   IonItem,
   IonLabel,
   IonList,
@@ -16,17 +17,21 @@ import {
   newspaperOutline,
   readerOutline,
 } from "ionicons/icons";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useHistory } from "react-router";
 
 import auth from "./../services/auth.service";
 
 import "./Menu.scss";
 
+import brokulImage from "../images/brokul-athlete.png";
+
 const Menu: React.FC = () => {
   const history = useHistory();
 
   const menuRef = useRef<HTMLIonMenuElement>(null);
+
+  const [url, setUrl] = useState("");
 
   return (
     <IonMenu
@@ -35,11 +40,18 @@ const Menu: React.FC = () => {
       side="start"
       menuId="first"
       contentId="main"
+      onIonWillOpen={() => {
+        setUrl(history.location.pathname);
+      }}
     >
       <IonHeader>
-        <IonToolbar color="primary">
-          <IonTitle>Example Menu</IonTitle>
-        </IonToolbar>
+        <IonImg 
+          style={{
+            animationName: "athlete-animation",
+            animationDuration: "1500ms",
+            animationIterationCount: "infinite"
+          }}  
+        src={brokulImage} className="image" />
       </IonHeader>
       <IonContent
         style={{
@@ -50,6 +62,7 @@ const Menu: React.FC = () => {
       >
         <IonList mode={"ios"} style={{ background: "none" }}>
           <IonItem
+            color={"/" == url ? "primary" : undefined}
             button
             className="menu-item"
             onClick={async () => {
@@ -63,6 +76,7 @@ const Menu: React.FC = () => {
             <IonIcon slot="start" icon={carOutline} />
           </IonItem>
           <IonItem
+            color={"/Warehouse" == url ? "primary" : undefined}
             button
             className="menu-item"
             onClick={async () => {
@@ -77,7 +91,7 @@ const Menu: React.FC = () => {
           </IonItem>
         </IonList>
       </IonContent>
-      <IonFooter>
+      <IonFooter style={{ padding: "10px" }} >
         <IonItem
           button
           className="menu-item"

@@ -12,6 +12,7 @@ import {
   IonFab,
   IonFabButton,
   IonFooter,
+  IonGrid,
   IonHeader,
   IonIcon,
   IonImg,
@@ -25,6 +26,7 @@ import {
   IonPage,
   IonReorder,
   IonRippleEffect,
+  IonRow,
   IonSearchbar,
   IonTitle,
   IonToolbar,
@@ -94,9 +96,11 @@ const Login: React.FC = () => {
   return (
     <IonPage>
       <IonContent fullscreen={true} className={"background-lightgrey "}>
-        <IonImg src={brokulImage} className="image" />
-        <IonLabel className="header">Zaloguj się do aplikacji</IonLabel>
-        <div className="container center">
+        <IonGrid style={{ height: "100%" }} >
+          <IonRow className="ion-justify-content-center ion-align-items-center" style={{ height: "100%" }} >
+          <div style={{ marginBottom: "100px" }} >
+          <IonImg src={brokulImage} className="image" />
+          <IonLabel className="header">Zaloguj się do aplikacji</IonLabel>
           <IonItem style={{ marginBottom: "5px" }}>
             <IonInput
               value={username}
@@ -151,7 +155,12 @@ const Login: React.FC = () => {
           >
             ZALOGUJ
           </IonButton>
-        </div>
+          </div>
+          </IonRow>
+        </IonGrid>
+        {/* <div className="container center">
+          
+        </div> */}
       </IonContent>
     </IonPage>
   );

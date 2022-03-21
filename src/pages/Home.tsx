@@ -358,14 +358,136 @@ const Home: React.FC = () => {
   const [items, setItems] = useState<RouteProps[] | undefined>([]);
   const [itemsStatic, setItemsStatic] = useState<RouteProps[] | undefined>([]);
 
-  const [loadItemsCount, setLoadItemsCount] = useState(10);
+  const [isScrolling, setIsScrolling] = useState(false);
 
-  const [isInfiniteDisabled, setInfiniteDisabled] = useState(false);
-  const loadData = (ev: any) => {
-    setLoadItemsCount(loadItemsCount + 10);
-    ev.target.complete();
-    console.log(loadItemsCount);
-  };
+  type InnerItemProps = {
+    i: number
+  }
+
+  // Item contents are cached properly with React.memo
+const InnerItem = React.memo<InnerItemProps>(({ i }) => {
+  React.useEffect(() => {
+    console.log('inner mounting', i)
+    return () => {
+      console.log('inner unmounting', i)
+    }
+  }, [i])
+  const e = items ? items[i] : undefined;
+
+              return (
+                <IonItem
+                  className="item-container"
+                  disabled={e?.packages?.every((_e) => {
+                    return _e.scanned;
+                  })}
+                  lines="full"
+                >
+                  <div className="counter">
+                    {i + 1}/{items?.length}
+                  </div>
+                  <IonLabel>
+                    <div style={{ display: "flex" }} >  
+                      <IonIcon
+                        className="icon-scan"
+                        color="primary"
+                        slot="start"
+                        icon={
+                          e?.packages?.every((_e) => {
+                            return _e.scanned;
+                          })
+                            ? cameraOutline
+                            : barcodeOutline
+                        }
+                        onClick={(event) => {
+                          if (
+                            e?.packages?.every((_e) => {
+                              return _e.scanned;
+                            })
+                          ) {
+                          } else {
+                            checkPermission();
+
+                            const body = document.querySelector("body");
+                            if (body) {
+                              body.style.background = "transparent";
+                            }
+                            setScanning(true);
+                            startScan(i);
+                          }
+                        }}
+                      />
+
+                      <IonLabel
+                        className="wrap"
+                        onClick={() => {
+                          setShowOrderInfoModal(true);
+                          setItemModalInfo(e);
+                        }}
+                      >
+                        <h4 className="address capitalize">{`${e?.street} ${e?.houseNumber}`}</h4>
+                        <p className="capitalize">{`${e?.postCode} ${e?.city}`}</p>
+                      </IonLabel>
+
+                      {/* <div style={{ width: "50px", height: "36px" }} >
+                        {
+                          isScrolling
+                          ?
+                          <></>
+                          :
+                          <IonIcon
+                        className="icon-navigation"
+                        color="primary"
+                        slot="end"
+                        icon={navigateOutline}
+                        onClick={(event) => {
+                          setAddress(`${e?.street} ${e?.houseNumber}`);
+                          present({
+                            event: event.nativeEvent,
+                          });
+                        }}
+                      />
+                        }
+                        </div> */}
+
+                      <IonIcon
+                        className="icon-navigation"
+                        color="primary"
+                        slot="end"
+                        icon={navigateOutline}
+                        onClick={(event) => {
+                          setAddress(`${e?.street} ${e?.houseNumber}`);
+                          present({
+                            event: event.nativeEvent,
+                          });
+                        }}
+                      />
+
+                    </div>
+                    {e?.packages?.map((_e) => {
+                      return (
+                        <IonItem className="item-diet" lines="none">
+                          <IonIcon
+                            color={_e.scanned ? "success" : "danger"}
+                            src={_e.scanned ? checkmarkOutline : closeOutline}
+                          />
+                          <IonLabel style={{ margin: "0" }} className="wrap">
+                            {_e.name}
+                          </IonLabel>
+                        </IonItem>
+                      );
+                    })}
+                  </IonLabel>
+                </IonItem>
+              );
+})
+
+// The callback is executed often - don't inline complex components in here.
+const itemContent = (index: number) => {
+  console.log('providing content', index)
+  return <InnerItem i={index} />
+}
+
+
 
   return (
     <IonPage className="container" id="main">
@@ -494,7 +616,7 @@ const Home: React.FC = () => {
             {/* <IonButton onClick={() => console.log("")}>
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton> */}
-            <IonMenuToggle>
+            <IonMenuToggle style={{ display: "block" }} >
               <IonButton>
                 <IonIcon slot="icon-only" icon={reorderFourOutline} />
               </IonButton>
@@ -631,96 +753,12 @@ const Home: React.FC = () => {
         ) : (
           <Virtuoso
             // overscan={4000}
-            overscan={2000}
+            // isScrolling={setIsScrolling}
+            overscan={1500}
             className="list-order"
             style={{ height: "100%" }}
             totalCount={items?.length}
-            itemContent={(i) => {
-              const e = items ? items[i] : undefined;
-
-              return (
-                <IonItem
-                  className="item-container"
-                  disabled={e?.packages?.every((_e) => {
-                    return _e.scanned;
-                  })}
-                  lines="full"
-                >
-                  <div className="counter">
-                    {i + 1}/{items?.length}
-                  </div>
-                  <IonLabel>
-                    <IonItem lines="none">
-                      <IonIcon
-                        className="icon-scan"
-                        color="primary"
-                        slot="start"
-                        icon={
-                          e?.packages?.every((_e) => {
-                            return _e.scanned;
-                          })
-                            ? cameraOutline
-                            : barcodeOutline
-                        }
-                        onClick={(event) => {
-                          if (
-                            e?.packages?.every((_e) => {
-                              return _e.scanned;
-                            })
-                          ) {
-                          } else {
-                            checkPermission();
-
-                            const body = document.querySelector("body");
-                            if (body) {
-                              body.style.background = "transparent";
-                            }
-                            setScanning(true);
-                            startScan(i);
-                          }
-                        }}
-                      />
-
-                      <IonLabel
-                        className="wrap"
-                        onClick={() => {
-                          setShowOrderInfoModal(true);
-                          setItemModalInfo(e);
-                        }}
-                      >
-                        <h4 className="address capitalize">{`${e?.street} ${e?.houseNumber}`}</h4>
-                        <p className="capitalize">{`${e?.postCode} ${e?.city}`}</p>
-                      </IonLabel>
-                      <IonIcon
-                        className="icon-navigation"
-                        color="primary"
-                        slot="end"
-                        icon={navigateOutline}
-                        onClick={(event) => {
-                          setAddress(`${e?.street} ${e?.houseNumber}`);
-                          present({
-                            event: event.nativeEvent,
-                          });
-                        }}
-                      />
-                    </IonItem>
-                    {e?.packages?.map((_e) => {
-                      return (
-                        <IonItem className="item-diet" lines="none">
-                          <IonIcon
-                            color={_e.scanned ? "success" : "danger"}
-                            src={_e.scanned ? checkmarkOutline : closeOutline}
-                          />
-                          <IonLabel style={{ margin: "0" }} className="wrap">
-                            {_e.name}
-                          </IonLabel>
-                        </IonItem>
-                      );
-                    })}
-                  </IonLabel>
-                </IonItem>
-              );
-            }}
+            itemContent={itemContent}
           />
         )}
       </IonContent>
@@ -792,14 +830,20 @@ const Home: React.FC = () => {
                 setScanning(false);
 
                 const image = await Camera.getPhoto({
-                  quality: 90,
+                  quality: 75,
                   allowEditing: false,
-                  resultType: CameraResultType.Uri,
+                  resultType: CameraResultType.Base64,
                   source: CameraSource.Camera,
                 });
 
-                var imageUrl = image.webPath;
-                console.log(image);
+                var imageUrl = image.base64String;
+                
+                api.post("routes/addresses/" + choosedItem.id + "/image", {
+                  image: imageUrl
+                }).then((response) => {
+                  console.log(response)
+                })
+
               }}
             >
               <IonLabel>ZDJĘCIE DOSTAWY</IonLabel>
