@@ -18,8 +18,9 @@
 		.item-container {
 
 			--padding-start: 0;
-			--border-color: #919191;
+			border-bottom: 1px solid #919191;
 			position: relative;
+			padding: 15px 0 5px 0;
 
 			.counter {
 				position: absolute;

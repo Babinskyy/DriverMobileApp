@@ -35,11 +35,14 @@ const Menu: React.FC = () => {
 
   return (
     <IonMenu
-      style={{ "--max-width": "250px" }}
+      contentId="main"
+      id="mainMenu"
+      style={{ "--max-width": "300px" }}
       ref={menuRef}
       side="start"
-      menuId="first"
-      contentId="main"
+      // menuId="first"
+      // contentId="main"
+      type="overlay"
       onIonWillOpen={() => {
         setUrl(history.location.pathname);
       }}

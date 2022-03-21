@@ -334,14 +334,14 @@ const Home: React.FC = () => {
       };
     }, [i]);
     return (
-      <IonItem
+      <div
         key={i}
         // style={{ height: "114px" }}
         className="item-container"
         // disabled={e?.packages?.every((_e) => {
         //   return _e.scanned;
         // })}
-        lines="full"
+        // lines="full"
       >
         <div className="counter">
           {i + 1}/{itemsMemo.length}
@@ -400,6 +400,7 @@ const Home: React.FC = () => {
                 );
                 present({
                   event: event.nativeEvent,
+                  reference: "event"
                 });
               }}
             />
@@ -418,7 +419,7 @@ const Home: React.FC = () => {
             );
           })}
         </IonLabel>
-      </IonItem>
+      </div>
     );
   });
 
@@ -553,11 +554,9 @@ const Home: React.FC = () => {
             {/* <IonButton onClick={() => console.log("")}>
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton> */}
-            <IonMenuToggle style={{ display: "block" }}>
-              <IonButton>
+            <IonButton onClick={() => (document.querySelector("#mainMenu") as HTMLIonMenuElement | undefined)?.setOpen(true)} >
                 <IonIcon slot="icon-only" icon={reorderFourOutline} />
-              </IonButton>
-            </IonMenuToggle>
+            </IonButton>
           </IonButtons>
         </IonToolbar>
       </IonHeader>
@@ -690,16 +689,24 @@ const Home: React.FC = () => {
         {loadingList ? (
           <IonLoading isOpen={loadingList} />
         ) : (
-          <Virtuoso
-            // overscan={4000}
-            // isScrolling={setIsScrolling}
-            height={window.innerHeight - 56 - 48}
-            overscan={100}
-            className="list-order"
-            // style={{ height: "100%" }}
-            totalCount={itemsMemo.length}
-            itemContent={itemContent}
-          />
+          // <Virtuoso
+          //   // overscan={4000}
+          //   // isScrolling={setIsScrolling}
+          //   height={window.innerHeight - 56 - 48}
+          //   overscan={100}
+          //   className="list-order"
+          //   // style={{ height: "100%" }}
+          //   totalCount={itemsMemo.length}
+          //   itemContent={itemContent}
+            
+          // />
+          <IonList className="list-order">
+            {
+              itemsMemo.map((e, i) => {
+                return <InnerItem i={i} />
+              })
+            }
+          </IonList>
         )}
       </IonContent>
 
