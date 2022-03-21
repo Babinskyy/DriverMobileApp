@@ -319,7 +319,7 @@ const Warehouse: React.FC = () => {
             {/* <IonButton onClick={() => console.log("")}>
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton> */}
-            <IonMenuToggle style={{ display: "block" }} >
+            <IonMenuToggle style={{ display: "block" }}>
               <IonButton>
                 <IonIcon slot="icon-only" icon={reorderFourOutline} />
               </IonButton>
@@ -425,7 +425,7 @@ const Warehouse: React.FC = () => {
         <IonToolbar>
           <IonIcon
             icon={barcodeOutline}
-            className="icon-scan"
+            className="icon-scan-main"
             color="primary"
             onClick={(e) => {
               setScanning(true);
