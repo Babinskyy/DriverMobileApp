@@ -47,7 +47,7 @@ import {
   reorderFourOutline,
   searchOutline,
 } from "ionicons/icons";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import MapPopover from "../components/MapPopover";
 import PhonePopover from "../components/PhonePopover";
 import "./Home.scss";
@@ -59,9 +59,70 @@ import { Virtuoso } from "react-virtuoso";
 import api from "./../services/api";
 import auth from "./../services/auth.service";
 import { User } from "../services/userProps";
+import {
+  DietsProps,
+  RoutePackagesProps,
+  RouteProps,
+  ItemsDietProps,
+  ItemsProps,
+  InnerItemProps,
+} from "../components/Types";
 
 const Home: React.FC = () => {
   const { navigate } = useContext(NavContext);
+
+  const headerRef = useRef<HTMLIonHeaderElement>(null);
+
+  const [headerScrollTop, setHeaderScrollTop] = useState(0);
+
+  const [headerTop, setHeaderTop] = useState(0);
+
+  const [disabled, setDisabled] = useState(true);
+
+  const [address, setAddress] = useState("");
+
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+
+  const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
+
+  const contentRef = useRef<HTMLIonContentElement>(null);
+
+  const [loadingList, setLoadingList] = useState(true);
+
+  const [scanning, setScanning] = useState(false);
+
+  const [scanningResult, setScanningResult] = useState("");
+
+  const [choosedItem, setChoosedItem] = useState<RouteProps | undefined>();
+
+  const [itemModalInfo, setItemModalInfo] = useState<RouteProps | undefined>();
+
+  const [items, setItems] = useState<RouteProps[] | undefined>([]);
+
+  const [itemsStatic, setItemsStatic] = useState<RouteProps[] | undefined>([]);
+
+  const itemsMemo = useMemo<RouteProps[]>(() => items as RouteProps[], [items]);
+
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  const [presentAlert] = useIonAlert();
+
+  const [present, dismiss] = useIonPopover(MapPopover, {
+    onHide: () => dismiss(),
+    address: address,
+  });
+
+  const [presentPhoneNumber, dismissPhoneNumber] = useIonPopover(PhonePopover, {
+    onHide: () => dismiss(),
+    address: address,
+  });
+
+  useEffect(() => {
+    if (headerRef.current) {
+      headerRef.current.style.willChange = "transform";
+      headerRef.current.style.transition = "transform ease-in-out 150ms";
+    }
+  }, []);
 
   useEffect(() => {
     const getUser = async () => {
@@ -75,70 +136,12 @@ const Home: React.FC = () => {
     getUser();
   }, []);
 
-  const headerRef = useRef<HTMLIonHeaderElement>(null);
-
-  const [headerScrollTop, setHeaderScrollTop] = useState(0);
-  const [headerTop, setHeaderTop] = useState(0);
-
-  const [disabled, setDisabled] = useState(true);
-
-  const [address, setAddress] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState<string>("");
-
-  const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
-
-  // const [searchText, setSearchText] = useState("");
-
-  const contentRef = useRef<HTMLIonContentElement>(null);
-
-  const [loadingList, setLoadingList] = useState(true);
-
-  type DietsProps = {
-    id: string;
-    category: string;
-    name: string;
-  };
-  type RoutePackagesProps = {
-    id: number;
-    name: string;
-    scanned: boolean;
-    code: string;
-  };
-  type RouteProps = {
-    id: number;
-    city: string;
-    comment: string;
-    commentExtra: string;
-    houseNumber: string;
-    lat: string;
-    lng: string;
-    postCode: string;
-    packages: RoutePackagesProps[];
-    phone: string;
-    order: number;
-    routeId: string;
-    street: string;
-    customerId: number;
-  };
-
   useIonViewWillEnter(() => {
     api.get("diets").then(async (response) => {
       const diets = response.data as DietsProps[];
       await setDiets(JSON.stringify(diets));
     });
   });
-
-  const setDiets = async (value: string) => {
-    await Storage.set({
-      key: "Diets",
-      value: value,
-    });
-  };
-
-  const getDiets = async () => {
-    const { value } = await Storage.get({ key: "Diets" });
-    return value;
-  };
 
   useIonViewWillEnter(async () => {
     api.get("routes/").then(async (response) => {
@@ -157,6 +160,25 @@ const Home: React.FC = () => {
       setLoadingList(false);
     });
   });
+
+  useIonViewWillLeave(() => {
+    if (headerRef.current) {
+      headerRef.current.style.transform = "translate3d(0, 0, 0)";
+    }
+    setHeaderTop(0);
+  });
+
+  const setDiets = async (value: string) => {
+    await Storage.set({
+      key: "Diets",
+      value: value,
+    });
+  };
+
+  const getDiets = async () => {
+    const { value } = await Storage.get({ key: "Diets" });
+    return value;
+  };
   const setRoute = async (value: string) => {
     await Storage.set({
       key: "Route",
@@ -186,29 +208,7 @@ const Home: React.FC = () => {
     } else {
       setItems(itemsStatic);
     }
-
-    // if (contentRef.current) {
-    //   contentRef.current.scrollToTop();
-    // }
-
-    // setLoadItemsCount(10);
   };
-
-  const [presentAlert] = useIonAlert();
-
-  const [present, dismiss] = useIonPopover(MapPopover, {
-    onHide: () => dismiss(),
-    address: address,
-  });
-
-  const [presentPhoneNumber, dismissPhoneNumber] = useIonPopover(PhonePopover, {
-    onHide: () => dismiss(),
-    address: address,
-  });
-
-  const [scanning, setScanning] = useState(false);
-
-  const [scanningResult, setScanningResult] = useState("");
 
   const checkPermission = async () => {
     // check or request permission
@@ -325,174 +325,112 @@ const Home: React.FC = () => {
     BarcodeScanner.stopScan();
   };
 
-  useEffect(() => {
-    if (headerRef.current) {
-      headerRef.current.style.willChange = "transform";
-      headerRef.current.style.transition = "transform ease-in-out 150ms";
-    }
-  }, []);
+  // Item contents are cached properly with React.memo
+  const InnerItem = React.memo<InnerItemProps>(({ i }) => {
+    React.useEffect(() => {
+      console.log("inner mounting", i);
+      return () => {
+        console.log("inner unmounting", i);
+      };
+    }, [i]);
+    return (
+      <IonItem
+        key={i}
+        // style={{ height: "114px" }}
+        className="item-container"
+        // disabled={e?.packages?.every((_e) => {
+        //   return _e.scanned;
+        // })}
+        lines="full"
+      >
+        <div className="counter">
+          {i + 1}/{itemsMemo.length}
+        </div>
+        <IonLabel>
+          <div style={{ display: "flex" }}>
+            <IonIcon
+              className="icon-scan"
+              color="primary"
+              slot="start"
+              // icon={
+              //   e?.packages?.every((_e) => {
+              //     return _e.scanned;
+              //   })
+              //     ? cameraOutline
+              //     : barcodeOutline
+              // }
+              icon={barcodeOutline}
+              onClick={(event) => {
+                if (
+                  itemsMemo[i].packages?.every((_e) => {
+                    return _e.scanned;
+                  })
+                ) {
+                } else {
+                  checkPermission();
 
-  useIonViewWillLeave(() => {
-    if (headerRef.current) {
-      headerRef.current.style.transform = "translate3d(0, 0, 0)";
-    }
-    setHeaderTop(0);
+                  const body = document.querySelector("body");
+                  if (body) {
+                    body.style.background = "transparent";
+                  }
+                  setScanning(true);
+                  startScan(i);
+                }
+              }}
+            />
+
+            <IonLabel
+              className="wrap"
+              onClick={() => {
+                setShowOrderInfoModal(true);
+                setItemModalInfo(itemsMemo[i]);
+              }}
+            >
+              <h4 className="address capitalize">{`${itemsMemo[i].street} ${itemsMemo[i].houseNumber}`}</h4>
+              <p className="capitalize">{`${itemsMemo[i].postCode} ${itemsMemo[i].city}`}</p>
+            </IonLabel>
+            <IonIcon
+              className="icon-navigation"
+              color="primary"
+              slot="end"
+              icon={navigateOutline}
+              onClick={(event) => {
+                setAddress(
+                  `${itemsMemo[i].street} ${itemsMemo[i].houseNumber}`
+                );
+                present({
+                  event: event.nativeEvent,
+                });
+              }}
+            />
+          </div>
+          {itemsMemo[i].packages.map((_e) => {
+            return (
+              <IonItem className="item-diet" lines="none">
+                <IonIcon
+                  color={_e.scanned ? "success" : "danger"}
+                  src={_e.scanned ? checkmarkOutline : closeOutline}
+                />
+                <IonLabel style={{ margin: "0" }} className="wrap">
+                  {_e.name}
+                </IonLabel>
+              </IonItem>
+            );
+          })}
+        </IonLabel>
+      </IonItem>
+    );
   });
 
-  type ItemsDietProps = {
-    name: string;
-    scanned: boolean;
+  const itemContent = (index: number) => {
+    console.log("providing content", index);
+    return <InnerItem i={index} />;
   };
-
-  type ItemsProps = {
-    address: string;
-    diets: ItemsDietProps[];
-    photo?: boolean;
-    lat: string;
-    lng: string;
-  };
-
-  const [choosedItem, setChoosedItem] = useState<RouteProps | undefined>();
-  const [itemModalInfo, setItemModalInfo] = useState<RouteProps | undefined>();
-
-  const [items, setItems] = useState<RouteProps[] | undefined>([]);
-  const [itemsStatic, setItemsStatic] = useState<RouteProps[] | undefined>([]);
-
-  const [isScrolling, setIsScrolling] = useState(false);
-
-  type InnerItemProps = {
-    i: number
-  }
-
-  // Item contents are cached properly with React.memo
-const InnerItem = React.memo<InnerItemProps>(({ i }) => {
-  React.useEffect(() => {
-    console.log('inner mounting', i)
-    return () => {
-      console.log('inner unmounting', i)
-    }
-  }, [i])
-  const e = items ? items[i] : undefined;
-
-              return (
-                <IonItem
-                  className="item-container"
-                  disabled={e?.packages?.every((_e) => {
-                    return _e.scanned;
-                  })}
-                  lines="full"
-                >
-                  <div className="counter">
-                    {i + 1}/{items?.length}
-                  </div>
-                  <IonLabel>
-                    <div style={{ display: "flex" }} >  
-                      <IonIcon
-                        className="icon-scan"
-                        color="primary"
-                        slot="start"
-                        icon={
-                          e?.packages?.every((_e) => {
-                            return _e.scanned;
-                          })
-                            ? cameraOutline
-                            : barcodeOutline
-                        }
-                        onClick={(event) => {
-                          if (
-                            e?.packages?.every((_e) => {
-                              return _e.scanned;
-                            })
-                          ) {
-                          } else {
-                            checkPermission();
-
-                            const body = document.querySelector("body");
-                            if (body) {
-                              body.style.background = "transparent";
-                            }
-                            setScanning(true);
-                            startScan(i);
-                          }
-                        }}
-                      />
-
-                      <IonLabel
-                        className="wrap"
-                        onClick={() => {
-                          setShowOrderInfoModal(true);
-                          setItemModalInfo(e);
-                        }}
-                      >
-                        <h4 className="address capitalize">{`${e?.street} ${e?.houseNumber}`}</h4>
-                        <p className="capitalize">{`${e?.postCode} ${e?.city}`}</p>
-                      </IonLabel>
-
-                      {/* <div style={{ width: "50px", height: "36px" }} >
-                        {
-                          isScrolling
-                          ?
-                          <></>
-                          :
-                          <IonIcon
-                        className="icon-navigation"
-                        color="primary"
-                        slot="end"
-                        icon={navigateOutline}
-                        onClick={(event) => {
-                          setAddress(`${e?.street} ${e?.houseNumber}`);
-                          present({
-                            event: event.nativeEvent,
-                          });
-                        }}
-                      />
-                        }
-                        </div> */}
-
-                      <IonIcon
-                        className="icon-navigation"
-                        color="primary"
-                        slot="end"
-                        icon={navigateOutline}
-                        onClick={(event) => {
-                          setAddress(`${e?.street} ${e?.houseNumber}`);
-                          present({
-                            event: event.nativeEvent,
-                          });
-                        }}
-                      />
-
-                    </div>
-                    {e?.packages?.map((_e) => {
-                      return (
-                        <IonItem className="item-diet" lines="none">
-                          <IonIcon
-                            color={_e.scanned ? "success" : "danger"}
-                            src={_e.scanned ? checkmarkOutline : closeOutline}
-                          />
-                          <IonLabel style={{ margin: "0" }} className="wrap">
-                            {_e.name}
-                          </IonLabel>
-                        </IonItem>
-                      );
-                    })}
-                  </IonLabel>
-                </IonItem>
-              );
-})
-
-// The callback is executed often - don't inline complex components in here.
-const itemContent = (index: number) => {
-  console.log('providing content', index)
-  return <InnerItem i={index} />
-}
-
-
 
   return (
     <IonPage className="container" id="main">
       <IonModal
-        className="modal1"
+        className="order-info-modal"
         isOpen={showOrderInfoModal}
         onIonModalDidDismiss={() => setShowOrderInfoModal(false)}
       >
@@ -535,7 +473,6 @@ const itemContent = (index: number) => {
                 color="secondary"
                 onClick={(event) => {
                   setPhoneNumber(itemModalInfo ? itemModalInfo.phone : "");
-
                   presentPhoneNumber({
                     event: event.nativeEvent,
                   });
@@ -616,7 +553,7 @@ const itemContent = (index: number) => {
             {/* <IonButton onClick={() => console.log("")}>
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton> */}
-            <IonMenuToggle style={{ display: "block" }} >
+            <IonMenuToggle style={{ display: "block" }}>
               <IonButton>
                 <IonIcon slot="icon-only" icon={reorderFourOutline} />
               </IonButton>
@@ -654,7 +591,8 @@ const itemContent = (index: number) => {
         fullscreen={true}
         className={"background-lightgrey " + (scanning ? "hide-bg" : "")}
       >
-        {/* <IonList className="list-order">
+        <div>
+          {/* <IonList className="list-order">
           {items?.slice(0, loadItemsCount).map((e, i) => {
             return (
               <IonItem
@@ -747,6 +685,7 @@ const itemContent = (index: number) => {
             loadingText="Loading more data..."
           ></IonInfiniteScrollContent>
         </IonInfiniteScroll> */}
+        </div>
 
         {loadingList ? (
           <IonLoading isOpen={loadingList} />
@@ -754,10 +693,11 @@ const itemContent = (index: number) => {
           <Virtuoso
             // overscan={4000}
             // isScrolling={setIsScrolling}
-            overscan={1500}
+            height={window.innerHeight - 56 - 48}
+            overscan={100}
             className="list-order"
-            style={{ height: "100%" }}
-            totalCount={items?.length}
+            // style={{ height: "100%" }}
+            totalCount={itemsMemo.length}
             itemContent={itemContent}
           />
         )}
@@ -837,13 +777,14 @@ const itemContent = (index: number) => {
                 });
 
                 var imageUrl = image.base64String;
-                
-                api.post("routes/addresses/" + choosedItem.id + "/image", {
-                  image: imageUrl
-                }).then((response) => {
-                  console.log(response)
-                })
 
+                api
+                  .post("routes/addresses/" + choosedItem.id + "/image", {
+                    image: imageUrl,
+                  })
+                  .then((response) => {
+                    console.log(response);
+                  });
               }}
             >
               <IonLabel>ZDJĘCIE DOSTAWY</IonLabel>
