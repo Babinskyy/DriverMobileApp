@@ -148,6 +148,23 @@ ion-modal.order-info-modal::part(content) {
 	border-top-left-radius: 13px;
 	border-top-right-radius: 13px;
 }
+ion-modal.modal-image {
+	backdrop-filter: blur(3px);
+	z-index: 20006;
+    height: 100%;
+    --background: none;
+
+}
+ion-modal.modal-image::part(content) {
+	border-top-left-radius: 13px;
+	border-top-right-radius: 13px;
+}
+ion-modal.modal-image ion-img {
+	margin: auto 25px;
+}
+
+
+
 .capitalize {
     text-transform: capitalize;
 }

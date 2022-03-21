@@ -14,6 +14,7 @@ import {
   IonFooter,
   IonHeader,
   IonIcon,
+  IonImg,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonItem,
@@ -85,6 +86,8 @@ const Home: React.FC = () => {
 
   const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
 
+  const [showOrderPhoto, setShowOrderPhoto] = useState(false);
+
   const contentRef = useRef<HTMLIonContentElement>(null);
 
   const [loadingList, setLoadingList] = useState(true);
@@ -97,11 +100,11 @@ const Home: React.FC = () => {
 
   const [itemModalInfo, setItemModalInfo] = useState<RouteProps | undefined>();
 
-  const [items, setItems] = useState<RouteProps[] | undefined>([]);
+  const [items, setItems] = useState<RouteProps[]>([]);
 
   const [itemsStatic, setItemsStatic] = useState<RouteProps[] | undefined>([]);
 
-  const itemsMemo = useMemo<RouteProps[]>(() => items as RouteProps[], [items]);
+  // const items = useMemo<RouteProps[]>(() => items as RouteProps[], [items]);
 
   const [isScrolling, setIsScrolling] = useState(false);
 
@@ -204,9 +207,13 @@ const Home: React.FC = () => {
           }) || e.street.toLowerCase().includes(searchText.toLowerCase())
         );
       });
-      setItems(tempItems);
+      if (tempItems) {
+        setItems(tempItems);
+      }
     } else {
-      setItems(itemsStatic);
+      if (itemsStatic) {
+        setItems(itemsStatic);
+      }
     }
   };
 
@@ -344,7 +351,7 @@ const Home: React.FC = () => {
         // lines="full"
       >
         <div className="counter">
-          {i + 1}/{itemsMemo.length}
+          {i + 1}/{items.length}
         </div>
         <IonLabel>
           <div style={{ display: "flex" }}>
@@ -362,7 +369,7 @@ const Home: React.FC = () => {
               icon={barcodeOutline}
               onClick={(event) => {
                 if (
-                  itemsMemo[i].packages?.every((_e) => {
+                  items[i].packages?.every((_e) => {
                     return _e.scanned;
                   })
                 ) {
@@ -382,12 +389,14 @@ const Home: React.FC = () => {
             <IonLabel
               className="wrap"
               onClick={() => {
-                setShowOrderInfoModal(true);
-                setItemModalInfo(itemsMemo[i]);
+                if (items) {
+                  setShowOrderInfoModal(true);
+                  setItemModalInfo(items[i]);
+                }
               }}
             >
-              <h4 className="address capitalize">{`${itemsMemo[i].street} ${itemsMemo[i].houseNumber}`}</h4>
-              <p className="capitalize">{`${itemsMemo[i].postCode} ${itemsMemo[i].city}`}</p>
+              <h4 className="address capitalize">{`${items[i].street} ${items[i].houseNumber}`}</h4>
+              <p className="capitalize">{`${items[i].postCode} ${items[i].city}`}</p>
             </IonLabel>
             <IonIcon
               className="icon-navigation"
@@ -395,17 +404,15 @@ const Home: React.FC = () => {
               slot="end"
               icon={navigateOutline}
               onClick={(event) => {
-                setAddress(
-                  `${itemsMemo[i].street} ${itemsMemo[i].houseNumber}`
-                );
+                setAddress(`${items[i].street} ${items[i].houseNumber}`);
                 present({
                   event: event.nativeEvent,
-                  reference: "event"
+                  reference: "event",
                 });
               }}
             />
           </div>
-          {itemsMemo[i].packages.map((_e) => {
+          {items[i].packages.map((_e) => {
             return (
               <IonItem className="item-diet" lines="none">
                 <IonIcon
@@ -500,20 +507,18 @@ const Home: React.FC = () => {
           <IonListHeader>
             <IonLabel style={{ fontWeight: 700 }}>Wiadomość</IonLabel>
           </IonListHeader>
-          <IonList>
-            <IonItem>
-              <IonLabel
-                className="wrap"
-                style={{ fontSize: "20px", fontWeight: 300 }}
-              >
-                <span style={{ fontWeight: 400 }}>
-                  {itemModalInfo?.comment}
-                </span>
-                <br />
-                <span>{itemModalInfo?.commentExtra}</span>
-              </IonLabel>
-            </IonItem>
-          </IonList>
+
+          <IonItem>
+            <IonLabel
+              className="wrap"
+              style={{ fontSize: "20px", fontWeight: 300 }}
+            >
+              <span style={{ fontWeight: 400 }}>{itemModalInfo?.comment}</span>
+              <br />
+              <span>{itemModalInfo?.commentExtra}</span>
+            </IonLabel>
+          </IonItem>
+
           <IonListHeader>
             <IonLabel style={{ fontWeight: 700 }}>Diety</IonLabel>
           </IonListHeader>
@@ -531,9 +536,39 @@ const Home: React.FC = () => {
               Numer Klienta: {`${itemModalInfo?.customerId}`}
             </IonLabel>
           </IonListHeader>
+          {itemModalInfo?.image ? (
+            <IonButton
+              expand="full"
+              style={{ margin: "0 10px" }}
+              onClick={() => {
+                setShowOrderPhoto(true);
+              }}
+            >
+              Pokaż zdjęcie dostawy
+            </IonButton>
+          ) : (
+            <></>
+          )}
         </IonContent>
       </IonModal>
-
+      <IonModal
+        className="modal-image"
+        isOpen={showOrderPhoto}
+        onIonModalDidDismiss={() => setShowOrderPhoto(false)}
+      >
+        <IonFab vertical="top" horizontal="end" slot="fixed">
+          <IonFabButton
+            onClick={() => {
+              setShowOrderPhoto(false);
+            }}
+            color="danger"
+          >
+            <IonIcon icon={closeOutline} />
+          </IonFabButton>
+        </IonFab>
+        <IonImg src={itemModalInfo?.image} />
+      </IonModal>
+      ;
       <IonHeader
         className={scanning ? "invisible" : ""}
         ref={headerRef}
@@ -554,13 +589,20 @@ const Home: React.FC = () => {
             {/* <IonButton onClick={() => console.log("")}>
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton> */}
-            <IonButton onClick={() => (document.querySelector("#mainMenu") as HTMLIonMenuElement | undefined)?.setOpen(true)} >
-                <IonIcon slot="icon-only" icon={reorderFourOutline} />
+            <IonButton
+              onClick={() =>
+                (
+                  document.querySelector("#mainMenu") as
+                    | HTMLIonMenuElement
+                    | undefined
+                )?.setOpen(true)
+              }
+            >
+              <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton>
           </IonButtons>
         </IonToolbar>
       </IonHeader>
-
       {scanning ? (
         <>
           <IonFab vertical="top" horizontal="start" slot="fixed">
@@ -584,7 +626,6 @@ const Home: React.FC = () => {
       ) : (
         <></>
       )}
-
       <IonContent
         ref={contentRef}
         fullscreen={true}
@@ -696,20 +737,105 @@ const Home: React.FC = () => {
           //   overscan={100}
           //   className="list-order"
           //   // style={{ height: "100%" }}
-          //   totalCount={itemsMemo.length}
+          //   totalCount={items.length}
           //   itemContent={itemContent}
-            
+
           // />
           <IonList className="list-order">
-            {
-              itemsMemo.map((e, i) => {
-                return <InnerItem i={i} />
-              })
-            }
+            {items.map((e, i) => {
+              return (
+                <div
+                  key={i}
+                  // style={{ height: "114px" }}
+                  className="item-container"
+                  // disabled={e?.packages?.every((_e) => {
+                  //   return _e.scanned;
+                  // })}
+                  // lines="full"
+                >
+                  <div className="counter">
+                    {i + 1}/{items.length}
+                  </div>
+                  <IonLabel>
+                    <div style={{ display: "flex" }}>
+                      <IonIcon
+                        className="icon-scan"
+                        color="primary"
+                        slot="start"
+                        // icon={
+                        //   e?.packages?.every((_e) => {
+                        //     return _e.scanned;
+                        //   })
+                        //     ? cameraOutline
+                        //     : barcodeOutline
+                        // }
+                        icon={barcodeOutline}
+                        onClick={(event) => {
+                          if (
+                            items[i].packages?.every((_e) => {
+                              return _e.scanned;
+                            })
+                          ) {
+                          } else {
+                            checkPermission();
+
+                            const body = document.querySelector("body");
+                            if (body) {
+                              body.style.background = "transparent";
+                            }
+                            setScanning(true);
+                            startScan(i);
+                          }
+                        }}
+                      />
+
+                      <IonLabel
+                        className="wrap"
+                        onClick={() => {
+                          if (items) {
+                            setShowOrderInfoModal(true);
+                            setItemModalInfo(items[i]);
+                          }
+                        }}
+                      >
+                        <h4 className="address capitalize">{`${items[i].street} ${items[i].houseNumber}`}</h4>
+                        <p className="capitalize">{`${items[i].postCode} ${items[i].city}`}</p>
+                      </IonLabel>
+                      <IonIcon
+                        className="icon-navigation"
+                        color="primary"
+                        slot="end"
+                        icon={navigateOutline}
+                        onClick={(event) => {
+                          setAddress(
+                            `${items[i].street} ${items[i].houseNumber}`
+                          );
+                          present({
+                            event: event.nativeEvent,
+                          });
+                        }}
+                      />
+                    </div>
+                    {items[i].packages.map((_e) => {
+                      return (
+                        <IonItem className="item-diet" lines="none">
+                          <IonIcon
+                            color={_e.scanned ? "success" : "danger"}
+                            src={_e.scanned ? checkmarkOutline : closeOutline}
+                          />
+                          <IonLabel style={{ margin: "0" }} className="wrap">
+                            {_e.name}
+                          </IonLabel>
+                        </IonItem>
+                      );
+                    })}
+                  </IonLabel>
+                </div>
+              );
+            })}
           </IonList>
         )}
       </IonContent>
-
       {scanning ? (
         <></>
       ) : (
@@ -728,7 +854,6 @@ const Home: React.FC = () => {
           </IonItem>
         </IonFooter>
       )}
-
       {scanning ? (
         <>
           <div className="scan-square">
@@ -763,7 +888,6 @@ const Home: React.FC = () => {
       ) : (
         <></>
       )}
-
       {scanning ? (
         <IonFooter>
           {choosedItem?.packages.every((e) => {

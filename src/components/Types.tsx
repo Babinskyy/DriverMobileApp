@@ -24,6 +24,7 @@ export type RouteProps = {
   routeId: string;
   street: string;
   customerId: number;
+  image?: string;
 };
 export type ItemsDietProps = {
   name: string;
