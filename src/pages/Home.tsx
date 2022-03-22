@@ -117,7 +117,7 @@ const Home: React.FC = () => {
 
   const [presentPhoneNumber, dismissPhoneNumber] = useIonPopover(PhonePopover, {
     onHide: () => dismiss(),
-    address: address,
+    phoneNumber: phoneNumber,
   });
 
   useEffect(() => {
@@ -480,10 +480,13 @@ const Home: React.FC = () => {
               <IonLabel
                 color="secondary"
                 onClick={(event) => {
+                  console.log(itemModalInfo);
+                  console.log(itemModalInfo?.phone);
                   setPhoneNumber(itemModalInfo ? itemModalInfo.phone : "");
                   presentPhoneNumber({
                     event: event.nativeEvent,
                   });
+                  console.log(phoneNumber);
                 }}
                 style={{
                   fontWeight: 700,
@@ -568,7 +571,7 @@ const Home: React.FC = () => {
         </IonFab>
         <IonImg src={itemModalInfo?.image} />
       </IonModal>
-      
+
       <IonHeader
         className={scanning ? "invisible" : ""}
         ref={headerRef}

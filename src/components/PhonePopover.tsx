@@ -2,13 +2,14 @@ import { IonItem, IonLabel, IonList, IonNote } from "@ionic/react";
 
 const PhonePopover: React.FC<{
   onHide: () => void;
-  address: string;
-}> = ({ onHide, address }) => (
+  phoneNumber: string;
+}> = ({ onHide, phoneNumber }) => (
   <IonList>
     <IonItem
       button
       onClick={() => {
-        window.open("tel:785234222");
+        console.log(phoneNumber);
+        window.open(`tel:${phoneNumber}`);
         onHide();
       }}
     >
@@ -18,7 +19,7 @@ const PhonePopover: React.FC<{
       lines="none"
       button
       onClick={() => {
-        window.open("sms:785234222");
+        window.open(`sms:${phoneNumber}`);
         onHide();
       }}
     >
