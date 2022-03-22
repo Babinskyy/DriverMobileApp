@@ -568,7 +568,7 @@ const Home: React.FC = () => {
         </IonFab>
         <IonImg src={itemModalInfo?.image} />
       </IonModal>
-      ;
+      
       <IonHeader
         className={scanning ? "invisible" : ""}
         ref={headerRef}

@@ -41,11 +41,9 @@ import Login from "./pages/Login";
 import Warehouse from "./pages/Warehouse";
 import { useContext, useEffect, useRef, useState } from "react";
 
-import api from "./services/api";
 import auth from "./services/auth.service";
 
 import { User } from "./services/userProps";
-import Startup from "./components/Startup";
 import Menu from "./components/Menu";
 
 setupIonicReact();

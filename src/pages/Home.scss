@@ -140,7 +140,6 @@ ion-label.wrap {
 }
 
 ion-modal.order-info-modal {
-	backdrop-filter: blur(3px);
 	padding-top: 110px;
 }
 
@@ -149,7 +148,6 @@ ion-modal.order-info-modal::part(content) {
 	border-top-right-radius: 13px;
 }
 ion-modal.modal-image {
-	backdrop-filter: blur(3px);
 	z-index: 20006;
     height: 100%;
     --background: none;
