@@ -363,21 +363,14 @@ const Warehouse: React.FC = () => {
                 style={{ "--border-color": "var(--ion-color-medium)" }}
                 lines="full"
               >
-                <IonLabel>{e.name}</IonLabel>
+                <IonLabel
+                  style={{ color: e.scanCount == e.count ? "primary" : "" }}
+                >
+                  {e.name}
+                </IonLabel>
                 <IonLabel slot="end">
                   {e.scanCount}/{e.count}
                 </IonLabel>
-
-                {/* <IonIcon
-                  className="icon-scan"
-                  color="primary"
-                  slot="start"
-                  icon={barcodeOutline}
-                  onClick={(event) => {
-                    setScanning(true);
-                    startScan(i);
-                  }}
-                /> */}
 
                 <IonRippleEffect />
                 <IonReorder slot="end" />

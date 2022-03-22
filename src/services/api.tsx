@@ -41,7 +41,7 @@ instance.interceptors.response.use(
           await TokenService.updateLocalAccessToken(jwtToken);
           return instance(originalConfig);
         } catch (_error) {
-          await tokenService.removeUser();
+          // await tokenService.removeUser();
           window.location.replace("/login");
           return Promise.reject(_error);
         }

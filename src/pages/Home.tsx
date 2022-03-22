@@ -148,7 +148,11 @@ const Home: React.FC = () => {
 
   useIonViewWillEnter(async () => {
     api.get("routes/").then(async (response) => {
-      const route = response.data as RouteProps[];
+      let route = response.data as RouteProps[];
+
+      // route = route.filter((e) => {
+      //   return !e.packagesCompleted;
+      // });
 
       await setRoute(JSON.stringify(route));
       const { value } = await Storage.get({ key: "Route" });
@@ -237,8 +241,6 @@ const Home: React.FC = () => {
     setTimeout(() => {
       BarcodeScanner.enableTorch();
     }, 150);
-
-    let newScan = true;
 
     await BarcodeScanner.startScanning(
       { targetedFormats: [SupportedFormat.QR_CODE] },
@@ -366,7 +368,7 @@ const Home: React.FC = () => {
               //     ? cameraOutline
               //     : barcodeOutline
               // }
-              icon={barcodeOutline}
+              icon={items[i].packagesCompleted ? cameraOutline : barcodeOutline}
               onClick={(event) => {
                 if (
                   items[i].packages?.every((_e) => {
@@ -772,22 +774,53 @@ const Home: React.FC = () => {
                         //     ? cameraOutline
                         //     : barcodeOutline
                         // }
-                        icon={barcodeOutline}
-                        onClick={(event) => {
+                        icon={
+                          items[i].packagesCompleted
+                            ? cameraOutline
+                            : barcodeOutline
+                        }
+                        onClick={async (event) => {
                           if (
                             items[i].packages?.every((_e) => {
                               return _e.scanned;
                             })
                           ) {
-                          } else {
-                            checkPermission();
+                            const image = await Camera.getPhoto({
+                              quality: 75,
+                              allowEditing: false,
+                              resultType: CameraResultType.Base64,
+                              source: CameraSource.Camera,
+                            });
 
-                            const body = document.querySelector("body");
-                            if (body) {
-                              body.style.background = "transparent";
+                            let imageUrl = image.base64String;
+
+                            api
+                              .post(
+                                "routes/addresses/" + items[i].id + "/image",
+                                {
+                                  image: imageUrl,
+                                }
+                              )
+                              .then((response) => {
+                                console.log(response);
+                              });
+                          } else {
+                            const tempItems = items;
+                            const isCameraWaiting = tempItems.some((e) => {
+                              return e.packagesCompleted && !e.image;
+                            });
+
+                            if (isCameraWaiting) {
+                            } else {
+                              checkPermission();
+
+                              const body = document.querySelector("body");
+                              if (body) {
+                                body.style.background = "transparent";
+                              }
+                              setScanning(true);
+                              startScan(i);
                             }
-                            setScanning(true);
-                            startScan(i);
                           }
                         }}
                       />
@@ -910,7 +943,7 @@ const Home: React.FC = () => {
                   source: CameraSource.Camera,
                 });
 
-                var imageUrl = image.base64String;
+                let imageUrl = image.base64String;
 
                 api
                   .post("routes/addresses/" + choosedItem.id + "/image", {
@@ -956,14 +989,47 @@ const Home: React.FC = () => {
                             "Anuluj",
                             {
                               text: "Zrób zdjęcie",
-                              handler: async () => {
+                              handler: async (e) => {
                                 const image = await Camera.getPhoto({
-                                  quality: 90,
+                                  quality: 75,
                                   allowEditing: false,
-                                  resultType: CameraResultType.Uri,
+                                  resultType: CameraResultType.Base64,
                                   source: CameraSource.Camera,
                                 });
-                                var imageUrl = image.webPath;
+
+                                let imageUrl = image.base64String;
+
+                                // api
+                                //   .post(
+                                //     "routes/addresses/" + _e.id + "/image",
+                                //     {
+                                //       image: imageUrl,
+                                //     }
+                                //   )
+                                //   .then((response) => {
+                                //     console.log(response);
+                                //   });
+
+                                let tempItems = items;
+                                let tempChoosedItem = choosedItem;
+
+                                tempItems.map((x) => {
+                                  x.packages.map((_x) => {
+                                    if (_x.id == _e.id) {
+                                      _x.scanned = true;
+                                    }
+                                  });
+                                });
+
+                                tempChoosedItem.packages.map((x) => {
+                                  if (x.id == _e.id) {
+                                    x.scanned = true;
+                                  }
+                                });
+
+                                setItems(tempItems);
+                                setChoosedItem(undefined);
+                                setChoosedItem(tempChoosedItem);
                               },
                             },
                           ],

@@ -25,6 +25,7 @@ export type RouteProps = {
   street: string;
   customerId: number;
   image?: string;
+  packagesCompleted: boolean;
 };
 export type ItemsDietProps = {
   name: string;
