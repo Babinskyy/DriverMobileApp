@@ -242,6 +242,13 @@ const Warehouse: React.FC = () => {
             const { value } = await Storage.get({ key: "Diets" });
             const val = value;
 
+            // api
+            //   .patch("routes/addresses/packages/" + _e.id + "/warehouse", {
+            //     isScanned: true,
+            //     confirmationString: result.content,
+            //   })
+            //   .then(async (response) => {});
+
             if (val && codes) {
               const collection = JSON.parse(val) as DietsProps[];
 
