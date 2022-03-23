@@ -87,6 +87,7 @@ const Home: React.FC = () => {
   const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
 
   const [showOrderPhoto, setShowOrderPhoto] = useState(false);
+  const [assignedImage, setAssignedImage] = useState<string | undefined>();
 
   const contentRef = useRef<HTMLIonContentElement>(null);
 
@@ -146,13 +147,18 @@ const Home: React.FC = () => {
     });
   });
 
+
+
   useIonViewWillEnter(async () => {
+
+    await assignRouteFromStorageToState();
+
     api.get("routes/").then(async (response) => {
       let route = response.data as RouteProps[];
 
-      // route = route.filter((e) => {
-      //   return !e.packagesCompleted;
-      // });
+      route = route.filter((e) => {
+        return !e.packagesCompleted && !e.image;
+      });
 
       await setRoute(JSON.stringify(route));
       const { value } = await Storage.get({ key: "Route" });
@@ -197,8 +203,15 @@ const Home: React.FC = () => {
     const { value } = await Storage.get({ key: "Route" });
 
     if (value) {
-      const routeCollection = JSON.parse(value) as RouteProps[];
+      let routeCollection = JSON.parse(value) as RouteProps[];
+
+      routeCollection = routeCollection.filter((e) => {
+        return !e.packagesCompleted && !e.image;
+      });
+
       setItems(routeCollection);
+      setItemsStatic(routeCollection);
+      setLoadingList(false);
     }
   };
 
@@ -532,6 +545,18 @@ const Home: React.FC = () => {
               return (
                 <IonItem>
                   <IonLabel className="wrap">{e.name}</IonLabel>
+                  {
+                    e.image
+                    ?
+                    <IonButton 
+                    onClick={() => {
+                      setAssignedImage(e.image);
+                      setShowOrderPhoto(true);
+                    }}  
+                    >Pokaż zdjęcie</IonButton>
+                    :
+                    <></>
+                  }
                 </IonItem>
               );
             })}
@@ -546,6 +571,7 @@ const Home: React.FC = () => {
               expand="full"
               style={{ margin: "0 10px" }}
               onClick={() => {
+                setAssignedImage(itemModalInfo?.image);
                 setShowOrderPhoto(true);
               }}
             >
@@ -571,7 +597,7 @@ const Home: React.FC = () => {
             <IonIcon icon={closeOutline} />
           </IonFabButton>
         </IonFab>
-        <IonImg src={itemModalInfo?.image} />
+        <IonImg src={assignedImage} />
       </IonModal>
 
       <IonHeader
@@ -750,7 +776,7 @@ const Home: React.FC = () => {
             {items.map((e, i) => {
               return (
                 <div
-                  key={i}
+                  key={e.id}
                   // style={{ height: "114px" }}
                   className="item-container"
                   // disabled={e?.packages?.every((_e) => {
@@ -999,27 +1025,48 @@ const Home: React.FC = () => {
 
                                 let imageUrl = image.base64String;
 
-                                // api
-                                //   .post(
-                                //     "routes/addresses/" + _e.id + "/image",
-                                //     {
-                                //       image: imageUrl,
-                                //     }
-                                //   )
-                                //   .then((response) => {
-                                //     console.log(response);
-                                //   });
+                                api
+                                  .post(
+                                    "routes/addresses/packages/" + _e.id + "/image",
+                                    {
+                                      image: imageUrl,
+                                    }
+                                  )
+                                  .then((response) => {
+                                    console.log(response);
+                                  });
 
                                 let tempItems = items;
                                 let tempChoosedItem = choosedItem;
+
+                                let scannedAddress: RouteProps | undefined = undefined;
 
                                 tempItems.map((x) => {
                                   x.packages.map((_x) => {
                                     if (_x.id == _e.id) {
                                       _x.scanned = true;
+                                      scannedAddress = x;
                                     }
                                   });
                                 });
+
+                                if(scannedAddress)
+                                {
+
+                                  const _scannedAddress: RouteProps = scannedAddress;
+
+                                  if(_scannedAddress.packages.every((x) => {
+                                    return x.scanned
+                                  }))
+                                  {
+                                    tempItems.map((x) => {
+                                      if(x.id == _scannedAddress.id)
+                                      {
+                                        x.packagesCompleted = true;
+                                      }
+                                    });
+                                  }
+                                }
 
                                 tempChoosedItem.packages.map((x) => {
                                   if (x.id == _e.id) {
