@@ -77,6 +77,7 @@ import {
   InnerItemProps,
 } from "../components/Types";
 import ThreeDotsPopover from "../components/ThreeDotsPopover";
+import { RouterProps } from "react-router";
 
 const Home: React.FC = () => {
   const { navigate } = useContext(NavContext);
@@ -869,7 +870,8 @@ const Home: React.FC = () => {
                           if (
                             items[i].packages?.every((_e) => {
                               return _e.scanned;
-                            })
+                            }) &&
+                            !items[i].image
                           ) {
                             const image = await Camera.getPhoto({
                               quality: 75,
@@ -890,6 +892,48 @@ const Home: React.FC = () => {
                               .then((response) => {
                                 console.log(response);
                               });
+                          } else if (items[i].image) {
+                            presentAlert({
+                              mode: "ios",
+                              cssClass: "missing-qr-alert",
+                              header:
+                                "Czy na pewno chcesz cofnąć dostarczenie adresu?",
+                              subHeader: "Wybrany adres:",
+                              message:
+                                items[i].street + " " + items[i].houseNumber,
+                              buttons: [
+                                "Anuluj",
+                                {
+                                  text: "Cofnij",
+                                  handler: async () => {
+                                    let tempItems = items;
+
+                                    tempItems[i].packagesCompleted = false;
+                                    tempItems[i].image = undefined;
+                                    tempItems[i].packages.map((e) => {
+                                      e.scanned = false;
+                                    });
+
+                                    await setRoute(JSON.stringify(tempItems));
+
+                                    let newItems: RouteProps[] = [];
+
+                                    tempItems.map((e) => {
+                                      if (e.id !== items[i].id) {
+                                        newItems.push(e);
+                                      }
+                                    });
+
+                                    setItems([]);
+                                    setItemsStatic([]);
+
+                                    setItems(newItems);
+                                    setItemsStatic(newItems);
+                                  },
+                                },
+                              ],
+                              onDidDismiss: (e) => console.log("did dismiss"),
+                            });
                           } else {
                             const tempItems = items;
                             const isCameraWaiting = tempItems.some((e) => {
