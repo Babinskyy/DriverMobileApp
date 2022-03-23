@@ -5,8 +5,8 @@ import { User } from "./userProps";
 
 const instance = axios.create({
   withCredentials: true,
-  // baseURL: "https://broccoliapi.azurewebsites.net",
-  baseURL: "https://localhost:55931",
+  baseURL: "https://broccoliapi.azurewebsites.net",
+  // baseURL: "https://localhost:55931",
   headers: {
     "Content-Type": "application/json",
   },

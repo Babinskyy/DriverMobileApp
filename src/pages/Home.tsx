@@ -38,15 +38,23 @@ import {
   useIonViewWillLeave,
 } from "@ionic/react";
 import {
+  alert,
+  alertOutline,
   barcodeOutline,
   call,
   cameraOutline,
   checkmarkOutline,
   closeOutline,
+  ellipsisVerticalOutline,
   flashlightOutline,
   navigateOutline,
+  refresh,
+  refreshOutline,
   reorderFourOutline,
   searchOutline,
+  swapHorizontalOutline,
+  swapVerticalOutline,
+  syncOutline,
 } from "ionicons/icons";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import MapPopover from "../components/MapPopover";
@@ -68,6 +76,7 @@ import {
   ItemsProps,
   InnerItemProps,
 } from "../components/Types";
+import ThreeDotsPopover from "../components/ThreeDotsPopover";
 
 const Home: React.FC = () => {
   const { navigate } = useContext(NavContext);
@@ -104,6 +113,7 @@ const Home: React.FC = () => {
   const [items, setItems] = useState<RouteProps[]>([]);
 
   const [itemsStatic, setItemsStatic] = useState<RouteProps[] | undefined>([]);
+  const [rotate, setRotate] = useState<boolean>(false);
 
   // const items = useMemo<RouteProps[]>(() => items as RouteProps[], [items]);
 
@@ -117,8 +127,57 @@ const Home: React.FC = () => {
   });
 
   const [presentPhoneNumber, dismissPhoneNumber] = useIonPopover(PhonePopover, {
-    onHide: () => dismiss(),
+    onHide: () => dismissPhoneNumber(),
     phoneNumber: phoneNumber,
+  });
+  const [presentThreeDots, dismissThreeDots] = useIonPopover(ThreeDotsPopover, {
+    onHide: () => dismissThreeDots(),
+    showDelivered: async () => {
+      await assignRouteFromStorageToState();
+
+      api.get("routes/").then(async (response) => {
+        let route = response.data as RouteProps[];
+
+        route = route.filter((e) => {
+          return e.packagesCompleted && e.image;
+        });
+
+        await setRoute(JSON.stringify(route));
+        const { value } = await Storage.get({ key: "Route" });
+
+        if (value) {
+          const routeCollection = JSON.parse(value) as RouteProps[];
+        }
+
+        setItems(route);
+        setItemsStatic(route);
+
+        setLoadingList(false);
+      });
+    },
+    showUndelivered: async () => {
+      await assignRouteFromStorageToState();
+
+      api.get("routes/").then(async (response) => {
+        let route = response.data as RouteProps[];
+
+        route = route.filter((e) => {
+          return !(e.packagesCompleted && e.image);
+        });
+
+        await setRoute(JSON.stringify(route));
+        const { value } = await Storage.get({ key: "Route" });
+
+        if (value) {
+          const routeCollection = JSON.parse(value) as RouteProps[];
+        }
+
+        setItems(route);
+        setItemsStatic(route);
+
+        setLoadingList(false);
+      });
+    },
   });
 
   useEffect(() => {
@@ -147,17 +206,14 @@ const Home: React.FC = () => {
     });
   });
 
-
-
   useIonViewWillEnter(async () => {
-
     await assignRouteFromStorageToState();
 
     api.get("routes/").then(async (response) => {
       let route = response.data as RouteProps[];
 
       route = route.filter((e) => {
-        return !e.packagesCompleted && !e.image;
+        return !(e.packagesCompleted && e.image);
       });
 
       await setRoute(JSON.stringify(route));
@@ -381,7 +437,7 @@ const Home: React.FC = () => {
               //     ? cameraOutline
               //     : barcodeOutline
               // }
-              icon={items[i].packagesCompleted ? cameraOutline : barcodeOutline}
+              icon={items[i].image ? cameraOutline : barcodeOutline}
               onClick={(event) => {
                 if (
                   items[i].packages?.every((_e) => {
@@ -501,7 +557,6 @@ const Home: React.FC = () => {
                   presentPhoneNumber({
                     event: event.nativeEvent,
                   });
-                  console.log(phoneNumber);
                 }}
                 style={{
                   fontWeight: 700,
@@ -545,18 +600,18 @@ const Home: React.FC = () => {
               return (
                 <IonItem>
                   <IonLabel className="wrap">{e.name}</IonLabel>
-                  {
-                    e.image
-                    ?
-                    <IonButton 
-                    onClick={() => {
-                      setAssignedImage(e.image);
-                      setShowOrderPhoto(true);
-                    }}  
-                    >Pokaż zdjęcie</IonButton>
-                    :
+                  {e.image ? (
+                    <IonButton
+                      onClick={() => {
+                        setAssignedImage(e.image);
+                        setShowOrderPhoto(true);
+                      }}
+                    >
+                      Pokaż zdjęcie
+                    </IonButton>
+                  ) : (
                     <></>
-                  }
+                  )}
                 </IonItem>
               );
             })}
@@ -608,19 +663,9 @@ const Home: React.FC = () => {
         mode={"md"}
       >
         <IonToolbar>
-          <IonSearchbar
-            placeholder="Wyszukaj"
-            style={{
-              "--box-shadow": "none",
-              "--background": "none",
-            }}
-            onIonChange={(e) => filterItems(e.detail.value!)}
-          ></IonSearchbar>
-          <IonButtons slot="end">
-            {/* <IonButton onClick={() => console.log("")}>
-              <IonIcon slot="icon-only" icon={reorderFourOutline} />
-            </IonButton> */}
+          <IonButtons slot="start">
             <IonButton
+              slot="start"
               onClick={() =>
                 (
                   document.querySelector("#mainMenu") as
@@ -630,6 +675,34 @@ const Home: React.FC = () => {
               }
             >
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
+            </IonButton>
+          </IonButtons>
+          <IonSearchbar
+            placeholder="Wyszukaj"
+            style={{
+              "--box-shadow": "none",
+              "--background": "none",
+            }}
+            onIonChange={(e) => filterItems(e.detail.value!)}
+          ></IonSearchbar>
+          <IonButtons slot="end">
+            <IonButton
+              className={rotate ? "rotated" : ""}
+              onClick={() => {
+                setRotate(!rotate);
+                window.location.reload();
+              }}
+            >
+              <IonIcon slot="icon-only" icon={refreshOutline} />
+            </IonButton>
+            <IonButton
+              onClick={(event) => {
+                presentThreeDots({
+                  event: event.nativeEvent,
+                });
+              }}
+            >
+              <IonIcon slot="icon-only" icon={ellipsisVerticalOutline} />
             </IonButton>
           </IonButtons>
         </IonToolbar>
@@ -761,29 +834,10 @@ const Home: React.FC = () => {
         {loadingList ? (
           <IonLoading isOpen={loadingList} />
         ) : (
-          // <Virtuoso
-          //   // overscan={4000}
-          //   // isScrolling={setIsScrolling}
-          //   height={window.innerHeight - 56 - 48}
-          //   overscan={100}
-          //   className="list-order"
-          //   // style={{ height: "100%" }}
-          //   totalCount={items.length}
-          //   itemContent={itemContent}
-
-          // />
           <IonList className="list-order">
             {items.map((e, i) => {
               return (
-                <div
-                  key={e.id}
-                  // style={{ height: "114px" }}
-                  className="item-container"
-                  // disabled={e?.packages?.every((_e) => {
-                  //   return _e.scanned;
-                  // })}
-                  // lines="full"
-                >
+                <div key={e.id} className="item-container">
                   <div className="counter">
                     {i + 1}/{items.length}
                   </div>
@@ -791,17 +845,18 @@ const Home: React.FC = () => {
                     <div style={{ display: "flex" }}>
                       <IonIcon
                         className="icon-scan"
-                        color="primary"
+                        color={
+                          items[i].image
+                            ? "secondary"
+                            : items[i].packagesCompleted
+                            ? "tertiary"
+                            : "primary"
+                        }
                         slot="start"
-                        // icon={
-                        //   e?.packages?.every((_e) => {
-                        //     return _e.scanned;
-                        //   })
-                        //     ? cameraOutline
-                        //     : barcodeOutline
-                        // }
                         icon={
-                          items[i].packagesCompleted
+                          items[i].image
+                            ? syncOutline
+                            : items[i].packagesCompleted
                             ? cameraOutline
                             : barcodeOutline
                         }
@@ -1027,7 +1082,9 @@ const Home: React.FC = () => {
 
                                 api
                                   .post(
-                                    "routes/addresses/packages/" + _e.id + "/image",
+                                    "routes/addresses/packages/" +
+                                      _e.id +
+                                      "/image",
                                     {
                                       image: imageUrl,
                                     }
@@ -1039,7 +1096,8 @@ const Home: React.FC = () => {
                                 let tempItems = items;
                                 let tempChoosedItem = choosedItem;
 
-                                let scannedAddress: RouteProps | undefined = undefined;
+                                let scannedAddress: RouteProps | undefined =
+                                  undefined;
 
                                 tempItems.map((x) => {
                                   x.packages.map((_x) => {
@@ -1050,18 +1108,17 @@ const Home: React.FC = () => {
                                   });
                                 });
 
-                                if(scannedAddress)
-                                {
+                                if (scannedAddress) {
+                                  const _scannedAddress: RouteProps =
+                                    scannedAddress;
 
-                                  const _scannedAddress: RouteProps = scannedAddress;
-
-                                  if(_scannedAddress.packages.every((x) => {
-                                    return x.scanned
-                                  }))
-                                  {
+                                  if (
+                                    _scannedAddress.packages.every((x) => {
+                                      return x.scanned;
+                                    })
+                                  ) {
                                     tempItems.map((x) => {
-                                      if(x.id == _scannedAddress.id)
-                                      {
+                                      if (x.id == _scannedAddress.id) {
                                         x.packagesCompleted = true;
                                       }
                                     });

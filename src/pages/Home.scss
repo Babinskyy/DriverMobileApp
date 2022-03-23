@@ -174,3 +174,8 @@ ion-modal.modal-image ion-img {
 .capitalize {
     text-transform: capitalize;
 }
+
+.rotated {
+	transform: rotate(720deg);
+	transition: ease-in-out 1s;
+}
