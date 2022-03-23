@@ -307,6 +307,17 @@ const Warehouse: React.FC = () => {
         mode={"md"}
       >
         <IonToolbar>
+          <IonButtons slot="start">
+            <IonButton>
+              <IonIcon
+                slot="icon-only"
+                icon={reorderFourOutline}
+                onClick={() =>
+                  (document.querySelector("#mainMenu") as any)?.setOpen(true)
+                }
+              />
+            </IonButton>
+          </IonButtons>
           <IonSearchbar
             placeholder="Wyszukaj"
             style={{
@@ -315,16 +326,6 @@ const Warehouse: React.FC = () => {
             }}
             onIonChange={(e) => setSearchText(e.detail.value!)}
           ></IonSearchbar>
-          <IonButtons slot="end">
-            {/* <IonButton onClick={() => console.log("")}>
-              <IonIcon slot="icon-only" icon={reorderFourOutline} />
-            </IonButton> */}
-            <IonMenuToggle style={{ display: "block" }}>
-              <IonButton>
-                <IonIcon slot="icon-only" icon={reorderFourOutline} />
-              </IonButton>
-            </IonMenuToggle>
-          </IonButtons>
         </IonToolbar>
       </IonHeader>
 

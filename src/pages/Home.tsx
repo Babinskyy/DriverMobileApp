@@ -344,17 +344,22 @@ const Home: React.FC = () => {
                         `${tempChoosedItem.houseNumber}`
                     );
 
-                    tempChoosedItem?.packages.map((_e) => {
-                      if (e.id == _e.code) {
-                        _e.scanned = true;
+                    const tempChoosedItemRet = tempChoosedItem?.packages.map(
+                      (_e) => {
+                        if (e.id == _e.code) {
+                          _e.scanned = true;
 
-                        api
-                          .patch("routes/addresses/packages/" + _e.id, {
-                            isScanned: true,
-                          })
-                          .then(async (response) => {});
+                          api
+                            .patch("routes/addresses/packages/" + _e.id, {
+                              isScanned: true,
+                              confirmationString: result.content,
+                            })
+                            .then(async (response) => {});
+
+                          return true;
+                        }
                       }
-                    });
+                    );
 
                     setChoosedItem(tempChoosedItem);
                   }
@@ -507,7 +512,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <IonPage className="container" id="main">
+    <IonPage className="container">
       <IonModal
         className="order-info-modal"
         isOpen={showOrderInfoModal}

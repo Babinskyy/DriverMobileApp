@@ -54,7 +54,7 @@ const App: React.FC = () => {
       <IonReactRouter>
         <Menu />
 
-        <IonRouterOutlet>
+        <IonRouterOutlet animated={false}>
           <Route path="/login" exact={true} component={Login} />
           <Route path="/Warehouse" exact={true} component={Warehouse} />
           <Route path="/" exact={true} component={Home} />
