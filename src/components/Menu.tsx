@@ -69,7 +69,9 @@ const Menu: React.FC = () => {
             button
             className="menu-item"
             onClick={async () => {
-              history.replace("/");
+              setTimeout(() => {
+                history.push("/");
+              }, 1);
               if (menuRef.current) {
                 menuRef.current.setOpen(false);
               }
@@ -83,7 +85,9 @@ const Menu: React.FC = () => {
             button
             className="menu-item"
             onClick={async () => {
-              history.replace("/Warehouse");
+              setTimeout(() => {
+                history.push("/Warehouse");
+              }, 1);
               if (menuRef.current) {
                 menuRef.current.setOpen(false);
               }
@@ -101,7 +105,9 @@ const Menu: React.FC = () => {
           color="danger"
           onClick={async () => {
             auth.logout().finally(() => {
-              history.replace("/login");
+              setTimeout(() => {
+                history.replace("/login");
+              }, 1);
 
               if (menuRef.current) {
                 menuRef.current.setOpen(false);

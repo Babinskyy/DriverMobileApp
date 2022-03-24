@@ -134,11 +134,20 @@ const Warehouse: React.FC = () => {
     });
   };
 
-  useIonViewWillEnter(async () => {
-    api.get("routes/addresses/packages").then(async (response) => {
-      const packages = response.data as WarehousePackage[];
+  const assignWarehousePackagesFromStorageToState = async () => {
+    const { value } = await Storage.get({ key: "WarehousePackages" });
 
-      setPackages(packages);
+    if (value) {
+      let warehousePackages = JSON.parse(value) as WarehousePackage[];
+
+      await generateDictionary(warehousePackages);
+
+    }
+  };
+
+  const generateDictionary = async (packages: WarehousePackage[]) => {
+
+    setPackages(packages);
 
       await setWarehousePackages(JSON.stringify(packages));
       //const { value } = await Storage.get({ key: "WarehousePackages" });
@@ -175,7 +184,23 @@ const Warehouse: React.FC = () => {
       const arr = dietsDictionary.sort((a, b) => a.name.localeCompare(b.name));
       setDietsWithNumber(arr);
       setDietsWithNumberStatic(arr);
+
+  }
+
+  useIonViewWillEnter(async () => {
+
+    await assignWarehousePackagesFromStorageToState();
+
+    api.get("routes/addresses/packages").then(async (response) => {
+      const packages = response.data as WarehousePackage[];
+
+      await generateDictionary(packages);
+
+      await setWarehousePackages(JSON.stringify(packages));
+      
     });
+
+
 
     // api.get("routes/").then(async (response) => {
     //   const route = response.data as RouteProps[];
@@ -344,44 +369,46 @@ const Warehouse: React.FC = () => {
                 }
               });
 
-              console.log(tempItems);
+              // console.log(tempItems);
 
-              const diets = await getDiets();
+              // const diets = await getDiets();
 
-              let dietsDictionary: DietsDictionary[] = [];
+              // let dietsDictionary: DietsDictionary[] = [];
 
-              if (diets) {
-                const dietsCollection = JSON.parse(diets) as DietsProps[];
+              // if (diets) {
+              //   const dietsCollection = JSON.parse(diets) as DietsProps[];
 
-                let dietsCounter = 0;
-                tempItems.map((y) => {
-                  if (dietsDictionary.some((e) => e.name == y.name)) {
-                    dietsDictionary.filter((e) => e.name == y.name)[0].count =
-                      dietsDictionary.filter((e) => e.name == y.name)[0].count +
-                      1;
-                    if (y.scanned) {
-                      dietsDictionary.filter(
-                        (e) => e.name == y.name
-                      )[0].scanCount =
-                        dietsDictionary.filter((e) => e.name == y.name)[0]
-                          .scanCount + 1;
-                    }
-                  } else {
-                    dietsDictionary.push({
-                      name: y.name,
-                      count: 1,
-                      scanCount: y.scanned ? 1 : 0,
-                    });
-                  }
-                });
-              }
+              //   let dietsCounter = 0;
+              //   tempItems.map((y) => {
+              //     if (dietsDictionary.some((e) => e.name == y.name)) {
+              //       dietsDictionary.filter((e) => e.name == y.name)[0].count =
+              //         dietsDictionary.filter((e) => e.name == y.name)[0].count +
+              //         1;
+              //       if (y.scanned) {
+              //         dietsDictionary.filter(
+              //           (e) => e.name == y.name
+              //         )[0].scanCount =
+              //           dietsDictionary.filter((e) => e.name == y.name)[0]
+              //             .scanCount + 1;
+              //       }
+              //     } else {
+              //       dietsDictionary.push({
+              //         name: y.name,
+              //         count: 1,
+              //         scanCount: y.scanned ? 1 : 0,
+              //       });
+              //     }
+              //   });
+              // }
 
-              console.log(dietsDictionary);
-              const arr = dietsDictionary.sort((a, b) =>
-                a.name.localeCompare(b.name)
-              );
-              setDietsWithNumber(arr);
-              setDietsWithNumberStatic(arr);
+              // console.log(dietsDictionary);
+              // const arr = dietsDictionary.sort((a, b) =>
+              //   a.name.localeCompare(b.name)
+              // );
+              // setDietsWithNumber(arr);
+              // setDietsWithNumberStatic(arr);
+
+              await generateDictionary(tempItems);
 
               api
                 .patch(
@@ -425,38 +452,10 @@ const Warehouse: React.FC = () => {
     BarcodeScanner.stopScan();
   };
 
-  useEffect(() => {
-    if (headerRef.current) {
-      headerRef.current.style.willChange = "transform";
-      headerRef.current.style.transition = "transform ease-in-out 150ms";
-    }
-  }, []);
 
-  useIonViewWillLeave(() => {
-    if (headerRef.current) {
-      headerRef.current.style.transform = "translate3d(0, 0, 0)";
-    }
-    setHeaderTop(0);
-  });
 
-  type ItemsDietProps = {
-    name: string;
-    scanned: boolean;
-  };
-
-  type ItemsProps = {
-    address: string;
-    diets: ItemsDietProps[];
-    photo?: boolean;
-    lat: string;
-    lng: string;
-  };
-
-  const [choosedItem, setChoosedItem] = useState<RouteProps | undefined>();
-  const [itemModalInfo, setItemModalInfo] = useState<RouteProps | undefined>();
 
   const [packages, setPackages] = useState<WarehousePackage[]>([]);
-  const [dietCounter, setDietCounter] = useState<number>(0);
 
   return (
     <IonPage className="container">
@@ -469,13 +468,16 @@ const Warehouse: React.FC = () => {
       >
         <IonToolbar>
           <IonButtons slot="start">
-            <IonButton>
+            <IonButton
+            onClick={() =>
+              {
+                (document.querySelector("#mainMenu") as any)?.setOpen(true);
+              }
+            }
+            >
               <IonIcon
                 slot="icon-only"
                 icon={reorderFourOutline}
-                onClick={() =>
-                  (document.querySelector("#mainMenu") as any)?.setOpen(true)
-                }
               />
             </IonButton>
           </IonButtons>

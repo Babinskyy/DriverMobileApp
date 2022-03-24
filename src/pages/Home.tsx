@@ -34,6 +34,7 @@ import {
   useIonAlert,
   useIonLoading,
   useIonPopover,
+  useIonViewDidEnter,
   useIonViewWillEnter,
   useIonViewWillLeave,
 } from "@ionic/react";
@@ -101,11 +102,9 @@ const Home: React.FC = () => {
 
   const contentRef = useRef<HTMLIonContentElement>(null);
 
-  const [loadingList, setLoadingList] = useState(true);
+  const [loadingList, setLoadingList] = useState(false);
 
   const [scanning, setScanning] = useState(false);
-
-  const [scanningResult, setScanningResult] = useState("");
 
   const [choosedItem, setChoosedItem] = useState<RouteProps | undefined>();
 
@@ -146,7 +145,7 @@ const Home: React.FC = () => {
         setItems(route);
         setItemsStatic(route);
 
-        setLoadingList(false);
+        // setLoadingList(false);
       });
     },
     showUndelivered: async () => {
@@ -169,7 +168,7 @@ const Home: React.FC = () => {
         setItems(route);
         setItemsStatic(route);
 
-        setLoadingList(false);
+        // setLoadingList(false);
       });
     },
   });
@@ -200,9 +199,7 @@ const Home: React.FC = () => {
     });
   });
 
-  useIonViewWillEnter(async () => {
-    await assignRouteFromStorageToState();
-
+  useIonViewDidEnter(async () => {
     api.get("routes/").then(async (response) => {
       let route = response.data as RouteProps[];
 
@@ -220,8 +217,12 @@ const Home: React.FC = () => {
       setItems(route);
       setItemsStatic(route);
 
-      setLoadingList(false);
+      // setLoadingList(false);
     });
+  });
+
+  useIonViewWillEnter(async () => {
+    await assignRouteFromStorageToState();
   });
 
   useIonViewWillLeave(() => {
@@ -255,13 +256,13 @@ const Home: React.FC = () => {
     if (value) {
       let routeCollection = JSON.parse(value) as RouteProps[];
 
-      routeCollection = routeCollection.filter((e) => {
-        return e.packagesCompleted && e.image;
-      });
+      // routeCollection = routeCollection.filter((e) => {
+      //   return e.packagesCompleted && e.image;
+      // });
 
       setItems(routeCollection);
       setItemsStatic(routeCollection);
-      setLoadingList(false);
+      // setLoadingList(false);
     }
   };
 
@@ -312,8 +313,6 @@ const Home: React.FC = () => {
           try {
             const codes = result.content?.split("|")[1];
 
-            setScanningResult(result.content ?? "");
-
             let temp = items;
 
             const { value } = await Storage.get({ key: "Diets" });
@@ -338,22 +337,27 @@ const Home: React.FC = () => {
                         `${tempChoosedItem.houseNumber}`
                     );
 
-                    const tempChoosedItemRet = tempChoosedItem?.packages.map(
-                      (_e) => {
-                        if (e.id == _e.code) {
-                          _e.scanned = true;
-
-                          api
-                            .patch("routes/addresses/packages/" + _e.id, {
-                              isScanned: true,
-                              confirmationString: result.content,
-                            })
-                            .then(async (response) => {});
-
-                          return true;
-                        }
-                      }
+                    const tempChoosedItemRet = tempChoosedItem?.packages.find(
+                      (_e) => e.id == _e.code && !_e.scanned
                     );
+
+                    if (tempChoosedItemRet) {
+                      tempChoosedItem.packages.map((_e) => {
+                        if (_e.id == tempChoosedItemRet.id) {
+                          _e.scanned = true;
+                        }
+                      });
+
+                      api
+                        .patch(
+                          "routes/addresses/packages/" + tempChoosedItemRet.id,
+                          {
+                            isScanned: true,
+                            confirmationString: result.content,
+                          }
+                        )
+                        .then(async (response) => {});
+                    }
 
                     setChoosedItem(tempChoosedItem);
                   }
@@ -829,7 +833,7 @@ const Home: React.FC = () => {
           <IonList className="list-order">
             {items.map((e, i) => {
               return (
-                <div key={e.id} className="item-container" data-toScroll={e.id}>
+                <div key={e.id} className="item-container" data-toscroll={e.id}>
                   <div className="counter">
                     {i + 1}/{items.length}
                   </div>
@@ -944,16 +948,30 @@ const Home: React.FC = () => {
                             presentAlert({
                               mode: "ios",
                               cssClass: "missing-qr-alert",
-                              header: "Zdjęcie nie zostało wykonane!",
-                              subHeader: "Wykonaj zdięcie dostawy:",
+                              header:
+                                "Dokończ inny rozpoczęty adres przed skanowaniem",
+                              subHeader: "Adres do zakończenia:",
                               message: _message,
                               buttons: [
                                 "Anuluj",
                                 {
                                   text: "Zobacz",
                                   handler: () => {
-                                    if (contentRef.current) {
-                                      contentRef.current.scrollTo(document.querySelector([data-toScroll='1053']));
+                                    if (contentRef.current && element) {
+                                      const addressElement =
+                                        document.querySelector(
+                                          "[data-toscroll='" + element.id + "']"
+                                        ) as Element | undefined;
+
+                                      if (addressElement) {
+                                        // const addressElementBounds = addressElement.getBoundingClientRect();
+                                        // contentRef.current.scrollIntoView(0, addressElementBounds.top, 1000);
+                                        addressElement.scrollIntoView({
+                                          block: "center",
+                                          behavior: "smooth",
+                                          inline: "center",
+                                        });
+                                      }
                                     }
                                   },
                                 },
