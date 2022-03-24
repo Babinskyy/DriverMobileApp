@@ -28,6 +28,7 @@ import {
   IonToolbar,
   useIonAlert,
   useIonPopover,
+  useIonToast,
   useIonViewWillEnter,
   useIonViewWillLeave,
 } from "@ionic/react";
@@ -50,8 +51,12 @@ import "./Warehouse.scss";
 import axios from "axios";
 import { Storage } from "@capacitor/storage";
 import api from "./../services/api";
+import { WarehousePackage } from "../components/Types";
 
 const Warehouse: React.FC = () => {
+
+  const [presentToast, dismissToast] = useIonToast();
+
   const headerRef = useRef<HTMLIonHeaderElement>(null);
 
   const [headerScrollTop, setHeaderScrollTop] = useState(0);
@@ -103,6 +108,7 @@ const Warehouse: React.FC = () => {
   };
 
   useIonViewWillEnter(() => {
+
     axios
       .get("https://broccoliapi.azurewebsites.net/Diets")
       .then(async (response) => {
@@ -123,18 +129,21 @@ const Warehouse: React.FC = () => {
     return value;
   };
 
+  const setWarehousePackages = async (value: string) => {
+    await Storage.set({
+      key: "WarehousePackages",
+      value: value,
+    });
+  };
+
   useIonViewWillEnter(async () => {
-    api.get("routes/").then(async (response) => {
-      const route = response.data as RouteProps[];
+    api.get("routes/addresses/packages").then(async (response) => {
+      const packages = response.data as WarehousePackage[];
+      
+      setPackages(packages);
 
-      await setRoute(JSON.stringify(route));
-      const { value } = await Storage.get({ key: "Route" });
-
-      if (value) {
-        const routeCollection = JSON.parse(value) as RouteProps[];
-      }
-
-      setItems(route);
+      await setWarehousePackages(JSON.stringify(packages));
+      //const { value } = await Storage.get({ key: "WarehousePackages" });
 
       const diets = await getDiets();
 
@@ -144,19 +153,23 @@ const Warehouse: React.FC = () => {
         const dietsCollection = JSON.parse(diets) as DietsProps[];
 
         let dietsCounter = 0;
-        route?.map((x) => {
-          x.packages.map((y) => {
-            if (dietsDictionary.some((e) => e.name == y.name)) {
-              dietsDictionary.filter((e) => e.name == y.name)[0].count =
-                dietsDictionary.filter((e) => e.name == y.name)[0].count + 1;
-            } else {
-              dietsDictionary.push({
-                name: y.name,
-                count: 1,
-                scanCount: 0,
-              });
+        packages.map((y) => {
+          if (dietsDictionary.some((e) => e.name == y.name)) {
+            dietsDictionary.filter((e) => e.name == y.name)[0].count =
+              dietsDictionary.filter((e) => e.name == y.name)[0].count + 1;
+
+            if (y.scanned) {
+              dietsDictionary.filter((e) => e.name == y.name)[0].scanCount =
+                dietsDictionary.filter((e) => e.name == y.name)[0].scanCount +
+                1;
             }
-          });
+          } else {
+            dietsDictionary.push({
+              name: y.name,
+              count: 1,
+              scanCount: y.scanned ? 1 : 0,
+            });
+          }
         });
       }
 
@@ -165,6 +178,48 @@ const Warehouse: React.FC = () => {
       setDietsWithNumber(arr);
       setDietsWithNumberStatic(arr);
     });
+
+    // api.get("routes/").then(async (response) => {
+    //   const route = response.data as RouteProps[];
+
+    //   await setRoute(JSON.stringify(route));
+    //   const { value } = await Storage.get({ key: "Route" });
+
+    //   if (value) {
+    //     const routeCollection = JSON.parse(value) as RouteProps[];
+    //   }
+
+    //   setItems(route);
+
+    //   const diets = await getDiets();
+
+    //   let dietsDictionary: DietsDictionary[] = [];
+
+    //   if (diets) {
+    //     const dietsCollection = JSON.parse(diets) as DietsProps[];
+
+    //     let dietsCounter = 0;
+    //     route?.map((x) => {
+    //       x.packages.map((y) => {
+    //         if (dietsDictionary.some((e) => e.name == y.name)) {
+    //           dietsDictionary.filter((e) => e.name == y.name)[0].count =
+    //             dietsDictionary.filter((e) => e.name == y.name)[0].count + 1;
+    //         } else {
+    //           dietsDictionary.push({
+    //             name: y.name,
+    //             count: 1,
+    //             scanCount: 0,
+    //           });
+    //         }
+    //       });
+    //     });
+    //   }
+
+    //   console.log(dietsDictionary);
+    //   const arr = dietsDictionary.sort((a, b) => a.name.localeCompare(b.name));
+    //   setDietsWithNumber(arr);
+    //   setDietsWithNumberStatic(arr);
+    // });
   });
 
   const setRoute = async (value: string) => {
@@ -174,14 +229,14 @@ const Warehouse: React.FC = () => {
     });
   };
 
-  const assignRouteFromStorageToState = async () => {
-    const { value } = await Storage.get({ key: "Route" });
+  // const assignRouteFromStorageToState = async () => {
+  //   const { value } = await Storage.get({ key: "Route" });
 
-    if (value) {
-      const routeCollection = JSON.parse(value) as RouteProps[];
-      setItems(routeCollection);
-    }
-  };
+  //   if (value) {
+  //     const routeCollection = JSON.parse(value) as RouteProps[];
+  //     setItems(routeCollection);
+  //   }
+  // };
 
   useEffect(() => {
     if (searchText.length > 0) {
@@ -233,27 +288,90 @@ const Warehouse: React.FC = () => {
       async (result) => {
         if (result.hasContent) {
           try {
-            const codes = result.content?.split("|")[1];
+            const code = result.content?.split("|")[1];
 
-            setScanningResult(result.content ?? "");
+            console.log("code - " + code)
+            console.log(packages)
 
-            let temp = items;
+            let scannedPackage = packages.find(e => e.code == code && !e.scanned);
+            console.log(scannedPackage)
 
-            const { value } = await Storage.get({ key: "Diets" });
-            const val = value;
+            if(scannedPackage)
+            {
 
-            // api
-            //   .patch("routes/addresses/packages/" + _e.id + "/warehouse", {
-            //     isScanned: true,
-            //     confirmationString: result.content,
-            //   })
-            //   .then(async (response) => {});
+              new Audio(
+                "https://www.myinstants.com/media/sounds/applepay.mp3"
+              ).play();
 
-            if (val && codes) {
-              const collection = JSON.parse(val) as DietsProps[];
+              presentToast({
+                header: scannedPackage.name,
+                color: "success",
+                cssClass: "warehouse-scanner-toast",
+                duration: 5000
+              })
 
-              const code = codes.split("/")[0];
+
+
+              let tempItems = packages;
+
+              tempItems.map((x) => {
+                if (x.id == scannedPackage?.id) {
+                  x.scanned = true;
+                }
+              });
+
+              console.log(tempItems)
+
+              const diets = await getDiets();
+
+              let dietsDictionary: DietsDictionary[] = [];
+
+              if (diets) {
+                const dietsCollection = JSON.parse(diets) as DietsProps[];
+
+                let dietsCounter = 0;
+                tempItems.map((y) => {
+                  if (dietsDictionary.some((e) => e.name == y.name)) {
+                    dietsDictionary.filter((e) => e.name == y.name)[0].count =
+                      dietsDictionary.filter((e) => e.name == y.name)[0].count +
+                      1;
+                      if(y.scanned)
+                      {
+                        dietsDictionary.filter((e) => e.name == y.name)[0].scanCount = dietsDictionary.filter((e) => e.name == y.name)[0].scanCount + 1;
+                      }
+                  } else {
+                    dietsDictionary.push({
+                      name: y.name,
+                      count: 1,
+                      scanCount: y.scanned ? 1 : 0,
+                    });
+                  }
+                });
+              }
+              else
+              {
+                Vibration.vibrate(500);
+              }
+
+              
+
+      console.log(dietsDictionary);
+      const arr = dietsDictionary.sort((a, b) => a.name.localeCompare(b.name));
+      setDietsWithNumber(arr);
+      setDietsWithNumberStatic(arr);
+
+
+
+              api
+              .patch("routes/addresses/packages/" + scannedPackage.id + "/warehouse", {
+                isScanned: true,
+                confirmationString: result.content,
+              })
+              .then(async (response) => {});
             }
+
+            
+
           } catch (error) {
             console.log(error);
           }
@@ -301,7 +419,7 @@ const Warehouse: React.FC = () => {
   const [choosedItem, setChoosedItem] = useState<RouteProps | undefined>();
   const [itemModalInfo, setItemModalInfo] = useState<RouteProps | undefined>();
 
-  const [items, setItems] = useState<RouteProps[] | undefined>([]);
+  const [packages, setPackages] = useState<WarehousePackage[]>([]);
   const [dietCounter, setDietCounter] = useState<number>(0);
 
   return (
@@ -371,12 +489,13 @@ const Warehouse: React.FC = () => {
                 style={{ "--border-color": "var(--ion-color-medium)" }}
                 lines="full"
               >
-                <IonLabel
-                  style={{ color: e.scanCount == e.count ? "primary" : "" }}
+                <IonLabel 
+                  style={{ fontWeight: (e.scanCount == e.count ? 600 : 400), textDecoration: (e.scanCount == e.count ? "line-through" : "") }}
+                  color={(e.scanCount == e.count ? "success" : "")}
                 >
                   {e.name}
                 </IonLabel>
-                <IonLabel slot="end">
+                <IonLabel slot="end" color={(e.scanCount == e.count ? "success" : "")} >
                   {e.scanCount}/{e.count}
                 </IonLabel>
 

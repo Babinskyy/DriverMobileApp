@@ -43,3 +43,10 @@ export type ItemsProps = {
 export type InnerItemProps = {
   i: number;
 };
+export type WarehousePackage = {
+  id: number;
+  name: string;
+  scanned: boolean;
+  code: string;
+  confirmationString: string;
+};

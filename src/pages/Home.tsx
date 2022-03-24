@@ -134,7 +134,7 @@ const Home: React.FC = () => {
   const [presentThreeDots, dismissThreeDots] = useIonPopover(ThreeDotsPopover, {
     onHide: () => dismissThreeDots(),
     showDelivered: async () => {
-      await assignRouteFromStorageToState();
+      //await assignRouteFromStorageToState();
 
       api.get("routes/").then(async (response) => {
         let route = response.data as RouteProps[];
@@ -143,13 +143,6 @@ const Home: React.FC = () => {
           return e.packagesCompleted && e.image;
         });
 
-        await setRoute(JSON.stringify(route));
-        const { value } = await Storage.get({ key: "Route" });
-
-        if (value) {
-          const routeCollection = JSON.parse(value) as RouteProps[];
-        }
-
         setItems(route);
         setItemsStatic(route);
 
@@ -157,7 +150,7 @@ const Home: React.FC = () => {
       });
     },
     showUndelivered: async () => {
-      await assignRouteFromStorageToState();
+      //await assignRouteFromStorageToState();
 
       api.get("routes/").then(async (response) => {
         let route = response.data as RouteProps[];
@@ -263,7 +256,7 @@ const Home: React.FC = () => {
       let routeCollection = JSON.parse(value) as RouteProps[];
 
       routeCollection = routeCollection.filter((e) => {
-        return !e.packagesCompleted && !e.image;
+        return e.packagesCompleted && e.image;
       });
 
       setItems(routeCollection);
