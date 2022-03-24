@@ -119,8 +119,6 @@ const Home: React.FC = () => {
 
   const [infinityCounter, setInfinityCounter] = useState(20);
 
-
-
   const [presentAlert] = useIonAlert();
 
   const [present, dismiss] = useIonPopover(MapPopover, {
@@ -241,7 +239,6 @@ const Home: React.FC = () => {
     });
   };
 
-  
   const setRoute = async (value: string) => {
     await Storage.set({
       key: "Route",
@@ -338,7 +335,14 @@ const Home: React.FC = () => {
                     );
 
                     const tempChoosedItemRet = tempChoosedItem?.packages.find(
-                      (_e) => e.id == _e.code && !_e.scanned && !items.some((x) => x.packages.some((_x) => _x.confirmationString == result.content))
+                      (_e) =>
+                        e.id == _e.code &&
+                        !_e.scanned &&
+                        !items.some((x) =>
+                          x.packages.some(
+                            (_x) => _x.confirmationString == result.content
+                          )
+                        )
                     );
 
                     if (tempChoosedItemRet) {
@@ -350,11 +354,10 @@ const Home: React.FC = () => {
 
                       tempItems.map((_e) => {
                         _e.packages.map((x) => {
-                          if(x.id == tempChoosedItemRet.id)
-                          {
+                          if (x.id == tempChoosedItemRet.id) {
                             x.scanned = true;
                           }
-                        })
+                        });
                       });
 
                       api
@@ -367,12 +370,10 @@ const Home: React.FC = () => {
                         )
                         .then(async (response) => {});
 
-                        new Audio(
-                          "https://www.myinstants.com/media/sounds/applepay.mp3"
-                        ).play();
-                    }
-                    else
-                    {
+                      new Audio(
+                        "https://www.myinstants.com/media/sounds/applepay.mp3"
+                      ).play();
+                    } else {
                       Vibration.vibrate(500);
                     }
 
@@ -602,7 +603,7 @@ const Home: React.FC = () => {
               style={{ fontSize: "20px", fontWeight: 300 }}
             >
               <span style={{ fontWeight: 400 }}>{itemModalInfo?.comment}</span>
-              <br />
+              {itemModalInfo?.comment ? <br /> : ""}
               <span>{itemModalInfo?.commentExtra}</span>
             </IonLabel>
           </IonItem>
@@ -846,7 +847,6 @@ const Home: React.FC = () => {
         </IonInfiniteScroll> */}
         </div>
 
-        
         <>
           <IonList className="list-order">
             {items.slice(0, infinityCounter).map((e, i) => {
@@ -942,14 +942,14 @@ const Home: React.FC = () => {
                               ],
                               onDidDismiss: (e) => console.log("did dismiss"),
                             });
-                          } 
+                          }
                           // else if (
                           //   !items[i].packages?.every((_e) => {
                           //     return _e.scanned;
                           //   }) &&
                           //   !items[i].image
                           // )
-                          else if(
+                          else if (
                             items.find((x) => {
                               return (
                                 x.packages.some((y) => {
@@ -957,11 +957,8 @@ const Home: React.FC = () => {
                                 }) && !x.image
                               );
                             })
-                          )
-                          {
-
-
-                            console.log( items[i].packages);
+                          ) {
+                            console.log(items[i].packages);
 
                             let _message = "";
 
@@ -977,43 +974,42 @@ const Home: React.FC = () => {
                               _message =
                                 element.street + " " + element.houseNumber;
 
+                              presentAlert({
+                                mode: "ios",
+                                cssClass: "missing-qr-alert",
+                                header:
+                                  "Dokończ inny rozpoczęty adres przed skanowaniem",
+                                subHeader: "Adres do zakończenia:",
+                                message: _message,
+                                buttons: [
+                                  "Anuluj",
+                                  {
+                                    text: "Zobacz",
+                                    handler: () => {
+                                      if (contentRef.current && element) {
+                                        const addressElement =
+                                          document.querySelector(
+                                            "[data-toscroll='" +
+                                              element.id +
+                                              "']"
+                                          ) as Element | undefined;
 
-                                presentAlert({
-                                  mode: "ios",
-                                  cssClass: "missing-qr-alert",
-                                  header:
-                                    "Dokończ inny rozpoczęty adres przed skanowaniem",
-                                  subHeader: "Adres do zakończenia:",
-                                  message: _message,
-                                  buttons: [
-                                    "Anuluj",
-                                    {
-                                      text: "Zobacz",
-                                      handler: () => {
-                                        if (contentRef.current && element) {
-                                          const addressElement =
-                                            document.querySelector(
-                                              "[data-toscroll='" + element.id + "']"
-                                            ) as Element | undefined;
-    
-                                          if (addressElement) {
-                                            // const addressElementBounds = addressElement.getBoundingClientRect();
-                                            // contentRef.current.scrollIntoView(0, addressElementBounds.top, 1000);
-                                            addressElement.scrollIntoView({
-                                              block: "center",
-                                              behavior: "smooth",
-                                              inline: "center",
-                                            });
-                                          }
+                                        if (addressElement) {
+                                          // const addressElementBounds = addressElement.getBoundingClientRect();
+                                          // contentRef.current.scrollIntoView(0, addressElementBounds.top, 1000);
+                                          addressElement.scrollIntoView({
+                                            block: "center",
+                                            behavior: "smooth",
+                                            inline: "center",
+                                          });
                                         }
-                                      },
+                                      }
                                     },
-                                  ],
-                                  onDidDismiss: (e) => console.log("did dismiss"),
-                                });
+                                  },
+                                ],
+                                onDidDismiss: (e) => console.log("did dismiss"),
+                              });
                             }
-
-                            
                           } else {
                             const tempItems = items;
                             const isCameraWaiting = tempItems.some((e) => {
@@ -1081,21 +1077,20 @@ const Home: React.FC = () => {
             })}
           </IonList>
 
-<IonInfiniteScroll
-onIonInfinite={(event: any) => {
-  setInfinityCounter(infinityCounter + 20)
-  event.target.complete();
-}}
-threshold="300px"
-disabled={infinityCounter >= items.length}
->
-<IonInfiniteScrollContent
-  loadingSpinner="bubbles"
-  loadingText="Ładowanie..."
-></IonInfiniteScrollContent>
-</IonInfiniteScroll>
-</>
-
+          <IonInfiniteScroll
+            onIonInfinite={(event: any) => {
+              setInfinityCounter(infinityCounter + 20);
+              event.target.complete();
+            }}
+            threshold="300px"
+            disabled={infinityCounter >= items.length}
+          >
+            <IonInfiniteScrollContent
+              loadingSpinner="bubbles"
+              loadingText="Ładowanie..."
+            ></IonInfiniteScrollContent>
+          </IonInfiniteScroll>
+        </>
       </IonContent>
       {scanning ? (
         <></>
@@ -1173,11 +1168,10 @@ disabled={infinityCounter >= items.length}
                 let tempItems = items;
 
                 tempItems.map((e) => {
-                  if(e.id == choosedItem.id)
-                  {
+                  if (e.id == choosedItem.id) {
                     e.image = image.webPath;
                   }
-                })
+                });
 
                 setItems(tempItems);
                 setItemsStatic(tempItems);
