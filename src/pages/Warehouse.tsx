@@ -54,7 +54,6 @@ import api from "./../services/api";
 import { WarehousePackage } from "../components/Types";
 
 const Warehouse: React.FC = () => {
-
   const [presentToast, dismissToast] = useIonToast();
 
   const headerRef = useRef<HTMLIonHeaderElement>(null);
@@ -108,7 +107,6 @@ const Warehouse: React.FC = () => {
   };
 
   useIonViewWillEnter(() => {
-
     axios
       .get("https://broccoliapi.azurewebsites.net/Diets")
       .then(async (response) => {
@@ -139,7 +137,7 @@ const Warehouse: React.FC = () => {
   useIonViewWillEnter(async () => {
     api.get("routes/addresses/packages").then(async (response) => {
       const packages = response.data as WarehousePackage[];
-      
+
       setPackages(packages);
 
       await setWarehousePackages(JSON.stringify(packages));
@@ -290,38 +288,63 @@ const Warehouse: React.FC = () => {
           try {
             const code = result.content?.split("|")[1];
 
-            console.log("code - " + code)
-            console.log(packages)
+            console.log("code - " + code);
+            console.log(packages);
 
-            let scannedPackage = packages.find(e => e.code == code && !e.scanned);
-            console.log(scannedPackage)
+            let scannedPackage = packages.find(
+              (e) => e.code == code && !e.scanned
+            );
 
-            if(scannedPackage)
-            {
+            let scannedPackageOnList = packages.find(
+              (e) =>
+                e.code == code &&
+                e.scanned &&
+                e.confirmationString == result.content &&
+                Boolean(e.confirmationString)
+            );
 
+            if (scannedPackageOnList) {
+              Vibration.vibrate(500);
+
+              dismissToast();
+              setTimeout(() => {
+                presentToast({
+                  mode: "ios",
+                  header: "Dieta została wcześniej zeskanowana",
+                  color: "warning",
+                  cssClass: "warehouse-scanner-toast",
+                  duration: 5000,
+                });
+              }, 500);
+            } else if (scannedPackage) {
               new Audio(
                 "https://www.myinstants.com/media/sounds/applepay.mp3"
               ).play();
 
-              presentToast({
-                mode: "ios",
-                header: scannedPackage.name,
-                color: "success",
-                cssClass: "warehouse-scanner-toast",
-                duration: 5000
-              })
+              dismissToast();
 
-
+              setTimeout(() => {
+                if (scannedPackage) {
+                  presentToast({
+                    mode: "ios",
+                    header: scannedPackage.name,
+                    color: "success",
+                    cssClass: "warehouse-scanner-toast",
+                    duration: 5000,
+                  });
+                }
+              }, 500);
 
               let tempItems = packages;
 
               tempItems.map((x) => {
                 if (x.id == scannedPackage?.id) {
                   x.scanned = true;
+                  x.confirmationString = result.content ?? "";
                 }
               });
 
-              console.log(tempItems)
+              console.log(tempItems);
 
               const diets = await getDiets();
 
@@ -336,10 +359,13 @@ const Warehouse: React.FC = () => {
                     dietsDictionary.filter((e) => e.name == y.name)[0].count =
                       dietsDictionary.filter((e) => e.name == y.name)[0].count +
                       1;
-                      if(y.scanned)
-                      {
-                        dietsDictionary.filter((e) => e.name == y.name)[0].scanCount = dietsDictionary.filter((e) => e.name == y.name)[0].scanCount + 1;
-                      }
+                    if (y.scanned) {
+                      dietsDictionary.filter(
+                        (e) => e.name == y.name
+                      )[0].scanCount =
+                        dietsDictionary.filter((e) => e.name == y.name)[0]
+                          .scanCount + 1;
+                    }
                   } else {
                     dietsDictionary.push({
                       name: y.name,
@@ -349,30 +375,39 @@ const Warehouse: React.FC = () => {
                   }
                 });
               }
-              else
-              {
-                Vibration.vibrate(500);
-              }
 
-              
-
-      console.log(dietsDictionary);
-      const arr = dietsDictionary.sort((a, b) => a.name.localeCompare(b.name));
-      setDietsWithNumber(arr);
-      setDietsWithNumberStatic(arr);
-
-
+              console.log(dietsDictionary);
+              const arr = dietsDictionary.sort((a, b) =>
+                a.name.localeCompare(b.name)
+              );
+              setDietsWithNumber(arr);
+              setDietsWithNumberStatic(arr);
 
               api
-              .patch("routes/addresses/packages/" + scannedPackage.id + "/warehouse", {
-                isScanned: true,
-                confirmationString: result.content,
-              })
-              .then(async (response) => {});
+                .patch(
+                  "routes/addresses/packages/" +
+                    scannedPackage.id +
+                    "/warehouse",
+                  {
+                    isScanned: true,
+                    confirmationString: result.content,
+                  }
+                )
+                .then(async (response) => {});
+            } else {
+              Vibration.vibrate(500);
+
+              dismissToast();
+              setTimeout(() => {
+                presentToast({
+                  mode: "ios",
+                  header: "Nie znaleziono diety na liście",
+                  color: "danger",
+                  cssClass: "warehouse-scanner-toast",
+                  duration: 5000,
+                });
+              }, 500);
             }
-
-            
-
           } catch (error) {
             console.log(error);
           }
@@ -490,13 +525,20 @@ const Warehouse: React.FC = () => {
                 style={{ "--border-color": "var(--ion-color-medium)" }}
                 lines="full"
               >
-                <IonLabel 
-                  style={{ fontWeight: (e.scanCount == e.count ? 600 : 400), textDecoration: (e.scanCount == e.count ? "line-through" : "") }}
-                  color={(e.scanCount == e.count ? "success" : "")}
+                <IonLabel
+                  style={{
+                    fontWeight: e.scanCount == e.count ? 600 : 400,
+                    textDecoration:
+                      e.scanCount == e.count ? "line-through" : "",
+                  }}
+                  color={e.scanCount == e.count ? "success" : ""}
                 >
                   {e.name}
                 </IonLabel>
-                <IonLabel slot="end" color={(e.scanCount == e.count ? "success" : "")} >
+                <IonLabel
+                  slot="end"
+                  color={e.scanCount == e.count ? "success" : ""}
+                >
                   {e.scanCount}/{e.count}
                 </IonLabel>
 
