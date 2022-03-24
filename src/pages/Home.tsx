@@ -429,13 +429,6 @@ const Home: React.FC = () => {
               className="icon-scan"
               color="primary"
               slot="start"
-              // icon={
-              //   e?.packages?.every((_e) => {
-              //     return _e.scanned;
-              //   })
-              //     ? cameraOutline
-              //     : barcodeOutline
-              // }
               icon={items[i].image ? cameraOutline : barcodeOutline}
               onClick={(event) => {
                 if (
@@ -836,7 +829,7 @@ const Home: React.FC = () => {
           <IonList className="list-order">
             {items.map((e, i) => {
               return (
-                <div key={e.id} className="item-container">
+                <div key={e.id} className="item-container" data-toScroll={e.id}>
                   <div className="counter">
                     {i + 1}/{items.length}
                   </div>
@@ -922,6 +915,46 @@ const Home: React.FC = () => {
 
                                     setItems(newItems);
                                     setItemsStatic(newItems);
+                                  },
+                                },
+                              ],
+                              onDidDismiss: (e) => console.log("did dismiss"),
+                            });
+                          } else if (
+                            !items[i].packages?.every((_e) => {
+                              return _e.scanned;
+                            }) &&
+                            !items[i].image
+                          ) {
+                            let _message = "";
+
+                            const element = items.find((x) => {
+                              return (
+                                x.packages.some((y) => {
+                                  return y.scanned;
+                                }) && !x.image
+                              );
+                            });
+
+                            if (element) {
+                              _message =
+                                element.street + " " + element.houseNumber;
+                            }
+
+                            presentAlert({
+                              mode: "ios",
+                              cssClass: "missing-qr-alert",
+                              header: "Zdjęcie nie zostało wykonane!",
+                              subHeader: "Wykonaj zdięcie dostawy:",
+                              message: _message,
+                              buttons: [
+                                "Anuluj",
+                                {
+                                  text: "Zobacz",
+                                  handler: () => {
+                                    if (contentRef.current) {
+                                      contentRef.current.scrollTo(document.querySelector([data-toScroll='1053']));
+                                    }
                                   },
                                 },
                               ],
