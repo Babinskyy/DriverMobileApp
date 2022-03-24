@@ -46,9 +46,49 @@ import auth from "./services/auth.service";
 import { User } from "./services/userProps";
 import Menu from "./components/Menu";
 
+import { Storage } from "@capacitor/storage";
+
 setupIonicReact();
 
+export const themeCheck = async () => {
+  const { value } = await Storage.get({ key: "theme" });
+
+  if (value) {
+
+    if(value == "dark")
+    {
+      document.body.classList.toggle("dark", true);
+    }
+    else
+    {
+      document.body.classList.toggle("dark", false);
+    }
+
+  } else {
+    // Use matchMedia to check the user preference
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+
+    // Add or remove the "dark" class based on if the media query matches
+    const toggleDarkTheme = (shouldAdd: boolean) => {
+      document.body.classList.toggle("dark", shouldAdd);
+    };
+
+    toggleDarkTheme(prefersDark.matches);
+
+    // Listen for changes to the prefers-color-scheme media query
+    prefersDark.addListener((mediaQuery) =>
+      toggleDarkTheme(mediaQuery.matches)
+    );
+  }
+};
+
 const App: React.FC = () => {
+  useEffect(() => {
+    
+    themeCheck();
+
+  }, []);
+
   return (
     <IonApp>
       <IonReactRouter>

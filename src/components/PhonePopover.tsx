@@ -6,6 +6,7 @@ const PhonePopover: React.FC<{
 }> = ({ onHide, phoneNumber }) => (
   <IonList>
     <IonItem
+      mode="ios"
       button
       onClick={() => {
         console.log(phoneNumber);
@@ -16,6 +17,7 @@ const PhonePopover: React.FC<{
       Zadzwoń
     </IonItem>
     <IonItem
+      mode="ios"
       lines="none"
       button
       onClick={() => {

@@ -9,6 +9,7 @@ export type RoutePackagesProps = {
   scanned: boolean;
   code: string;
   image?: string;
+  confirmationString: string;
 };
 export type RouteProps = {
   id: number;

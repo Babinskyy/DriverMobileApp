@@ -9,6 +9,7 @@ import {
   IonList,
   IonMenu,
   IonTitle,
+  IonToggle,
   IonToolbar,
 } from "@ionic/react";
 import {
@@ -17,7 +18,7 @@ import {
   newspaperOutline,
   readerOutline,
 } from "ionicons/icons";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router";
 
 import auth from "./../services/auth.service";
@@ -26,12 +27,24 @@ import "./Menu.scss";
 
 import brokulImage from "../images/brokul-athlete.png";
 
+import { Storage } from "@capacitor/storage";
+
 const Menu: React.FC = () => {
   const history = useHistory();
 
   const menuRef = useRef<HTMLIonMenuElement>(null);
 
   const [url, setUrl] = useState("");
+
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      if (document.body.classList.contains("dark")) {
+        setChecked(true);
+      }
+    }, 500);
+  }, []);
 
   return (
     <IonMenu
@@ -48,13 +61,15 @@ const Menu: React.FC = () => {
       }}
     >
       <IonHeader>
-        <IonImg 
+        <IonImg
           style={{
             animationName: "athlete-animation",
             animationDuration: "1500ms",
-            animationIterationCount: "infinite"
-          }}  
-        src={brokulImage} className="image" />
+            animationIterationCount: "infinite",
+          }}
+          src={brokulImage}
+          className="image"
+        />
       </IonHeader>
       <IonContent
         style={{
@@ -65,6 +80,7 @@ const Menu: React.FC = () => {
       >
         <IonList mode={"ios"} style={{ background: "none" }}>
           <IonItem
+            lines="none"
             color={"/" == url ? "primary" : undefined}
             button
             className="menu-item"
@@ -81,6 +97,7 @@ const Menu: React.FC = () => {
             <IonIcon slot="start" icon={carOutline} />
           </IonItem>
           <IonItem
+            lines="none"
             color={"/Warehouse" == url ? "primary" : undefined}
             button
             className="menu-item"
@@ -98,7 +115,23 @@ const Menu: React.FC = () => {
           </IonItem>
         </IonList>
       </IonContent>
-      <IonFooter style={{ padding: "10px" }} >
+      <IonFooter style={{ padding: "10px" }}>
+        <IonItem>
+          <IonLabel>Ciemny motyw</IonLabel>
+          <IonToggle
+            checked={checked}
+            onIonChange={async (e) => {
+              setChecked(e.detail.checked);
+              document.body.classList.toggle("dark", e.detail.checked);
+
+              await Storage.set({
+                key: "theme",
+                value: e.detail.checked ? "dark" : "light",
+              });
+            }}
+          />
+        </IonItem>
+
         <IonItem
           button
           className="menu-item"

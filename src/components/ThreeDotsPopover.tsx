@@ -1,4 +1,5 @@
-import { IonItem, IonLabel, IonList, IonNote } from "@ionic/react";
+import { IonIcon, IonItem, IonLabel, IonList, IonNote } from "@ionic/react";
+import { carOutline, syncOutline } from "ionicons/icons";
 
 const ThreeDotsPopover: React.FC<{
   onHide: () => void;
@@ -7,15 +8,7 @@ const ThreeDotsPopover: React.FC<{
 }> = ({ onHide, showDelivered, showUndelivered }) => (
   <IonList>
     <IonItem
-      button
-      onClick={async () => {
-        onHide();
-        await showDelivered();
-      }}
-    >
-      Dostarczone
-    </IonItem>
-    <IonItem
+      mode="ios"
       lines="none"
       button
       onClick={async () => {
@@ -23,7 +16,25 @@ const ThreeDotsPopover: React.FC<{
         await showUndelivered();
       }}
     >
-      Niedostarczone
+      <IonLabel>
+        Aktualne
+      </IonLabel>
+      <IonIcon slot="start" src={carOutline} />
+
+    </IonItem>
+    <IonItem
+      mode="ios"
+      lines="none"
+      button
+      onClick={async () => {
+        onHide();
+        await showDelivered();
+      }}
+    >
+      <IonLabel>
+        Zakończone
+      </IonLabel>
+      <IonIcon slot="start" src={syncOutline} />
     </IonItem>
   </IonList>
 );

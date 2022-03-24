@@ -117,7 +117,9 @@ const Home: React.FC = () => {
 
   // const items = useMemo<RouteProps[]>(() => items as RouteProps[], [items]);
 
-  const [isScrolling, setIsScrolling] = useState(false);
+  const [infinityCounter, setInfinityCounter] = useState(20);
+
+
 
   const [presentAlert] = useIonAlert();
 
@@ -239,10 +241,7 @@ const Home: React.FC = () => {
     });
   };
 
-  const getDiets = async () => {
-    const { value } = await Storage.get({ key: "Diets" });
-    return value;
-  };
+  
   const setRoute = async (value: string) => {
     await Storage.set({
       key: "Route",
@@ -329,6 +328,7 @@ const Home: React.FC = () => {
                   console.log(code);
 
                   const tempChoosedItem = items ? items[index] : undefined;
+                  const tempItems = items;
 
                   if (tempChoosedItem) {
                     console.log(
@@ -338,7 +338,7 @@ const Home: React.FC = () => {
                     );
 
                     const tempChoosedItemRet = tempChoosedItem?.packages.find(
-                      (_e) => e.id == _e.code && !_e.scanned
+                      (_e) => e.id == _e.code && !_e.scanned && !items.some((x) => x.packages.some((_x) => _x.confirmationString == result.content))
                     );
 
                     if (tempChoosedItemRet) {
@@ -346,6 +346,15 @@ const Home: React.FC = () => {
                         if (_e.id == tempChoosedItemRet.id) {
                           _e.scanned = true;
                         }
+                      });
+
+                      tempItems.map((_e) => {
+                        _e.packages.map((x) => {
+                          if(x.id == tempChoosedItemRet.id)
+                          {
+                            x.scanned = true;
+                          }
+                        })
                       });
 
                       api
@@ -357,38 +366,48 @@ const Home: React.FC = () => {
                           }
                         )
                         .then(async (response) => {});
+
+                        new Audio(
+                          "https://www.myinstants.com/media/sounds/applepay.mp3"
+                        ).play();
+                    }
+                    else
+                    {
+                      Vibration.vibrate(500);
                     }
 
                     setChoosedItem(tempChoosedItem);
+                    setItems(tempItems);
+                    setItemsStatic(tempItems);
                   }
                 }
               });
             }
-            if (temp) {
-              temp[index].packages?.map((_e) => {
-                if (_e.name == result.content) {
-                  _e.scanned = true;
-                }
-              });
+            // if (temp) {
+            //   temp[index].packages?.map((_e) => {
+            //     if (_e.name == result.content) {
+            //       _e.scanned = true;
+            //     }
+            //   });
 
-              setItems(temp);
+            //   setItems(temp);
 
-              setChoosedItem(undefined);
-              setChoosedItem(temp[index]);
+            //   setChoosedItem(undefined);
+            //   setChoosedItem(temp[index]);
 
-              if (
-                temp[index] == choosedItem ||
-                temp[index].packages?.every((e) => {
-                  return e.scanned == false;
-                })
-              ) {
-                Vibration.vibrate(500);
-              } else {
-                new Audio(
-                  "https://www.myinstants.com/media/sounds/applepay.mp3"
-                ).play();
-              }
-            }
+            //   if (
+            //     temp[index] == choosedItem ||
+            //     temp[index].packages?.every((e) => {
+            //       return e.scanned == false;
+            //     })
+            //   ) {
+            //     Vibration.vibrate(500);
+            //   } else {
+            //     new Audio(
+            //       "https://www.myinstants.com/media/sounds/applepay.mp3"
+            //     ).play();
+            //   }
+            // }
           } catch (error) {
             console.log(error);
           }
@@ -827,11 +846,10 @@ const Home: React.FC = () => {
         </IonInfiniteScroll> */}
         </div>
 
-        {loadingList ? (
-          <IonLoading isOpen={loadingList} />
-        ) : (
+        
+        <>
           <IonList className="list-order">
-            {items.map((e, i) => {
+            {items.slice(0, infinityCounter).map((e, i) => {
               return (
                 <div key={e.id} className="item-container" data-toscroll={e.id}>
                   <div className="counter">
@@ -924,12 +942,27 @@ const Home: React.FC = () => {
                               ],
                               onDidDismiss: (e) => console.log("did dismiss"),
                             });
-                          } else if (
-                            !items[i].packages?.every((_e) => {
-                              return _e.scanned;
-                            }) &&
-                            !items[i].image
-                          ) {
+                          } 
+                          // else if (
+                          //   !items[i].packages?.every((_e) => {
+                          //     return _e.scanned;
+                          //   }) &&
+                          //   !items[i].image
+                          // )
+                          else if(
+                            items.find((x) => {
+                              return (
+                                x.packages.some((y) => {
+                                  return y.scanned;
+                                }) && !x.image
+                              );
+                            })
+                          )
+                          {
+
+
+                            console.log( items[i].packages);
+
                             let _message = "";
 
                             const element = items.find((x) => {
@@ -943,41 +976,44 @@ const Home: React.FC = () => {
                             if (element) {
                               _message =
                                 element.street + " " + element.houseNumber;
+
+
+                                presentAlert({
+                                  mode: "ios",
+                                  cssClass: "missing-qr-alert",
+                                  header:
+                                    "Dokończ inny rozpoczęty adres przed skanowaniem",
+                                  subHeader: "Adres do zakończenia:",
+                                  message: _message,
+                                  buttons: [
+                                    "Anuluj",
+                                    {
+                                      text: "Zobacz",
+                                      handler: () => {
+                                        if (contentRef.current && element) {
+                                          const addressElement =
+                                            document.querySelector(
+                                              "[data-toscroll='" + element.id + "']"
+                                            ) as Element | undefined;
+    
+                                          if (addressElement) {
+                                            // const addressElementBounds = addressElement.getBoundingClientRect();
+                                            // contentRef.current.scrollIntoView(0, addressElementBounds.top, 1000);
+                                            addressElement.scrollIntoView({
+                                              block: "center",
+                                              behavior: "smooth",
+                                              inline: "center",
+                                            });
+                                          }
+                                        }
+                                      },
+                                    },
+                                  ],
+                                  onDidDismiss: (e) => console.log("did dismiss"),
+                                });
                             }
 
-                            presentAlert({
-                              mode: "ios",
-                              cssClass: "missing-qr-alert",
-                              header:
-                                "Dokończ inny rozpoczęty adres przed skanowaniem",
-                              subHeader: "Adres do zakończenia:",
-                              message: _message,
-                              buttons: [
-                                "Anuluj",
-                                {
-                                  text: "Zobacz",
-                                  handler: () => {
-                                    if (contentRef.current && element) {
-                                      const addressElement =
-                                        document.querySelector(
-                                          "[data-toscroll='" + element.id + "']"
-                                        ) as Element | undefined;
-
-                                      if (addressElement) {
-                                        // const addressElementBounds = addressElement.getBoundingClientRect();
-                                        // contentRef.current.scrollIntoView(0, addressElementBounds.top, 1000);
-                                        addressElement.scrollIntoView({
-                                          block: "center",
-                                          behavior: "smooth",
-                                          inline: "center",
-                                        });
-                                      }
-                                    }
-                                  },
-                                },
-                              ],
-                              onDidDismiss: (e) => console.log("did dismiss"),
-                            });
+                            
                           } else {
                             const tempItems = items;
                             const isCameraWaiting = tempItems.some((e) => {
@@ -1044,7 +1080,22 @@ const Home: React.FC = () => {
               );
             })}
           </IonList>
-        )}
+
+<IonInfiniteScroll
+onIonInfinite={(event: any) => {
+  setInfinityCounter(infinityCounter + 20)
+  event.target.complete();
+}}
+threshold="300px"
+disabled={infinityCounter >= items.length}
+>
+<IonInfiniteScrollContent
+  loadingSpinner="bubbles"
+  loadingText="Ładowanie..."
+></IonInfiniteScrollContent>
+</IonInfiniteScroll>
+</>
+
       </IonContent>
       {scanning ? (
         <></>
@@ -1118,6 +1169,18 @@ const Home: React.FC = () => {
                 });
 
                 let imageUrl = image.base64String;
+
+                let tempItems = items;
+
+                tempItems.map((e) => {
+                  if(e.id == choosedItem.id)
+                  {
+                    e.image = image.webPath;
+                  }
+                })
+
+                setItems(tempItems);
+                setItemsStatic(tempItems);
 
                 api
                   .post("routes/addresses/" + choosedItem.id + "/image", {
