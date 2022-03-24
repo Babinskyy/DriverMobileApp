@@ -304,6 +304,7 @@ const Warehouse: React.FC = () => {
               ).play();
 
               presentToast({
+                mode: "ios",
                 header: scannedPackage.name,
                 color: "success",
                 cssClass: "warehouse-scanner-toast",
