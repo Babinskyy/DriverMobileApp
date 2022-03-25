@@ -451,9 +451,12 @@ const Home: React.FC = () => {
           </IonListHeader>
           <IonList>
             <IonItem>
-              <IonLabel>Adres</IonLabel>
-              <IonLabel className="wrap capitalize">
-                <div style={{ fontWeight: 700, fontSize: "21px" }}>
+              <IonLabel style={{ maxWidth: "30%" }}>Adres</IonLabel>
+              <IonLabel
+                className="wrap capitalize"
+                style={{ textAlign: "center" }}
+              >
+                <div style={{ fontWeight: 700, fontSize: "20px" }}>
                   {`${itemModalInfo?.street} ${itemModalInfo?.houseNumber}`}
                 </div>
 
@@ -463,7 +466,9 @@ const Home: React.FC = () => {
               </IonLabel>
             </IonItem>
             <IonItem>
-              <IonLabel>Numer telefonu</IonLabel>
+              <IonLabel className="wrap" style={{ maxWidth: "30%" }}>
+                Numer telefonu
+              </IonLabel>
               <IonLabel
                 color="secondary"
                 onClick={(event) => {
@@ -477,7 +482,7 @@ const Home: React.FC = () => {
                 style={{
                   fontWeight: 700,
                   fontSize: "21px",
-                  textDecoration: "underline",
+                  textAlign: "center",
                 }}
               >
                 <IonIcon
@@ -668,6 +673,8 @@ const Home: React.FC = () => {
                             ? "secondary"
                             : items[i].packagesCompleted
                             ? "tertiary"
+                            : items[i].packages.some((x) => x.scanned)
+                            ? "tertiary"
                             : "primary"
                         }
                         slot="start"
@@ -694,16 +701,31 @@ const Home: React.FC = () => {
 
                             let imageUrl = image.base64String;
 
-                            api
-                              .post(
-                                "routes/addresses/" + items[i].id + "/image",
-                                {
-                                  image: imageUrl,
-                                }
-                              )
-                              .then((response) => {
-                                console.log(response);
-                              });
+                            const newItem = items[i];
+
+                            if (newItem) {
+                              newItem.image = image.webPath;
+
+                              UpdateRouteElement(
+                                items,
+                                newItem,
+                                "undelivered",
+                                setItems,
+                                setItemsStatic,
+                                true
+                              );
+
+                              api
+                                .post(
+                                  "routes/addresses/" + items[i].id + "/image",
+                                  {
+                                    image: imageUrl,
+                                  }
+                                )
+                                .then((response) => {
+                                  console.log(response);
+                                });
+                            }
                           } else if (items[i].image) {
                             presentAlert({
                               mode: "ios",
@@ -746,7 +768,15 @@ const Home: React.FC = () => {
                                   return y.scanned;
                                 }) && !x.image
                               );
-                            })
+                            }) &&
+                            items[i].id !=
+                              items.find((x) => {
+                                return (
+                                  x.packages.some((y) => {
+                                    return y.scanned;
+                                  }) && !x.image
+                                );
+                              })?.id
                           ) {
                             console.log(items[i].packages);
 
@@ -956,8 +986,7 @@ const Home: React.FC = () => {
                 let imageUrl = image.base64String;
 
                 const newItem = items.find((e) => e.id == choosedItem.id);
-                if(newItem)
-                {
+                if (newItem) {
                   newItem.image = image.webPath;
 
                   UpdateRouteElement(
@@ -1024,8 +1053,6 @@ const Home: React.FC = () => {
                                   });
 
                                   let imageUrl = image.base64String;
-
-
 
                                   api
                                     .post(
