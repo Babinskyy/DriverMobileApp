@@ -34,6 +34,7 @@ import {
   useIonAlert,
   useIonLoading,
   useIonPopover,
+  useIonToast,
   useIonViewDidEnter,
   useIonViewWillEnter,
   useIonViewWillLeave,
@@ -79,17 +80,12 @@ import {
 } from "../components/Types";
 import ThreeDotsPopover from "../components/ThreeDotsPopover";
 import { RouterProps } from "react-router";
+import { RefreshRoute, UpdateRouteElement } from "../services/Utility";
 
 const Home: React.FC = () => {
   const { navigate } = useContext(NavContext);
 
   const headerRef = useRef<HTMLIonHeaderElement>(null);
-
-  const [headerScrollTop, setHeaderScrollTop] = useState(0);
-
-  const [headerTop, setHeaderTop] = useState(0);
-
-  const [disabled, setDisabled] = useState(true);
 
   const [address, setAddress] = useState("");
 
@@ -102,8 +98,6 @@ const Home: React.FC = () => {
 
   const contentRef = useRef<HTMLIonContentElement>(null);
 
-  const [loadingList, setLoadingList] = useState(false);
-
   const [scanning, setScanning] = useState(false);
 
   const [choosedItem, setChoosedItem] = useState<RouteProps | undefined>();
@@ -112,8 +106,10 @@ const Home: React.FC = () => {
 
   const [items, setItems] = useState<RouteProps[]>([]);
 
-  const [itemsStatic, setItemsStatic] = useState<RouteProps[] | undefined>([]);
+  const [itemsStatic, setItemsStatic] = useState<RouteProps[]>([]);
   const [rotate, setRotate] = useState<boolean>(false);
+
+  const [presentToast, dismissToast] = useIonToast();
 
   // const items = useMemo<RouteProps[]>(() => items as RouteProps[], [items]);
 
@@ -138,14 +134,7 @@ const Home: React.FC = () => {
       api.get("routes/").then(async (response) => {
         let route = response.data as RouteProps[];
 
-        route = route.filter((e) => {
-          return e.packagesCompleted && e.image;
-        });
-
-        setItems(route);
-        setItemsStatic(route);
-
-        // setLoadingList(false);
+        RefreshRoute(route, "delivered", setItems, setItemsStatic, true);
       });
     },
     showUndelivered: async () => {
@@ -154,31 +143,10 @@ const Home: React.FC = () => {
       api.get("routes/").then(async (response) => {
         let route = response.data as RouteProps[];
 
-        route = route.filter((e) => {
-          return !(e.packagesCompleted && e.image);
-        });
-
-        await setRoute(JSON.stringify(route));
-        const { value } = await Storage.get({ key: "Route" });
-
-        if (value) {
-          const routeCollection = JSON.parse(value) as RouteProps[];
-        }
-
-        setItems(route);
-        setItemsStatic(route);
-
-        // setLoadingList(false);
+        RefreshRoute(route, "undelivered", setItems, setItemsStatic, true);
       });
     },
   });
-
-  useEffect(() => {
-    if (headerRef.current) {
-      headerRef.current.style.willChange = "transform";
-      headerRef.current.style.transition = "transform ease-in-out 150ms";
-    }
-  }, []);
 
   useEffect(() => {
     const getUser = async () => {
@@ -203,45 +171,13 @@ const Home: React.FC = () => {
     api.get("routes/").then(async (response) => {
       let route = response.data as RouteProps[];
 
-      route = route.filter((e) => {
-        return !(e.packagesCompleted && e.image);
-      });
-
-      await setRoute(JSON.stringify(route));
-      const { value } = await Storage.get({ key: "Route" });
-
-      if (value) {
-        const routeCollection = JSON.parse(value) as RouteProps[];
-      }
-
-      setItems(route);
-      setItemsStatic(route);
-
-      // setLoadingList(false);
+      RefreshRoute(route, "undelivered", setItems, setItemsStatic, true);
     });
-  });
-
-  useIonViewWillEnter(async () => {
-    await assignRouteFromStorageToState();
-  });
-
-  useIonViewWillLeave(() => {
-    if (headerRef.current) {
-      headerRef.current.style.transform = "translate3d(0, 0, 0)";
-    }
-    setHeaderTop(0);
   });
 
   const setDiets = async (value: string) => {
     await Storage.set({
       key: "Diets",
-      value: value,
-    });
-  };
-
-  const setRoute = async (value: string) => {
-    await Storage.set({
-      key: "Route",
       value: value,
     });
   };
@@ -307,108 +243,72 @@ const Home: React.FC = () => {
       async (result) => {
         if (result.hasContent) {
           try {
-            const codes = result.content?.split("|")[1];
+            const code = result.content?.split("|")[1];
 
-            let temp = items;
+            if (code) {
+              const tempChoosedItem = items[index];
 
-            const { value } = await Storage.get({ key: "Diets" });
-            const val = value;
-
-            if (val && codes) {
-              const collection = JSON.parse(val) as DietsProps[];
-
-              const code = codes.split("/")[0];
-
-              collection.map((e) => {
-                if (code == e.id) {
-                  console.log("if");
-                  console.log(code);
-
-                  const tempChoosedItem = items ? items[index] : undefined;
-                  const tempItems = items;
-
-                  if (tempChoosedItem) {
-                    console.log(
-                      `${tempChoosedItem.street}` +
-                        " " +
-                        `${tempChoosedItem.houseNumber}`
-                    );
-
-                    const tempChoosedItemRet = tempChoosedItem?.packages.find(
-                      (_e) =>
-                        e.id == _e.code &&
-                        !_e.scanned &&
-                        !items.some((x) =>
-                          x.packages.some(
-                            (_x) => _x.confirmationString == result.content
-                          )
-                        )
-                    );
-
-                    if (tempChoosedItemRet) {
-                      tempChoosedItem.packages.map((_e) => {
-                        if (_e.id == tempChoosedItemRet.id) {
-                          _e.scanned = true;
-                        }
-                      });
-
-                      tempItems.map((_e) => {
-                        _e.packages.map((x) => {
-                          if (x.id == tempChoosedItemRet.id) {
-                            x.scanned = true;
-                          }
-                        });
-                      });
-
-                      api
-                        .patch(
-                          "routes/addresses/packages/" + tempChoosedItemRet.id,
-                          {
-                            isScanned: true,
-                            confirmationString: result.content,
-                          }
-                        )
-                        .then(async (response) => {});
-
-                      new Audio(
-                        "https://www.myinstants.com/media/sounds/applepay.mp3"
-                      ).play();
-                    } else {
-                      Vibration.vibrate(500);
-                    }
-
-                    setChoosedItem(tempChoosedItem);
-                    setItems(tempItems);
-                    setItemsStatic(tempItems);
-                  }
+              const selectedDietIndex = tempChoosedItem.packages.findIndex(
+                (e) => {
+                  return e.code == code && !e.scanned;
                 }
-              });
+              );
+
+              const selectedDietWithSameConfirmationString =
+                tempChoosedItem.packages.find((e) => {
+                  return e.confirmationString == result.content;
+                });
+
+              if (
+                selectedDietWithSameConfirmationString &&
+                selectedDietIndex >= 0
+              ) {
+                dismissToast();
+                setTimeout(() => {
+                  presentToast({
+                    mode: "ios",
+                    position: "top",
+                    header: "Dieta została wcześniej zeskanowana",
+                    color: "warning",
+                    cssClass: "home-scanner-toast",
+                    duration: 5000,
+                  });
+                }, 500);
+                Vibration.vibrate(500);
+              } else if (selectedDietIndex >= 0) {
+                const newItem = { ...tempChoosedItem };
+                newItem.packages[selectedDietIndex].scanned = true;
+                newItem.packages[selectedDietIndex].confirmationString =
+                  result.content as string;
+
+                UpdateRouteElement(
+                  items,
+                  newItem,
+                  "undelivered",
+                  setItems,
+                  setItemsStatic,
+                  true
+                );
+                setChoosedItem(newItem);
+
+                api
+                  .patch(
+                    "routes/addresses/packages/" +
+                      newItem.packages[selectedDietIndex].id,
+                    {
+                      isScanned: true,
+                      confirmationString: result.content,
+                    }
+                  )
+                  .then(async (response) => {});
+
+                new Audio(
+                  "https://www.myinstants.com/media/sounds/applepay.mp3"
+                ).play();
+              } else {
+                Vibration.vibrate(500);
+              }
             }
-            // if (temp) {
-            //   temp[index].packages?.map((_e) => {
-            //     if (_e.name == result.content) {
-            //       _e.scanned = true;
-            //     }
-            //   });
-
-            //   setItems(temp);
-
-            //   setChoosedItem(undefined);
-            //   setChoosedItem(temp[index]);
-
-            //   if (
-            //     temp[index] == choosedItem ||
-            //     temp[index].packages?.every((e) => {
-            //       return e.scanned == false;
-            //     })
-            //   ) {
-            //     Vibration.vibrate(500);
-            //   } else {
-            //     new Audio(
-            //       "https://www.myinstants.com/media/sounds/applepay.mp3"
-            //     ).play();
-            //   }
-            // }
           } catch (error) {
             console.log(error);
           }
@@ -751,102 +651,6 @@ const Home: React.FC = () => {
         fullscreen={true}
         className={"background-lightgrey " + (scanning ? "hide-bg" : "")}
       >
-        <div>
-          {/* <IonList className="list-order">
-          {items?.slice(0, loadItemsCount).map((e, i) => {
-            return (
-              <IonItem
-                className="item-container"
-                disabled={e?.packages?.every((_e) => {
-                  return _e.scanned;
-                })}
-                lines="full"
-              >
-                <IonLabel>
-                  <IonItem lines="none">
-                    <IonIcon
-                      className="icon-scan"
-                      color="primary"
-                      slot="start"
-                      icon={
-                        e?.packages?.every((_e) => {
-                          return _e.scanned;
-                        })
-                          ? cameraOutline
-                          : barcodeOutline
-                      }
-                      onClick={(event) => {
-                        if (
-                          e?.packages?.every((_e) => {
-                            return _e.scanned;
-                          })
-                        ) {
-                        } else {
-                          checkPermission();
-
-                          const body = document.querySelector("body");
-                          if (body) {
-                            body.style.background = "transparent";
-                          }
-                          setScanning(true);
-                          startScan(i);
-                        }
-                      }}
-                    />
-
-                    <IonLabel
-                      className="wrap"
-                      onClick={() => {
-                        setShowOrderInfoModal(true);
-                        setItemModalInfo(e);
-                      }}
-                    >
-                      <h4 className="address capitalize">{`${e.street} ${e.houseNumber}`}</h4>
-                      <p className="capitalize">{`${e.postCode} ${e.city}`}</p>
-                    </IonLabel>
-                  </IonItem>
-                  {e.packages?.map((_e) => {
-                    return (
-                      <IonItem className="item-diet" lines="none">
-                        <IonIcon
-                          color={_e.scanned ? "success" : "danger"}
-                          src={_e.scanned ? checkmarkOutline : closeOutline}
-                        />
-                        <IonLabel style={{ margin: "0" }} className="wrap">
-                          {_e.name}
-                        </IonLabel>
-                      </IonItem>
-                    );
-                  })}
-                </IonLabel>
-                <IonIcon
-                  className="icon-navigation"
-                  color="primary"
-                  slot="end"
-                  icon={navigateOutline}
-                  onClick={(event) => {
-                    setAddress(`${e.street} ${e.houseNumber}`);
-                    present({
-                      event: event.nativeEvent,
-                    });
-                  }}
-                />
-              </IonItem>
-            );
-          })}
-        </IonList>
-        <IonInfiniteScroll
-          onIonInfinite={loadData}
-          threshold="200px"
-          disabled={isInfiniteDisabled}
-        >
-          <IonInfiniteScrollContent
-            loadingSpinner="bubbles"
-            loadingText="Loading more data..."
-          ></IonInfiniteScrollContent>
-        </IonInfiniteScroll> */}
-        </div>
-
         <>
           <IonList className="list-order">
             {items.slice(0, infinityCounter).map((e, i) => {
@@ -914,42 +718,28 @@ const Home: React.FC = () => {
                                 {
                                   text: "Cofnij",
                                   handler: async () => {
-                                    let tempItems = items;
+                                    const newItem = { ...items[i] };
 
-                                    tempItems[i].packagesCompleted = false;
-                                    tempItems[i].image = undefined;
-                                    tempItems[i].packages.map((e) => {
+                                    newItem.packagesCompleted = false;
+                                    newItem.image = undefined;
+                                    newItem.packages.map((e) => {
                                       e.scanned = false;
                                     });
 
-                                    await setRoute(JSON.stringify(tempItems));
-
-                                    let newItems: RouteProps[] = [];
-
-                                    tempItems.map((e) => {
-                                      if (e.id !== items[i].id) {
-                                        newItems.push(e);
-                                      }
-                                    });
-
-                                    setItems([]);
-                                    setItemsStatic([]);
-
-                                    setItems(newItems);
-                                    setItemsStatic(newItems);
+                                    UpdateRouteElement(
+                                      items,
+                                      newItem,
+                                      "delivered",
+                                      setItems,
+                                      setItemsStatic,
+                                      true
+                                    );
                                   },
                                 },
                               ],
                               onDidDismiss: (e) => console.log("did dismiss"),
                             });
-                          }
-                          // else if (
-                          //   !items[i].packages?.every((_e) => {
-                          //     return _e.scanned;
-                          //   }) &&
-                          //   !items[i].image
-                          // )
-                          else if (
+                          } else if (
                             items.find((x) => {
                               return (
                                 x.packages.some((y) => {
@@ -1096,8 +886,8 @@ const Home: React.FC = () => {
         <></>
       ) : (
         <IonFooter>
-          <IonItem>
-            <IonLabel slot="end">
+          <IonItem style={{ "--min-height": "35px" }}>
+            <IonLabel slot="end" style={{ marginTop: "0", marginBottom: "0" }}>
               {
                 items?.filter((e) => {
                   return e.packages?.every((_e) => {
@@ -1165,16 +955,20 @@ const Home: React.FC = () => {
 
                 let imageUrl = image.base64String;
 
-                let tempItems = items;
+                const newItem = items.find((e) => e.id == choosedItem.id);
+                if(newItem)
+                {
+                  newItem.image = image.webPath;
 
-                tempItems.map((e) => {
-                  if (e.id == choosedItem.id) {
-                    e.image = image.webPath;
-                  }
-                });
-
-                setItems(tempItems);
-                setItemsStatic(tempItems);
+                  UpdateRouteElement(
+                    items,
+                    newItem,
+                    "undelivered",
+                    setItems,
+                    setItemsStatic,
+                    true
+                  );
+                }
 
                 api
                   .post("routes/addresses/" + choosedItem.id + "/image", {
@@ -1209,86 +1003,90 @@ const Home: React.FC = () => {
                       lines="none"
                       color={_e.scanned ? "success" : "danger"}
                       onClick={async () => {
-                        presentAlert({
-                          mode: "ios",
-                          cssClass: "missing-qr-alert",
-                          header: "Nie możesz zeksanować kodu QR?",
-                          subHeader:
-                            "Wykonaj zdjęcie diety z nieczytelnym kodem QR",
-                          message: _e.name,
-                          buttons: [
-                            "Anuluj",
-                            {
-                              text: "Zrób zdjęcie",
-                              handler: async (e) => {
-                                const image = await Camera.getPhoto({
-                                  quality: 75,
-                                  allowEditing: false,
-                                  resultType: CameraResultType.Base64,
-                                  source: CameraSource.Camera,
-                                });
-
-                                let imageUrl = image.base64String;
-
-                                api
-                                  .post(
-                                    "routes/addresses/packages/" +
-                                      _e.id +
-                                      "/image",
-                                    {
-                                      image: imageUrl,
-                                    }
-                                  )
-                                  .then((response) => {
-                                    console.log(response);
+                        if (!_e.scanned) {
+                          presentAlert({
+                            mode: "ios",
+                            cssClass: "missing-qr-alert",
+                            header: "Nie możesz zeskanować kodu QR?",
+                            subHeader:
+                              "Wykonaj zdjęcie diety z nieczytelnym kodem QR",
+                            message: _e.name,
+                            buttons: [
+                              "Anuluj",
+                              {
+                                text: "Zrób zdjęcie",
+                                handler: async (e) => {
+                                  const image = await Camera.getPhoto({
+                                    quality: 75,
+                                    allowEditing: false,
+                                    resultType: CameraResultType.Base64,
+                                    source: CameraSource.Camera,
                                   });
 
-                                let tempItems = items;
-                                let tempChoosedItem = choosedItem;
+                                  let imageUrl = image.base64String;
 
-                                let scannedAddress: RouteProps | undefined =
-                                  undefined;
 
-                                tempItems.map((x) => {
-                                  x.packages.map((_x) => {
-                                    if (_x.id == _e.id) {
-                                      _x.scanned = true;
-                                      scannedAddress = x;
-                                    }
-                                  });
-                                });
 
-                                if (scannedAddress) {
-                                  const _scannedAddress: RouteProps =
-                                    scannedAddress;
+                                  api
+                                    .post(
+                                      "routes/addresses/packages/" +
+                                        _e.id +
+                                        "/image",
+                                      {
+                                        image: imageUrl,
+                                      }
+                                    )
+                                    .then((response) => {
+                                      console.log(response);
+                                    });
 
-                                  if (
-                                    _scannedAddress.packages.every((x) => {
-                                      return x.scanned;
-                                    })
-                                  ) {
-                                    tempItems.map((x) => {
-                                      if (x.id == _scannedAddress.id) {
-                                        x.packagesCompleted = true;
+                                  let tempItems = items;
+                                  let tempChoosedItem = choosedItem;
+
+                                  let scannedAddress: RouteProps | undefined =
+                                    undefined;
+
+                                  tempItems.map((x) => {
+                                    x.packages.map((_x) => {
+                                      if (_x.id == _e.id) {
+                                        _x.scanned = true;
+                                        scannedAddress = x;
                                       }
                                     });
-                                  }
-                                }
+                                  });
 
-                                tempChoosedItem.packages.map((x) => {
-                                  if (x.id == _e.id) {
-                                    x.scanned = true;
-                                  }
-                                });
+                                  if (scannedAddress) {
+                                    const _scannedAddress: RouteProps =
+                                      scannedAddress;
 
-                                setItems(tempItems);
-                                setChoosedItem(undefined);
-                                setChoosedItem(tempChoosedItem);
+                                    if (
+                                      _scannedAddress.packages.every((x) => {
+                                        return x.scanned;
+                                      })
+                                    ) {
+                                      tempItems.map((x) => {
+                                        if (x.id == _scannedAddress.id) {
+                                          x.packagesCompleted = true;
+                                        }
+                                      });
+                                    }
+                                  }
+
+                                  tempChoosedItem.packages.map((x) => {
+                                    if (x.id == _e.id) {
+                                      x.scanned = true;
+                                    }
+                                  });
+
+                                  setItems(tempItems);
+                                  setChoosedItem(undefined);
+                                  setChoosedItem(tempChoosedItem);
+                                },
                               },
-                            },
-                          ],
-                          onDidDismiss: (e) => console.log("did dismiss"),
-                        });
+                            ],
+                            onDidDismiss: (e) => console.log("did dismiss"),
+                          });
+                        }
                       }}
                     >
                       <IonIcon
