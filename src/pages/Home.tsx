@@ -126,6 +126,8 @@ const Home: React.FC = () => {
 
   const [footerItem, setFooterItem] = useState<RouteProps>();
 
+  const [itemsMode, setItemsMode] = useState<"undelivered" | "delivered">("undelivered");
+
   useEffect(() => {
     const foundItem = items.find((x) => {
       return (
@@ -154,6 +156,13 @@ const Home: React.FC = () => {
   const [presentThreeDots, dismissThreeDots] = useIonPopover(ThreeDotsPopover, {
     onHide: () => dismissThreeDots(),
     showDelivered: async () => {
+
+      setItemsMode("delivered");
+      if(contentRef.current)
+      {
+        contentRef.current.scrollToTop();
+      }
+
       await assignRouteDeliveredFromStorageToState();
 
       api.get("routes/").then(async (response) => {
@@ -163,6 +172,13 @@ const Home: React.FC = () => {
       });
     },
     showUndelivered: async () => {
+
+      setItemsMode("undelivered");
+      if(contentRef.current)
+      {
+        contentRef.current.scrollToTop();
+      }
+
       await assignRouteFromStorageToState();
 
       api.get("routes/").then(async (response) => {
@@ -849,9 +865,9 @@ const Home: React.FC = () => {
         <></>
       ) : (
         <IonFooter>
-          {footerItem ? (
-            <IonList className="list-order">
-              <div className="item-container" style={{ paddingTop: "5px" }} >
+          {footerItem && itemsMode == "undelivered" ? (
+            <IonList className="list-order" style={{ paddingBottom: "0", border: "4px solid var(--ion-color-tertiary)" }} >
+              <div className="item-container" style={{ paddingTop: "5px", borderBottom: "none" }} >
                 <IonLabel>
                   <div style={{ display: "flex" }}>
                     <IonIcon
