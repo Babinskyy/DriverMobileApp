@@ -78,6 +78,7 @@ import {
   ItemsProps,
   InnerItemProps,
   DietItemProps,
+  OfflineRequestProps,
 } from "../components/Types";
 import ThreeDotsPopover from "../components/ThreeDotsPopover";
 import { RouterProps } from "react-router";
@@ -86,6 +87,9 @@ import {
   RefreshRoute,
   UpdateRouteElement,
 } from "../services/Utility";
+import { Network } from "@capacitor/network";
+
+import { App } from '@capacitor/app';
 
 const Home: React.FC = () => {
   const { navigate } = useContext(NavContext);
@@ -114,19 +118,61 @@ const Home: React.FC = () => {
   const [itemsStatic, setItemsStatic] = useState<RouteProps[]>([]);
   const [rotate, setRotate] = useState<boolean>(false);
 
+
+  const [itemsCounter, setItemsCounter] = useState(0);
+  const [itemsCounterScanned, setItemsCounterScanned] = useState(0);
+
+
   const [presentToast, dismissToast] = useIonToast();
 
   // const items = useMemo<RouteProps[]>(() => items as RouteProps[], [items]);
 
   const [infinityCounter, setInfinityCounter] = useState(20);
 
-  const memoizedItems = useMemo(() => items.slice(0, infinityCounter), [items, infinityCounter]);
+  // const memoizedItems = useMemo(() => items.slice(0, infinityCounter), [items, infinityCounter]);
 
   const [presentAlert] = useIonAlert();
 
   const [footerItem, setFooterItem] = useState<RouteProps>();
 
   const [itemsMode, setItemsMode] = useState<"undelivered" | "delivered">("undelivered");
+
+  const [presentPhotoLoading, dismissPhotoLoading] = useIonLoading();
+
+  const [presentLoading, dismissLoading] = useIonLoading();
+
+
+  useEffect(() => {
+
+
+    const AssignItemsCounter = async () => {
+
+      const { value } = await Storage.get({ key: "Route" });
+
+      if(value)
+      {
+        let tempRoute = JSON.parse(value) as RouteProps[];
+
+        setItemsCounter(tempRoute.length);
+
+        tempRoute = tempRoute.filter((e) => {
+          return e.packagesCompleted && e.image;
+        });
+        tempRoute.sort((a, b) => {
+            return b.order - a.order
+        });
+
+        setItemsCounterScanned(tempRoute.length);
+
+      }
+
+    }
+
+    AssignItemsCounter();
+
+
+  }, [items])
+
 
   // useEffect(() => {
   //   const foundItem = items.find((x) => {
@@ -158,6 +204,11 @@ const Home: React.FC = () => {
     showDelivered: async () => {
 
       setItemsMode("delivered");
+      if(itemsMode == "undelivered")
+      {
+        setInfinityCounter(20);
+      }
+
       if(contentRef.current)
       {
         contentRef.current.scrollToTop();
@@ -165,15 +216,20 @@ const Home: React.FC = () => {
 
       await assignRouteDeliveredFromStorageToState();
 
-      api.get("routes/").then(async (response) => {
-        let route = response.data as RouteProps[];
+      // api.get("routes/").then(async (response) => {
+      //   let route = response.data as RouteProps[];
 
-        RefreshRoute(route, "delivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
-      });
+      //   RefreshRoute(route, "delivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
+      // });
     },
     showUndelivered: async () => {
 
       setItemsMode("undelivered");
+      if(itemsMode == "delivered")
+      {
+        setInfinityCounter(20);
+      }
+      
       if(contentRef.current)
       {
         contentRef.current.scrollToTop();
@@ -181,11 +237,11 @@ const Home: React.FC = () => {
 
       await assignRouteFromStorageToState();
 
-      api.get("routes/").then(async (response) => {
-        let route = response.data as RouteProps[];
+      // api.get("routes/").then(async (response) => {
+      //   let route = response.data as RouteProps[];
 
-        RefreshRoute(route, "undelivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
-      });
+      //   RefreshRoute(route, "undelivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
+      // });
     },
   });
 
@@ -202,11 +258,14 @@ const Home: React.FC = () => {
   }, []);
 
   useIonViewDidEnter(async () => {
-    api.get("routes/").then(async (response) => {
+
+    await api.get("routes/").then(async (response) => {
       let route = response.data as RouteProps[];
 
-      RefreshRoute(route, "undelivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
+      RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
     });
+
+    
   });
 
 
@@ -214,25 +273,113 @@ const Home: React.FC = () => {
     assignRouteFromStorageToState();
   }, []);
 
+  const CheckOfflineRequests = async () => {
+
+    const networkStatus = await Network.getStatus();
+
+    if(networkStatus.connected)
+    {
+      try {
+
+        const { value } = await Storage.get({ key: "OfflineRequests" });
+    
+        if(value)
+        {
+      
+          let offlineRequests = JSON.parse(value) as OfflineRequestProps[];
+
+          offlineRequests.reverse();
+
+          await Storage.remove({ key: "OfflineRequests" });
+      
+          if(offlineRequests.length > 0)
+          {
+      
+            presentLoading({
+              message: "Synchronizowanie danych z serwerem",
+              spinner: "crescent"
+            });
+
+            for (const e of offlineRequests) {
+              const rq = await api.request({
+                url: e.url,
+                method: e.method,
+                data: e.body
+              });
+              const rqData = await rq;
+            }
+
+            setTimeout(async () => {
+              
+              await api.get("routes/").then(async (response) => {
+                let route = response.data as RouteProps[];
+          
+                RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
+              });
+
+              setTimeout(() => {
+                dismissLoading();
+              }, 500);
+
+            }, 200);
+
+            
+
+            
+
+
+            return;
+      
+          }
+          
+      
+        }
+
+      } catch (error) {
+        
+      }
+  
+    }
+
+
+    
+  
+  }
+
+    useEffect(() => {
+      
+      App.addListener('appStateChange', ({ isActive }) => {
+        if(isActive)
+        {
+          CheckOfflineRequests();
+        }
+      })
+
+      CheckOfflineRequests();
+  
+    }, []);
+
+
+    
+
+
   const assignRouteFromStorageToState = async () => {
     const { value } = await Storage.get({ key: "Route" });
 
     if (value) {
       let routeCollection = JSON.parse(value) as RouteProps[];
 
-      setItems(routeCollection);
-      setItemsStatic(routeCollection);
+      RefreshRoute(routeCollection, "undelivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
     }
   };
 
   const assignRouteDeliveredFromStorageToState = async () => {
-    const { value } = await Storage.get({ key: "RouteDelivered" });
+    const { value } = await Storage.get({ key: "Route" });
 
     if (value) {
       let routeCollection = JSON.parse(value) as RouteProps[];
 
-      setItems(routeCollection);
-      setItemsStatic(routeCollection);
+      RefreshRoute(routeCollection, "delivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
     }
   };
 
@@ -331,7 +478,7 @@ const Home: React.FC = () => {
                 );
 
                 UpdateRouteElement(
-                  items,
+                  undefined,
                   newItem,
                   "undelivered",
                   setItems,
@@ -398,7 +545,7 @@ const Home: React.FC = () => {
             </IonButtons>
           </IonToolbar>
         </IonHeader>
-        <IonContent>
+        <IonContent >
           <IonListHeader>
             <IonLabel style={{ fontWeight: 700 }}>
               Podstawowe informacje
@@ -500,7 +647,7 @@ const Home: React.FC = () => {
           {itemModalInfo?.image ? (
             <IonButton
               expand="full"
-              style={{ margin: "0 10px" }}
+              style={{ margin: "0 10px", marginBottom: "40px" }}
               onClick={() => {
                 setAssignedImage(itemModalInfo?.image);
                 setShowOrderPhoto(true);
@@ -564,9 +711,15 @@ const Home: React.FC = () => {
           <IonButtons slot="end">
             <IonButton
               className={rotate ? "rotated" : ""}
-              onClick={() => {
+              onClick={async () => {
                 setRotate(!rotate);
-                window.location.reload();
+                
+                await api.get("routes/").then(async (response) => {
+                  let route = response.data as RouteProps[];
+            
+                  RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
+                });
+                
               }}
             >
               <IonIcon slot="icon-only" icon={refreshOutline} />
@@ -613,7 +766,7 @@ const Home: React.FC = () => {
       >
         <>
           <IonList className="list-order">
-            {memoizedItems.map((e, i) => {
+            {items.slice(0, infinityCounter).map((e, i) => {
               return (
                 <div key={e.id} className="item-container">
                   {i >= 0 ? (
@@ -663,11 +816,12 @@ const Home: React.FC = () => {
 
                             if (newItem) {
                               newItem.image = image.webPath;
+                              newItem.packagesCompleted = true;
 
                               console.log(image);
 
                               UpdateRouteElement(
-                                items,
+                                undefined,
                                 newItem,
                                 "undelivered",
                                 setItems,
@@ -677,12 +831,17 @@ const Home: React.FC = () => {
                                 true
                               );
 
+
+                              presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
                               api
                                 .post("routes/addresses/" + e.id + "/image", {
                                   image: image.base64,
                                 })
                                 .then((response) => {
                                   console.log(response);
+                                })
+                                .finally(() => {
+                                  dismissPhotoLoading();
                                 });
                             }
                           } else if (e.image) {
@@ -707,7 +866,7 @@ const Home: React.FC = () => {
                                     });
 
                                     UpdateRouteElement(
-                                      items,
+                                      undefined,
                                       newItem,
                                       "delivered",
                                       setItems,
@@ -876,7 +1035,7 @@ const Home: React.FC = () => {
       ) : (
         <IonFooter>
           {footerItem && itemsMode == "undelivered" && !footerItem.image ? (
-            <IonList className="list-order" style={{ paddingBottom: "0", border: "4px solid var(--ion-color-tertiary)" }} >
+            <IonList className="list-order border" style={{ paddingBottom: "0"}} >
               <div className="item-container" style={{ paddingTop: "5px", borderBottom: "none" }} >
                 <IonLabel>
                   <div style={{ display: "flex" }}>
@@ -916,7 +1075,7 @@ const Home: React.FC = () => {
                             console.log(image);
 
                             UpdateRouteElement(
-                              items,
+                              undefined,
                               newItem,
                               "undelivered",
                               setItems,
@@ -926,12 +1085,16 @@ const Home: React.FC = () => {
                               true
                             );
 
+                            presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
                             api
                               .post("routes/addresses/" + footerItem.id + "/image", {
                                 image: image.base64,
                               })
                               .then((response) => {
                                 console.log(response);
+                              })
+                              .finally(() => {
+                                dismissPhotoLoading();
                               });
                           }
                         } else if (footerItem.image) {
@@ -956,7 +1119,7 @@ const Home: React.FC = () => {
                                   });
 
                                   UpdateRouteElement(
-                                    items,
+                                    undefined,
                                     newItem,
                                     "delivered",
                                     setItems,
@@ -1090,14 +1253,7 @@ const Home: React.FC = () => {
             :
 <IonItem style={{ "--min-height": "35px" }}>
             <IonLabel slot="end" style={{ marginTop: "0", marginBottom: "0" }}>
-              {
-                items?.filter((e) => {
-                  return e.packages?.every((_e) => {
-                    return _e.scanned;
-                  });
-                }).length
-              }
-              /{items?.length}
+              {itemsCounterScanned}/{itemsCounter}
             </IonLabel>
           </IonItem>
           }
@@ -1147,19 +1303,19 @@ const Home: React.FC = () => {
               className="order-photo"
               color="success"
               onClick={async () => {
-                stopScan();
-                setScanning(false);
+                
 
                 const image = await GetPhoto();
 
-                const newItem = items.find((e) => e.id == choosedItem.id);
+                const newItem = choosedItem;
                 if (newItem) {
                   newItem.image = image.webPath;
+                  newItem.packagesCompleted = true;
 
                   console.log(image);
 
                   UpdateRouteElement(
-                    items,
+                    undefined,
                     newItem,
                     "undelivered",
                     setItems,
@@ -1170,13 +1326,21 @@ const Home: React.FC = () => {
                   );
                 }
 
+                presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
                 api
                   .post("routes/addresses/" + choosedItem.id + "/image", {
                     image: image.base64,
                   })
                   .then((response) => {
                     console.log(response);
+                  })
+                  .finally(() => {
+                    dismissPhotoLoading();
                   });
+
+                  stopScan();
+                  setScanning(false);
+
               }}
             >
               <IonLabel>ZDJĘCIE DOSTAWY</IonLabel>
@@ -1238,7 +1402,7 @@ const Home: React.FC = () => {
                                     console.log(newItem);
 
                                     UpdateRouteElement(
-                                      items,
+                                      undefined,
                                       newItem,
                                       "undelivered",
                                       setItems,
@@ -1251,6 +1415,7 @@ const Home: React.FC = () => {
                                     setChoosedItem(newItem);
                                   }
 
+                                  presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
                                   api
                                     .post(
                                       "routes/addresses/packages/" +
@@ -1262,6 +1427,9 @@ const Home: React.FC = () => {
                                     )
                                     .then((response) => {
                                       console.log(response);
+                                    })
+                                    .finally(() => {
+                                      dismissPhotoLoading();
                                     });
 
                                   // let tempItems = items;

@@ -1,6 +1,8 @@
 import axios from "axios";
 import TokenService from "./token.service";
 import { User } from "./userProps";
+import { AddOfflineRequest } from "./Utility";
+import { Network } from '@capacitor/network';
 
 const instance = axios.create({
   withCredentials: true,
@@ -12,14 +14,22 @@ const instance = axios.create({
 });
 instance.interceptors.request.use(
   async (config) => {
+
+    const networkStatus = await Network.getStatus();
+    if(!networkStatus.connected && config.url && config.method != "GET" && config.method != "get" && config.method)
+    {
+      await AddOfflineRequest(config.url, config.method, config.data);
+    }
+
     const token = await TokenService.getLocalAccessToken();
     if (token && config.headers) {
       config.headers["Authorization"] = "Bearer " + token; // for Spring Boot back-end
-      // config.headers["x-access-token"] = token; // for Node.js Express back-end
     }
     return config;
   },
   async (error) => {
+    console.log("request")
+    console.log(error)
     return Promise.reject(error);
   }
 );
@@ -41,7 +51,7 @@ instance.interceptors.response.use(
           return instance(originalConfig);
         } catch (_error) {
           // await tokenService.removeUser();
-          // window.location.replace("/login");
+          window.location.replace("/login");
           return Promise.reject(_error);
         }
       }

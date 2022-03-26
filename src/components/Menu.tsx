@@ -48,6 +48,7 @@ const Menu: React.FC = () => {
 
   return (
     <IonMenu
+      swipeGesture={true}
       contentId="main"
       id="mainMenu"
       style={{ "--max-width": "300px" }}

@@ -5,6 +5,7 @@ import {
   IonHeader,
   IonItem,
   IonList,
+  IonLoading,
   IonMenu,
   IonRouterOutlet,
   IonTitle,
@@ -47,6 +48,10 @@ import { User } from "./services/userProps";
 import Menu from "./components/Menu";
 
 import { Storage } from "@capacitor/storage";
+import { Network } from "@capacitor/network";
+
+import api from "./services/api";
+import { OfflineRequestProps } from "./components/Types";
 
 setupIonicReact();
 
@@ -78,12 +83,19 @@ export const themeCheck = async () => {
   }
 };
 
+
+
 const App: React.FC = () => {
+
+  const [presentLoading, dismissLoading] = useIonLoading();
+
   useEffect(() => {
     
     themeCheck();
 
   }, []);
+
+  
 
   return (
     <IonApp>
@@ -95,6 +107,7 @@ const App: React.FC = () => {
           <Route path="/Warehouse" exact={true} component={Warehouse} />
           <Route path="/" exact={true} component={Home} />
         </IonRouterOutlet>
+
       </IonReactRouter>
     </IonApp>
   );

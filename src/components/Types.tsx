@@ -1,3 +1,5 @@
+import { Method } from "axios";
+
 export type DietsProps = {
   id: string;
   category: string;
@@ -54,4 +56,9 @@ export type WarehousePackage = {
 export type DietItemProps = {
   e: RouteProps;
   i?: number;
+}
+export type OfflineRequestProps = {
+  url: string;
+  method: Method;
+  body: any;
 }

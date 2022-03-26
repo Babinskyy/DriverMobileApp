@@ -13,12 +13,19 @@
 
 .container {
 
+	.list-order.border {
+		border: 4px solid var(--ion-color-tertiary);
+		border-bottom-width: 0px;
+		border-top-right-radius: 20px;
+    	border-top-left-radius: 20px;
+	}
+
 	.list-order {
 
 		.item-container {
 
 			--padding-start: 0;
-			border-bottom: 1px solid #919191;
+			border-bottom: 1px solid rgba(145, 145, 145, 0.4);
 			position: relative;
 			padding: 15px 0 5px 0;
 
