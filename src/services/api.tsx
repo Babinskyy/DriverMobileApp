@@ -1,5 +1,4 @@
 import axios from "axios";
-import tokenService from "./token.service";
 import TokenService from "./token.service";
 import { User } from "./userProps";
 
@@ -42,7 +41,7 @@ instance.interceptors.response.use(
           return instance(originalConfig);
         } catch (_error) {
           // await tokenService.removeUser();
-          window.location.replace("/login");
+          // window.location.replace("/login");
           return Promise.reject(_error);
         }
       }

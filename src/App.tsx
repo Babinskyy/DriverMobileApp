@@ -57,28 +57,24 @@ export const themeCheck = async () => {
 
     if(value == "dark")
     {
-      document.body.classList.toggle("dark", true);
+      document.body.classList.add("dark");
     }
     else
     {
-      document.body.classList.toggle("dark", false);
+      document.body.classList.remove("dark");
     }
 
   } else {
     // Use matchMedia to check the user preference
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+    // const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
 
-    // Add or remove the "dark" class based on if the media query matches
-    const toggleDarkTheme = (shouldAdd: boolean) => {
-      document.body.classList.toggle("dark", shouldAdd);
-    };
+    // if(prefersDark)
+    // {
+    //   document.body.classList.add("dark");
+    // }
+    
+    document.body.classList.add("dark");
 
-    toggleDarkTheme(prefersDark.matches);
-
-    // Listen for changes to the prefers-color-scheme media query
-    prefersDark.addListener((mediaQuery) =>
-      toggleDarkTheme(mediaQuery.matches)
-    );
   }
 };
 

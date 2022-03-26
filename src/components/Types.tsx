@@ -51,3 +51,7 @@ export type WarehousePackage = {
   code: string;
   confirmationString: string;
 };
+export type DietItemProps = {
+  e: RouteProps;
+  i?: number;
+}

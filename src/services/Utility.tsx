@@ -1,10 +1,31 @@
 import { SetStateAction } from "react";
 import { RouteProps } from "../components/Types"
 import { Storage } from "@capacitor/storage";
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { Filesystem, Directory, Encoding, ReadFileResult } from '@capacitor/filesystem';
 
-export const UpdateCollection = () => {
+export const GetPhoto = async () => {
 
+    const image =  await Camera.getPhoto({
+        quality: 75,
+        allowEditing: false,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera,
+    });
 
+    let imageBase64: ReadFileResult | undefined = undefined;
+
+    if(image.path)
+    {
+        imageBase64 = await Filesystem.readFile({
+            path: image.path
+        });
+    }
+
+    return {
+        webPath: image.webPath,
+        base64: imageBase64?.data
+    }
 
 }
 
@@ -28,7 +49,7 @@ export const RefreshRoute = async (route: RouteProps[], routeType: "undelivered"
     if(saveToStorage)
     {
         await Storage.set({
-            key: "Route",
+            key: routeType == "undelivered" ? "Route" : "RouteDelivered",
             value: JSON.stringify(route),
         });
     }
@@ -36,6 +57,8 @@ export const RefreshRoute = async (route: RouteProps[], routeType: "undelivered"
     setItems(route);
     setItemsStatic(route);
 
+    console.log("refresh");
+    console.log(route);
 }
 
 export const UpdateRouteElement = async (route: RouteProps[], item: RouteProps, routeType: "undelivered" | "delivered", setItems: (value: React.SetStateAction<RouteProps[]>) => void, setItemsStatic: (value: React.SetStateAction<RouteProps[]>) => void, saveToStorage: boolean = false) => {

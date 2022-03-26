@@ -58,7 +58,7 @@ import {
   swapVerticalOutline,
   syncOutline,
 } from "ionicons/icons";
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { FunctionComponent, useContext, useEffect, useMemo, useRef, useState } from "react";
 import MapPopover from "../components/MapPopover";
 import PhonePopover from "../components/PhonePopover";
 import "./Home.scss";
@@ -77,10 +77,15 @@ import {
   ItemsDietProps,
   ItemsProps,
   InnerItemProps,
+  DietItemProps,
 } from "../components/Types";
 import ThreeDotsPopover from "../components/ThreeDotsPopover";
 import { RouterProps } from "react-router";
-import { RefreshRoute, UpdateRouteElement } from "../services/Utility";
+import {
+  GetPhoto,
+  RefreshRoute,
+  UpdateRouteElement,
+} from "../services/Utility";
 
 const Home: React.FC = () => {
   const { navigate } = useContext(NavContext);
@@ -115,7 +120,27 @@ const Home: React.FC = () => {
 
   const [infinityCounter, setInfinityCounter] = useState(20);
 
+  const memoizedItems = useMemo(() => items.slice(0, infinityCounter), [items, infinityCounter]);
+
   const [presentAlert] = useIonAlert();
+
+  const [footerItem, setFooterItem] = useState<RouteProps>();
+
+  useEffect(() => {
+    const foundItem = items.find((x) => {
+      return (
+        x.packages.some((y) => {
+          return y.scanned;
+        }) && !x.image
+      );
+    });
+
+    if (foundItem) {
+      if (foundItem.id != footerItem?.id) {
+        setFooterItem(foundItem);
+      }
+    }
+  }, [items]);
 
   const [present, dismiss] = useIonPopover(MapPopover, {
     onHide: () => dismiss(),
@@ -129,7 +154,7 @@ const Home: React.FC = () => {
   const [presentThreeDots, dismissThreeDots] = useIonPopover(ThreeDotsPopover, {
     onHide: () => dismissThreeDots(),
     showDelivered: async () => {
-      //await assignRouteFromStorageToState();
+      await assignRouteDeliveredFromStorageToState();
 
       api.get("routes/").then(async (response) => {
         let route = response.data as RouteProps[];
@@ -138,7 +163,7 @@ const Home: React.FC = () => {
       });
     },
     showUndelivered: async () => {
-      //await assignRouteFromStorageToState();
+      await assignRouteFromStorageToState();
 
       api.get("routes/").then(async (response) => {
         let route = response.data as RouteProps[];
@@ -160,13 +185,6 @@ const Home: React.FC = () => {
     getUser();
   }, []);
 
-  useIonViewWillEnter(() => {
-    api.get("diets").then(async (response) => {
-      const diets = response.data as DietsProps[];
-      await setDiets(JSON.stringify(diets));
-    });
-  });
-
   useIonViewDidEnter(async () => {
     api.get("routes/").then(async (response) => {
       let route = response.data as RouteProps[];
@@ -175,12 +193,10 @@ const Home: React.FC = () => {
     });
   });
 
-  const setDiets = async (value: string) => {
-    await Storage.set({
-      key: "Diets",
-      value: value,
-    });
-  };
+
+  useEffect(() => {
+    assignRouteFromStorageToState();
+  }, []);
 
   const assignRouteFromStorageToState = async () => {
     const { value } = await Storage.get({ key: "Route" });
@@ -188,13 +204,19 @@ const Home: React.FC = () => {
     if (value) {
       let routeCollection = JSON.parse(value) as RouteProps[];
 
-      // routeCollection = routeCollection.filter((e) => {
-      //   return e.packagesCompleted && e.image;
-      // });
+      setItems(routeCollection);
+      setItemsStatic(routeCollection);
+    }
+  };
+
+  const assignRouteDeliveredFromStorageToState = async () => {
+    const { value } = await Storage.get({ key: "RouteDelivered" });
+
+    if (value) {
+      let routeCollection = JSON.parse(value) as RouteProps[];
 
       setItems(routeCollection);
       setItemsStatic(routeCollection);
-      // setLoadingList(false);
     }
   };
 
@@ -215,6 +237,13 @@ const Home: React.FC = () => {
         setItems(itemsStatic);
       }
     }
+
+    if(contentRef.current)
+    {
+      contentRef.current.scrollToTop(500);
+    }
+    
+
   };
 
   const checkPermission = async () => {
@@ -273,13 +302,17 @@ const Home: React.FC = () => {
                     cssClass: "home-scanner-toast",
                     duration: 5000,
                   });
-                }, 500);
+                }, 150);
                 Vibration.vibrate(500);
               } else if (selectedDietIndex >= 0) {
                 const newItem = { ...tempChoosedItem };
                 newItem.packages[selectedDietIndex].scanned = true;
                 newItem.packages[selectedDietIndex].confirmationString =
                   result.content as string;
+
+                newItem.packagesCompleted = newItem.packages.every(
+                  (e) => e.scanned
+                );
 
                 UpdateRouteElement(
                   items,
@@ -324,102 +357,6 @@ const Home: React.FC = () => {
     }
     BarcodeScanner.showBackground();
     BarcodeScanner.stopScan();
-  };
-
-  // Item contents are cached properly with React.memo
-  const InnerItem = React.memo<InnerItemProps>(({ i }) => {
-    React.useEffect(() => {
-      console.log("inner mounting", i);
-      return () => {
-        console.log("inner unmounting", i);
-      };
-    }, [i]);
-    return (
-      <div
-        key={i}
-        // style={{ height: "114px" }}
-        className="item-container"
-        // disabled={e?.packages?.every((_e) => {
-        //   return _e.scanned;
-        // })}
-        // lines="full"
-      >
-        <div className="counter">
-          {i + 1}/{items.length}
-        </div>
-        <IonLabel>
-          <div style={{ display: "flex" }}>
-            <IonIcon
-              className="icon-scan"
-              color="primary"
-              slot="start"
-              icon={items[i].image ? cameraOutline : barcodeOutline}
-              onClick={(event) => {
-                if (
-                  items[i].packages?.every((_e) => {
-                    return _e.scanned;
-                  })
-                ) {
-                } else {
-                  checkPermission();
-
-                  const body = document.querySelector("body");
-                  if (body) {
-                    body.style.background = "transparent";
-                  }
-                  setScanning(true);
-                  startScan(i);
-                }
-              }}
-            />
-
-            <IonLabel
-              className="wrap"
-              onClick={() => {
-                if (items) {
-                  setShowOrderInfoModal(true);
-                  setItemModalInfo(items[i]);
-                }
-              }}
-            >
-              <h4 className="address capitalize">{`${items[i].street} ${items[i].houseNumber}`}</h4>
-              <p className="capitalize">{`${items[i].postCode} ${items[i].city}`}</p>
-            </IonLabel>
-            <IonIcon
-              className="icon-navigation"
-              color="primary"
-              slot="end"
-              icon={navigateOutline}
-              onClick={(event) => {
-                setAddress(`${items[i].street} ${items[i].houseNumber}`);
-                present({
-                  event: event.nativeEvent,
-                  reference: "event",
-                });
-              }}
-            />
-          </div>
-          {items[i].packages.map((_e) => {
-            return (
-              <IonItem className="item-diet" lines="none">
-                <IonIcon
-                  color={_e.scanned ? "success" : "danger"}
-                  src={_e.scanned ? checkmarkOutline : closeOutline}
-                />
-                <IonLabel style={{ margin: "0" }} className="wrap">
-                  {_e.name}
-                </IonLabel>
-              </IonItem>
-            );
-          })}
-        </IonLabel>
-      </div>
-    );
-  });
-
-  const itemContent = (index: number) => {
-    console.log("providing content", index);
-    return <InnerItem i={index} />;
   };
 
   return (
@@ -658,53 +595,52 @@ const Home: React.FC = () => {
       >
         <>
           <IonList className="list-order">
-            {items.slice(0, infinityCounter).map((e, i) => {
+            {memoizedItems.map((e, i) => {
               return (
-                <div key={e.id} className="item-container" data-toscroll={e.id}>
-                  <div className="counter">
-                    {i + 1}/{items.length}
-                  </div>
+                <div key={e.id} className="item-container">
+                  {i ? (
+                    <div className="counter">
+                      {i + 1}/{items.length}
+                    </div>
+                  ) : (
+                    <></>
+                  )}
                   <IonLabel>
                     <div style={{ display: "flex" }}>
                       <IonIcon
                         className="icon-scan"
                         color={
-                          items[i].image
+                          e.image
                             ? "secondary"
-                            : items[i].packagesCompleted
+                            : e.packagesCompleted
                             ? "tertiary"
-                            : items[i].packages.some((x) => x.scanned)
+                            : e.packages.some((x) => x.scanned)
                             ? "tertiary"
                             : "primary"
                         }
                         slot="start"
                         icon={
-                          items[i].image
+                          e.image
                             ? syncOutline
-                            : items[i].packagesCompleted
+                            : e.packagesCompleted
                             ? cameraOutline
                             : barcodeOutline
                         }
                         onClick={async (event) => {
                           if (
-                            items[i].packages?.every((_e) => {
+                            e.packages?.every((_e) => {
                               return _e.scanned;
                             }) &&
-                            !items[i].image
+                            !e.image
                           ) {
-                            const image = await Camera.getPhoto({
-                              quality: 75,
-                              allowEditing: false,
-                              resultType: CameraResultType.Base64,
-                              source: CameraSource.Camera,
-                            });
+                            const image = await GetPhoto();
 
-                            let imageUrl = image.base64String;
-
-                            const newItem = items[i];
+                            const newItem = e;
 
                             if (newItem) {
                               newItem.image = image.webPath;
+
+                              console.log(image);
 
                               UpdateRouteElement(
                                 items,
@@ -716,36 +652,32 @@ const Home: React.FC = () => {
                               );
 
                               api
-                                .post(
-                                  "routes/addresses/" + items[i].id + "/image",
-                                  {
-                                    image: imageUrl,
-                                  }
-                                )
+                                .post("routes/addresses/" + e.id + "/image", {
+                                  image: image.base64,
+                                })
                                 .then((response) => {
                                   console.log(response);
                                 });
                             }
-                          } else if (items[i].image) {
+                          } else if (e.image) {
                             presentAlert({
                               mode: "ios",
                               cssClass: "missing-qr-alert",
                               header:
                                 "Czy na pewno chcesz cofnąć dostarczenie adresu?",
                               subHeader: "Wybrany adres:",
-                              message:
-                                items[i].street + " " + items[i].houseNumber,
+                              message: e.street + " " + e.houseNumber,
                               buttons: [
                                 "Anuluj",
                                 {
                                   text: "Cofnij",
                                   handler: async () => {
-                                    const newItem = { ...items[i] };
+                                    const newItem = { ...e };
 
                                     newItem.packagesCompleted = false;
                                     newItem.image = undefined;
-                                    newItem.packages.map((e) => {
-                                      e.scanned = false;
+                                    newItem.packages.map((_e) => {
+                                      _e.scanned = false;
                                     });
 
                                     UpdateRouteElement(
@@ -769,7 +701,7 @@ const Home: React.FC = () => {
                                 }) && !x.image
                               );
                             }) &&
-                            items[i].id !=
+                            e.id !=
                               items.find((x) => {
                                 return (
                                   x.packages.some((y) => {
@@ -778,7 +710,7 @@ const Home: React.FC = () => {
                                 );
                               })?.id
                           ) {
-                            console.log(items[i].packages);
+                            console.log(e.packages);
 
                             let _message = "";
 
@@ -802,30 +734,30 @@ const Home: React.FC = () => {
                                 subHeader: "Adres do zakończenia:",
                                 message: _message,
                                 buttons: [
-                                  "Anuluj",
-                                  {
-                                    text: "Zobacz",
-                                    handler: () => {
-                                      if (contentRef.current && element) {
-                                        const addressElement =
-                                          document.querySelector(
-                                            "[data-toscroll='" +
-                                              element.id +
-                                              "']"
-                                          ) as Element | undefined;
+                                  "Powrót",
+                                  // {
+                                  //   text: "Zobacz",
+                                  //   handler: () => {
+                                  //     if (contentRef.current && element) {
+                                  //       const addressElement =
+                                  //         document.querySelector(
+                                  //           "[data-toscroll='" +
+                                  //             element.id +
+                                  //             "']"
+                                  //         ) as Element | undefined;
 
-                                        if (addressElement) {
-                                          // const addressElementBounds = addressElement.getBoundingClientRect();
-                                          // contentRef.current.scrollIntoView(0, addressElementBounds.top, 1000);
-                                          addressElement.scrollIntoView({
-                                            block: "center",
-                                            behavior: "smooth",
-                                            inline: "center",
-                                          });
-                                        }
-                                      }
-                                    },
-                                  },
+                                  //       if (addressElement) {
+                                  //         // const addressElementBounds = addressElement.getBoundingClientRect();
+                                  //         // contentRef.current.scrollIntoView(0, addressElementBounds.top, 1000);
+                                  //         addressElement.scrollIntoView({
+                                  //           block: "center",
+                                  //           behavior: "smooth",
+                                  //           inline: "center",
+                                  //         });
+                                  //       }
+                                  //     }
+                                  //   },
+                                  // },
                                 ],
                                 onDidDismiss: (e) => console.log("did dismiss"),
                               });
@@ -838,14 +770,16 @@ const Home: React.FC = () => {
 
                             if (isCameraWaiting) {
                             } else {
-                              checkPermission();
+                              if (i) {
+                                checkPermission();
 
-                              const body = document.querySelector("body");
-                              if (body) {
-                                body.style.background = "transparent";
+                                const body = document.querySelector("body");
+                                if (body) {
+                                  body.style.background = "transparent";
+                                }
+                                setScanning(true);
+                                startScan(i);
                               }
-                              setScanning(true);
-                              startScan(i);
                             }
                           }
                         }}
@@ -856,12 +790,12 @@ const Home: React.FC = () => {
                         onClick={() => {
                           if (items) {
                             setShowOrderInfoModal(true);
-                            setItemModalInfo(items[i]);
+                            setItemModalInfo(e);
                           }
                         }}
                       >
-                        <h4 className="address capitalize">{`${items[i].street} ${items[i].houseNumber}`}</h4>
-                        <p className="capitalize">{`${items[i].postCode} ${items[i].city}`}</p>
+                        <h4 className="address capitalize">{`${e.street} ${e.houseNumber}`}</h4>
+                        <p className="capitalize">{`${e.postCode} ${e.city}`}</p>
                       </IonLabel>
                       <IonIcon
                         className="icon-navigation"
@@ -869,16 +803,14 @@ const Home: React.FC = () => {
                         slot="end"
                         icon={navigateOutline}
                         onClick={(event) => {
-                          setAddress(
-                            `${items[i].street} ${items[i].houseNumber}`
-                          );
+                          setAddress(`${e.street} ${e.houseNumber}`);
                           present({
                             event: event.nativeEvent,
                           });
                         }}
                       />
                     </div>
-                    {items[i].packages.map((_e) => {
+                    {e.packages.map((_e) => {
                       return (
                         <IonItem className="item-diet" lines="none">
                           <IonIcon
@@ -899,10 +831,11 @@ const Home: React.FC = () => {
 
           <IonInfiniteScroll
             onIonInfinite={(event: any) => {
+              console.log("onIonInfinite");
               setInfinityCounter(infinityCounter + 20);
               event.target.complete();
             }}
-            threshold="300px"
+            threshold="500px"
             disabled={infinityCounter >= items.length}
           >
             <IonInfiniteScrollContent
@@ -916,6 +849,224 @@ const Home: React.FC = () => {
         <></>
       ) : (
         <IonFooter>
+          {footerItem ? (
+            <IonList className="list-order">
+              <IonListHeader style={{ minHeight: "unset" }}>
+                <IonLabel
+                  color="success"
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "19px",
+                    textAlign: "center",
+                    letterSpacing: "1px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Rozpoczęty adres
+                </IonLabel>
+              </IonListHeader>
+              <div className="item-container" style={{ paddingTop: "5px" }} >
+                <IonLabel>
+                  <div style={{ display: "flex" }}>
+                    <IonIcon
+                      className="icon-scan"
+                      color={
+                        footerItem.image
+                          ? "secondary"
+                          : footerItem.packagesCompleted
+                          ? "tertiary"
+                          : footerItem.packages.some((x) => x.scanned)
+                          ? "tertiary"
+                          : "primary"
+                      }
+                      slot="start"
+                      icon={
+                        footerItem.image
+                          ? syncOutline
+                          : footerItem.packagesCompleted
+                          ? cameraOutline
+                          : barcodeOutline
+                      }
+                      onClick={async (event) => {
+                        if (
+                          footerItem.packages?.every((_e) => {
+                            return _e.scanned;
+                          }) &&
+                          !footerItem.image
+                        ) {
+                          const image = await GetPhoto();
+
+                          const newItem = footerItem;
+
+                          if (newItem) {
+                            newItem.image = image.webPath;
+
+                            console.log(image);
+
+                            UpdateRouteElement(
+                              items,
+                              newItem,
+                              "undelivered",
+                              setItems,
+                              setItemsStatic,
+                              true
+                            );
+
+                            api
+                              .post("routes/addresses/" + footerItem.id + "/image", {
+                                image: image.base64,
+                              })
+                              .then((response) => {
+                                console.log(response);
+                              });
+                          }
+                        } else if (footerItem.image) {
+                          presentAlert({
+                            mode: "ios",
+                            cssClass: "missing-qr-alert",
+                            header:
+                              "Czy na pewno chcesz cofnąć dostarczenie adresu?",
+                            subHeader: "Wybrany adres:",
+                            message: footerItem.street + " " + footerItem.houseNumber,
+                            buttons: [
+                              "Anuluj",
+                              {
+                                text: "Cofnij",
+                                handler: async () => {
+                                  const newItem = { ...footerItem };
+
+                                  newItem.packagesCompleted = false;
+                                  newItem.image = undefined;
+                                  newItem.packages.map((_e) => {
+                                    _e.scanned = false;
+                                  });
+
+                                  UpdateRouteElement(
+                                    items,
+                                    newItem,
+                                    "delivered",
+                                    setItems,
+                                    setItemsStatic,
+                                    true
+                                  );
+                                },
+                              },
+                            ],
+                            onDidDismiss: (e) => console.log("did dismiss"),
+                          });
+                        } else if (
+                          items.find((x) => {
+                            return (
+                              x.packages.some((y) => {
+                                return y.scanned;
+                              }) && !x.image
+                            );
+                          }) &&
+                          footerItem.id !=
+                            items.find((x) => {
+                              return (
+                                x.packages.some((y) => {
+                                  return y.scanned;
+                                }) && !x.image
+                              );
+                            })?.id
+                        ) {
+                          console.log(footerItem.packages);
+
+                          let _message = "";
+
+                          const element = items.find((x) => {
+                            return (
+                              x.packages.some((y) => {
+                                return y.scanned;
+                              }) && !x.image
+                            );
+                          });
+
+                          if (element) {
+                            _message =
+                              element.street + " " + element.houseNumber;
+
+                            presentAlert({
+                              mode: "ios",
+                              cssClass: "missing-qr-alert",
+                              header:
+                                "Dokończ inny rozpoczęty adres przed skanowaniem",
+                              subHeader: "Adres do zakończenia:",
+                              message: _message,
+                              buttons: ["Powrót"],
+                              onDidDismiss: (e) => console.log("did dismiss"),
+                            });
+                          }
+                        } else {
+                          const tempItems = items;
+                          const isCameraWaiting = tempItems.some((e) => {
+                            return e.packagesCompleted && !e.image;
+                          });
+
+                          if (isCameraWaiting) {
+                          } else {
+                            checkPermission();
+
+                            const body = document.querySelector("body");
+                            if (body) {
+                              body.style.background = "transparent";
+                            }
+                            setScanning(true);
+                            startScan(
+                              items.findIndex((_e) => _e.id == footerItem.id)
+                            );
+                          }
+                        }
+                      }}
+                    />
+
+                    <IonLabel
+                      className="wrap"
+                      onClick={() => {
+                        if (items) {
+                          setShowOrderInfoModal(true);
+                          setItemModalInfo(footerItem);
+                        }
+                      }}
+                    >
+                      <h4 style={{ color: "var(--ion-color-dark)" }} className="address capitalize">{`${footerItem.street} ${footerItem.houseNumber}`}</h4>
+                      <p className="capitalize">{`${footerItem.postCode} ${footerItem.city}`}</p>
+                    </IonLabel>
+                    <IonIcon
+                      className="icon-navigation"
+                      color="primary"
+                      slot="end"
+                      icon={navigateOutline}
+                      onClick={(event) => {
+                        setAddress(
+                          `${footerItem.street} ${footerItem.houseNumber}`
+                        );
+                        present({
+                          event: event.nativeEvent,
+                        });
+                      }}
+                    />
+                  </div>
+                  {footerItem.packages.map((_e) => {
+                    return (
+                      <IonItem className="item-diet" lines="none">
+                        <IonIcon
+                          color={_e.scanned ? "success" : "danger"}
+                          src={_e.scanned ? checkmarkOutline : closeOutline}
+                        />
+                        <IonLabel style={{ margin: "0" }} className="wrap">
+                          {_e.name}
+                        </IonLabel>
+                      </IonItem>
+                    );
+                  })}
+                </IonLabel>
+              </div>
+            </IonList>
+          ) : (
+            <></>
+          )}
           <IonItem style={{ "--min-height": "35px" }}>
             <IonLabel slot="end" style={{ marginTop: "0", marginBottom: "0" }}>
               {
@@ -976,18 +1127,13 @@ const Home: React.FC = () => {
                 stopScan();
                 setScanning(false);
 
-                const image = await Camera.getPhoto({
-                  quality: 75,
-                  allowEditing: false,
-                  resultType: CameraResultType.Base64,
-                  source: CameraSource.Camera,
-                });
-
-                let imageUrl = image.base64String;
+                const image = await GetPhoto();
 
                 const newItem = items.find((e) => e.id == choosedItem.id);
                 if (newItem) {
                   newItem.image = image.webPath;
+
+                  console.log(image);
 
                   UpdateRouteElement(
                     items,
@@ -1001,7 +1147,7 @@ const Home: React.FC = () => {
 
                 api
                   .post("routes/addresses/" + choosedItem.id + "/image", {
-                    image: imageUrl,
+                    image: image.base64,
                   })
                   .then((response) => {
                     console.log(response);
@@ -1045,14 +1191,38 @@ const Home: React.FC = () => {
                               {
                                 text: "Zrób zdjęcie",
                                 handler: async (e) => {
-                                  const image = await Camera.getPhoto({
-                                    quality: 75,
-                                    allowEditing: false,
-                                    resultType: CameraResultType.Base64,
-                                    source: CameraSource.Camera,
-                                  });
+                                  const image = await GetPhoto();
 
-                                  let imageUrl = image.base64String;
+                                  const newItem = items.find(
+                                    (e) => e.id == choosedItem.id
+                                  );
+                                  if (newItem) {
+                                    const tempPackageIndex =
+                                      newItem.packages.findIndex(
+                                        (x) => x.id == _e.id
+                                      );
+
+                                    newItem.packages[tempPackageIndex].scanned =
+                                      true;
+                                    newItem.packages[tempPackageIndex].image =
+                                      image.webPath;
+
+                                    newItem.packagesCompleted =
+                                      newItem.packages.every((e) => e.scanned);
+
+                                    console.log(newItem);
+
+                                    UpdateRouteElement(
+                                      items,
+                                      newItem,
+                                      "undelivered",
+                                      setItems,
+                                      setItemsStatic,
+                                      true
+                                    );
+
+                                    setChoosedItem(newItem);
+                                  }
 
                                   api
                                     .post(
@@ -1060,54 +1230,54 @@ const Home: React.FC = () => {
                                         _e.id +
                                         "/image",
                                       {
-                                        image: imageUrl,
+                                        image: image.base64,
                                       }
                                     )
                                     .then((response) => {
                                       console.log(response);
                                     });
 
-                                  let tempItems = items;
-                                  let tempChoosedItem = choosedItem;
+                                  // let tempItems = items;
+                                  // let tempChoosedItem = choosedItem;
 
-                                  let scannedAddress: RouteProps | undefined =
-                                    undefined;
+                                  // let scannedAddress: RouteProps | undefined =
+                                  //   undefined;
 
-                                  tempItems.map((x) => {
-                                    x.packages.map((_x) => {
-                                      if (_x.id == _e.id) {
-                                        _x.scanned = true;
-                                        scannedAddress = x;
-                                      }
-                                    });
-                                  });
+                                  // tempItems.map((x) => {
+                                  //   x.packages.map((_x) => {
+                                  //     if (_x.id == _e.id) {
+                                  //       _x.scanned = true;
+                                  //       scannedAddress = x;
+                                  //     }
+                                  //   });
+                                  // });
 
-                                  if (scannedAddress) {
-                                    const _scannedAddress: RouteProps =
-                                      scannedAddress;
+                                  // if (scannedAddress) {
+                                  //   const _scannedAddress: RouteProps =
+                                  //     scannedAddress;
 
-                                    if (
-                                      _scannedAddress.packages.every((x) => {
-                                        return x.scanned;
-                                      })
-                                    ) {
-                                      tempItems.map((x) => {
-                                        if (x.id == _scannedAddress.id) {
-                                          x.packagesCompleted = true;
-                                        }
-                                      });
-                                    }
-                                  }
+                                  //   if (
+                                  //     _scannedAddress.packages.every((x) => {
+                                  //       return x.scanned;
+                                  //     })
+                                  //   ) {
+                                  //     tempItems.map((x) => {
+                                  //       if (x.id == _scannedAddress.id) {
+                                  //         x.packagesCompleted = true;
+                                  //       }
+                                  //     });
+                                  //   }
+                                  // }
 
-                                  tempChoosedItem.packages.map((x) => {
-                                    if (x.id == _e.id) {
-                                      x.scanned = true;
-                                    }
-                                  });
+                                  // tempChoosedItem.packages.map((x) => {
+                                  //   if (x.id == _e.id) {
+                                  //     x.scanned = true;
+                                  //   }
+                                  // });
 
-                                  setItems(tempItems);
-                                  setChoosedItem(undefined);
-                                  setChoosedItem(tempChoosedItem);
+                                  // setItems(tempItems);
+                                  // setChoosedItem(undefined);
+                                  // setChoosedItem(tempChoosedItem);
                                 },
                               },
                             ],

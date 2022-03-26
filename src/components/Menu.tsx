@@ -59,6 +59,11 @@ const Menu: React.FC = () => {
       onIonWillOpen={() => {
         setUrl(history.location.pathname);
       }}
+      onIonWillClose={() => {
+        setTimeout(() => {
+          setUrl(history.location.pathname);
+        }, 500);
+      }}
     >
       <IonHeader>
         <IonImg

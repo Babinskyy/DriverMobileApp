@@ -107,12 +107,13 @@ const Warehouse: React.FC = () => {
   };
 
   useIonViewWillEnter(() => {
-    axios
-      .get("https://broccoliapi.azurewebsites.net/Diets")
+    setTimeout(() => {
+      api.get("Diets")
       .then(async (response) => {
-        const diets = response.data.data.diets as DietsProps[];
+        const diets = response.data as DietsProps[];
         await setDiets(JSON.stringify(diets));
       });
+    }, 500);
   });
 
   const setDiets = async (value: string) => {
@@ -340,7 +341,7 @@ const Warehouse: React.FC = () => {
                   cssClass: "warehouse-scanner-toast",
                   duration: 5000,
                 });
-              }, 500);
+              }, 150);
             } else if (scannedPackage) {
               new Audio(
                 "https://www.myinstants.com/media/sounds/applepay.mp3"
@@ -358,7 +359,7 @@ const Warehouse: React.FC = () => {
                     duration: 5000,
                   });
                 }
-              }, 500);
+              }, 150);
 
               let tempItems = packages;
 
@@ -433,7 +434,7 @@ const Warehouse: React.FC = () => {
                   cssClass: "warehouse-scanner-toast",
                   duration: 5000,
                 });
-              }, 500);
+              }, 150);
             }
           } catch (error) {
             console.log(error);
@@ -469,16 +470,11 @@ const Warehouse: React.FC = () => {
         <IonToolbar>
           <IonButtons slot="start">
             <IonButton
-            onClick={() =>
-              {
+              onClick={() => {
                 (document.querySelector("#mainMenu") as any)?.setOpen(true);
-              }
-            }
+              }}
             >
-              <IonIcon
-                slot="icon-only"
-                icon={reorderFourOutline}
-              />
+              <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton>
           </IonButtons>
           <IonSearchbar
@@ -586,19 +582,30 @@ const Warehouse: React.FC = () => {
       ) : (
         <></>
       )}
-      <IonFooter>
-        <IonToolbar>
-          <IonIcon
-            icon={barcodeOutline}
-            className="icon-scan-main"
-            color="primary"
-            onClick={(e) => {
-              setScanning(true);
-              startScan();
-            }}
-          />
-        </IonToolbar>
-      </IonFooter>
+      {scanning ? (
+        <></>
+      ) : (
+        <IonFooter>
+          <IonToolbar>
+            <IonIcon
+              icon={barcodeOutline}
+              className="icon-scan-main"
+              color="primary"
+              onClick={(e) => {
+                checkPermission();
+
+                const body = document.querySelector("body");
+                if (body) {
+                  body.style.background = "transparent";
+                }
+
+                setScanning(true);
+                startScan();
+              }}
+            />
+          </IonToolbar>
+        </IonFooter>
+      )}
     </IonPage>
   );
 };
