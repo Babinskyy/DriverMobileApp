@@ -105,29 +105,7 @@ const Warehouse: React.FC = () => {
     street: string;
     customerId: number;
   };
-
-  useIonViewWillEnter(() => {
-    setTimeout(() => {
-      api.get("Diets")
-      .then(async (response) => {
-        const diets = response.data as DietsProps[];
-        await setDiets(JSON.stringify(diets));
-      });
-    }, 500);
-  });
-
-  const setDiets = async (value: string) => {
-    await Storage.set({
-      key: "Diets",
-      value: value,
-    });
-  };
-
-  const getDiets = async () => {
-    const { value } = await Storage.get({ key: "Diets" });
-    return value;
-  };
-
+  
   const setWarehousePackages = async (value: string) => {
     await Storage.set({
       key: "WarehousePackages",
@@ -153,35 +131,27 @@ const Warehouse: React.FC = () => {
       await setWarehousePackages(JSON.stringify(packages));
       //const { value } = await Storage.get({ key: "WarehousePackages" });
 
-      const diets = await getDiets();
-
       let dietsDictionary: DietsDictionary[] = [];
 
-      if (diets) {
-        const dietsCollection = JSON.parse(diets) as DietsProps[];
+      packages.map((y) => {
+        if (dietsDictionary.some((e) => e.name == y.name)) {
+          dietsDictionary.filter((e) => e.name == y.name)[0].count =
+            dietsDictionary.filter((e) => e.name == y.name)[0].count + 1;
 
-        let dietsCounter = 0;
-        packages.map((y) => {
-          if (dietsDictionary.some((e) => e.name == y.name)) {
-            dietsDictionary.filter((e) => e.name == y.name)[0].count =
-              dietsDictionary.filter((e) => e.name == y.name)[0].count + 1;
-
-            if (y.scanned) {
-              dietsDictionary.filter((e) => e.name == y.name)[0].scanCount =
-                dietsDictionary.filter((e) => e.name == y.name)[0].scanCount +
-                1;
-            }
-          } else {
-            dietsDictionary.push({
-              name: y.name,
-              count: 1,
-              scanCount: y.scanned ? 1 : 0,
-            });
+          if (y.scanned) {
+            dietsDictionary.filter((e) => e.name == y.name)[0].scanCount =
+              dietsDictionary.filter((e) => e.name == y.name)[0].scanCount +
+              1;
           }
-        });
-      }
+        } else {
+          dietsDictionary.push({
+            name: y.name,
+            count: 1,
+            scanCount: y.scanned ? 1 : 0,
+          });
+        }
+      });
 
-      console.log(dietsDictionary);
       const arr = dietsDictionary.sort((a, b) => a.name.localeCompare(b.name));
       setDietsWithNumber(arr);
       setDietsWithNumberStatic(arr);

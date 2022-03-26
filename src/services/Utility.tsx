@@ -29,12 +29,15 @@ export const GetPhoto = async () => {
 
 }
 
-export const RefreshRoute = async (route: RouteProps[], routeType: "undelivered" | "delivered", setItems: (value: React.SetStateAction<RouteProps[]>) => void, setItemsStatic: (value: React.SetStateAction<RouteProps[]>) => void, saveToStorage: boolean = false) => {
+export const RefreshRoute = async (route: RouteProps[], routeType: "undelivered" | "delivered", setItems: (value: React.SetStateAction<RouteProps[]>) => void, setItemsStatic: (value: React.SetStateAction<RouteProps[]>) => void, setFooterItem: (value: React.SetStateAction<RouteProps | undefined>) => void, footerItem: RouteProps | undefined, saveToStorage: boolean = false) => {
 
     if(routeType == "delivered")
     {
         route = route.filter((e) => {
             return e.packagesCompleted && e.image;
+        });
+        route.sort((a, b) => {
+            return b.order - a.order
         });
     }
     else if(routeType == "undelivered")
@@ -54,6 +57,20 @@ export const RefreshRoute = async (route: RouteProps[], routeType: "undelivered"
         });
     }
 
+    const foundItem = route.find((x) => {
+      return (
+        x.packages.some((y) => {
+          return y.scanned;
+        }) && !x.image
+      );
+    });
+
+    if (foundItem) {
+      if (foundItem.id != footerItem?.id) {
+        setFooterItem(foundItem);
+      }
+    }
+
     setItems(route);
     setItemsStatic(route);
 
@@ -61,7 +78,7 @@ export const RefreshRoute = async (route: RouteProps[], routeType: "undelivered"
     console.log(route);
 }
 
-export const UpdateRouteElement = async (route: RouteProps[], item: RouteProps, routeType: "undelivered" | "delivered", setItems: (value: React.SetStateAction<RouteProps[]>) => void, setItemsStatic: (value: React.SetStateAction<RouteProps[]>) => void, saveToStorage: boolean = false) => {
+export const UpdateRouteElement = async (route: RouteProps[], item: RouteProps, routeType: "undelivered" | "delivered", setItems: (value: React.SetStateAction<RouteProps[]>) => void, setItemsStatic: (value: React.SetStateAction<RouteProps[]>) => void, setFooterItem: (value: React.SetStateAction<RouteProps | undefined>) => void, footerItem: RouteProps | undefined, saveToStorage: boolean = false) => {
 
 
     const tempRoute = [...route];
@@ -72,6 +89,6 @@ export const UpdateRouteElement = async (route: RouteProps[], item: RouteProps, 
 
     tempRoute[tempRouteIndex] = {...item};
 
-    RefreshRoute(tempRoute, routeType, setItems, setItemsStatic, saveToStorage);
+    RefreshRoute(tempRoute, routeType, setItems, setItemsStatic, setFooterItem, footerItem, saveToStorage);
 
 }

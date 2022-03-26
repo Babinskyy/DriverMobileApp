@@ -128,21 +128,21 @@ const Home: React.FC = () => {
 
   const [itemsMode, setItemsMode] = useState<"undelivered" | "delivered">("undelivered");
 
-  useEffect(() => {
-    const foundItem = items.find((x) => {
-      return (
-        x.packages.some((y) => {
-          return y.scanned;
-        }) && !x.image
-      );
-    });
+  // useEffect(() => {
+  //   const foundItem = items.find((x) => {
+  //     return (
+  //       x.packages.some((y) => {
+  //         return y.scanned;
+  //       }) && !x.image
+  //     );
+  //   });
 
-    if (foundItem) {
-      if (foundItem.id != footerItem?.id) {
-        setFooterItem(foundItem);
-      }
-    }
-  }, [items]);
+  //   if (foundItem) {
+  //     if (foundItem.id != footerItem?.id) {
+  //       setFooterItem(foundItem);
+  //     }
+  //   }
+  // }, [items]);
 
   const [present, dismiss] = useIonPopover(MapPopover, {
     onHide: () => dismiss(),
@@ -168,7 +168,7 @@ const Home: React.FC = () => {
       api.get("routes/").then(async (response) => {
         let route = response.data as RouteProps[];
 
-        RefreshRoute(route, "delivered", setItems, setItemsStatic, true);
+        RefreshRoute(route, "delivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
       });
     },
     showUndelivered: async () => {
@@ -184,7 +184,7 @@ const Home: React.FC = () => {
       api.get("routes/").then(async (response) => {
         let route = response.data as RouteProps[];
 
-        RefreshRoute(route, "undelivered", setItems, setItemsStatic, true);
+        RefreshRoute(route, "undelivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
       });
     },
   });
@@ -205,7 +205,7 @@ const Home: React.FC = () => {
     api.get("routes/").then(async (response) => {
       let route = response.data as RouteProps[];
 
-      RefreshRoute(route, "undelivered", setItems, setItemsStatic, true);
+      RefreshRoute(route, "undelivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
     });
   });
 
@@ -336,6 +336,8 @@ const Home: React.FC = () => {
                   "undelivered",
                   setItems,
                   setItemsStatic,
+                  setFooterItem,
+                  footerItem,
                   true
                 );
                 setChoosedItem(newItem);
@@ -614,7 +616,7 @@ const Home: React.FC = () => {
             {memoizedItems.map((e, i) => {
               return (
                 <div key={e.id} className="item-container">
-                  {i ? (
+                  {i >= 0 ? (
                     <div className="counter">
                       {i + 1}/{items.length}
                     </div>
@@ -643,6 +645,12 @@ const Home: React.FC = () => {
                             : barcodeOutline
                         }
                         onClick={async (event) => {
+
+                          console.log(e.packages?.every((_e) => {
+                            return _e.scanned;
+                          }) &&
+                          !e.image);
+
                           if (
                             e.packages?.every((_e) => {
                               return _e.scanned;
@@ -664,6 +672,8 @@ const Home: React.FC = () => {
                                 "undelivered",
                                 setItems,
                                 setItemsStatic,
+                                setFooterItem,
+                                footerItem,
                                 true
                               );
 
@@ -702,6 +712,8 @@ const Home: React.FC = () => {
                                       "delivered",
                                       setItems,
                                       setItemsStatic,
+                                      setFooterItem,
+                                      footerItem,
                                       true
                                     );
                                   },
@@ -780,22 +792,20 @@ const Home: React.FC = () => {
                             }
                           } else {
                             const tempItems = items;
-                            const isCameraWaiting = tempItems.some((e) => {
-                              return e.packagesCompleted && !e.image;
+                            const isCameraWaiting = tempItems.some((x) => {
+                              return x.packagesCompleted && !x.image;
                             });
 
                             if (isCameraWaiting) {
                             } else {
-                              if (i) {
-                                checkPermission();
+                              checkPermission();
 
                                 const body = document.querySelector("body");
                                 if (body) {
                                   body.style.background = "transparent";
                                 }
                                 setScanning(true);
-                                startScan(i);
-                              }
+                                startScan(tempItems.findIndex((x) => x.id == e.id));
                             }
                           }
                         }}
@@ -865,7 +875,7 @@ const Home: React.FC = () => {
         <></>
       ) : (
         <IonFooter>
-          {footerItem && itemsMode == "undelivered" ? (
+          {footerItem && itemsMode == "undelivered" && !footerItem.image ? (
             <IonList className="list-order" style={{ paddingBottom: "0", border: "4px solid var(--ion-color-tertiary)" }} >
               <div className="item-container" style={{ paddingTop: "5px", borderBottom: "none" }} >
                 <IonLabel>
@@ -911,6 +921,8 @@ const Home: React.FC = () => {
                               "undelivered",
                               setItems,
                               setItemsStatic,
+                              setFooterItem,
+                              footerItem,
                               true
                             );
 
@@ -949,6 +961,8 @@ const Home: React.FC = () => {
                                     "delivered",
                                     setItems,
                                     setItemsStatic,
+                                    setFooterItem,
+                                    footerItem,
                                     true
                                   );
                                 },
@@ -1150,6 +1164,8 @@ const Home: React.FC = () => {
                     "undelivered",
                     setItems,
                     setItemsStatic,
+                    setFooterItem,
+                    footerItem,
                     true
                   );
                 }
@@ -1227,6 +1243,8 @@ const Home: React.FC = () => {
                                       "undelivered",
                                       setItems,
                                       setItemsStatic,
+                                      setFooterItem,
+                                      footerItem,
                                       true
                                     );
 
