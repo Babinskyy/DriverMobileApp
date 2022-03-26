@@ -851,20 +851,6 @@ const Home: React.FC = () => {
         <IonFooter>
           {footerItem ? (
             <IonList className="list-order">
-              <IonListHeader style={{ minHeight: "unset" }}>
-                <IonLabel
-                  color="success"
-                  style={{
-                    fontWeight: 700,
-                    fontSize: "19px",
-                    textAlign: "center",
-                    letterSpacing: "1px",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Rozpoczęty adres
-                </IonLabel>
-              </IonListHeader>
               <div className="item-container" style={{ paddingTop: "5px" }} >
                 <IonLabel>
                   <div style={{ display: "flex" }}>
@@ -1067,7 +1053,12 @@ const Home: React.FC = () => {
           ) : (
             <></>
           )}
-          <IonItem style={{ "--min-height": "35px" }}>
+          {
+            footerItem
+            ?
+            <></>
+            :
+<IonItem style={{ "--min-height": "35px" }}>
             <IonLabel slot="end" style={{ marginTop: "0", marginBottom: "0" }}>
               {
                 items?.filter((e) => {
@@ -1079,6 +1070,8 @@ const Home: React.FC = () => {
               /{items?.length}
             </IonLabel>
           </IonItem>
+          }
+          
         </IonFooter>
       )}
       {scanning ? (
