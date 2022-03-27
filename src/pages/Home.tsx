@@ -282,15 +282,13 @@ const Home: React.FC = () => {
       try {
 
         const { value } = await Storage.get({ key: "OfflineRequests" });
+        await Storage.remove({ key: "OfflineRequests" });
     
         if(value)
         {
       
           let offlineRequests = JSON.parse(value) as OfflineRequestProps[];
-
           offlineRequests.reverse();
-
-          await Storage.remove({ key: "OfflineRequests" });
       
           if(offlineRequests.length > 0)
           {
@@ -354,6 +352,13 @@ const Home: React.FC = () => {
           CheckOfflineRequests();
         }
       })
+
+      Network.addListener('networkStatusChange', status => {
+        if(status.connected)
+        {
+          CheckOfflineRequests();
+        }
+      });
 
       CheckOfflineRequests();
   
