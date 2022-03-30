@@ -7,6 +7,8 @@ import { isPlatform } from "@ionic/core";
 import { Method } from "axios";
 import api from "./../services/api";
 
+import Compressor from 'compressorjs';
+
 import {
     GlobalStateProvider,
     useGlobalState,
@@ -216,209 +218,208 @@ export const useRoute = () => {
 
 
     const filterItems = (route: RouteProps[], searchText: string) => {
-        if (searchText.length > 0) {
-            const tempItems = route.filter((e) => {
-              return (
-                e.packages.some((_e) => {
-                  return _e.name.toLowerCase().includes(searchText.toLowerCase());
-                }) || e.street.toLowerCase().includes(searchText.toLowerCase())
-              );
-            });
-            if (tempItems) {
-                return tempItems;
-            }
-          }
-          return [];
-    }
-
-
+      if (searchText.length > 0) {
+        const tempItems = route.filter((e) => {
+          return (
+            e.packages.some((_e) => {
+              return _e.name.toLowerCase().includes(searchText.toLowerCase());
+            }) || e.street.toLowerCase().includes(searchText.toLowerCase())
+          );
+        });
+        if (tempItems) {
+          return tempItems;
+        }
+      }
+      return [];
+    };
 
     const Init = async (routeParam?: RouteProps[], searchText?: string) => {
+      let route: RouteProps[] = [];
 
-        let route: RouteProps[] = [];
+      if (routeParam) {
+        route = routeParam;
+      } else {
+        const { value } = await Storage.get({ key: "Route" });
 
-        if(routeParam)
-        {
-            route = routeParam;
-        }
-        else
-        {
-            const { value } = await Storage.get({ key: "Route" });
-
-            if(!value)
-            {
-                return;
-            }
-
-            route = JSON.parse(value) as RouteProps[];
-
+        if (!value) {
+          return;
         }
 
-        for (const n of route) {
-            if(n.packages.every(e => e.scanned))
-            {
-                n.packagesCompleted = true; 
-            }
+        route = JSON.parse(value) as RouteProps[];
+      }
+
+      for (const n of route) {
+        if (n.packages.every((e) => e.scanned)) {
+          n.packagesCompleted = true;
         }
-        
-        let _routeDelivered = route.filter((e) => {
-            return e.packagesCompleted && e.image;
-        });
-        _routeDelivered.sort((a, b) => {
-            return b.order - a.order
-        });
-        
-        let _routeNotDelivered = route.filter((e) => {
-            return !(e.packagesCompleted && e.image);
-        });
+      }
 
-        const routeCurrentItemFooter = _routeNotDelivered.find((x) => {
-            return (
-              x.packages.some((y) => {
-                return y.scanned;
-              }) && !x.image
-            );
-        });
+      let _routeDelivered = route.filter((e) => {
+        return e.packagesCompleted && e.image;
+      });
+      _routeDelivered.sort((a, b) => {
+        return b.order - a.order;
+      });
 
-        if(searchText)
-        {
-            _routeDelivered = filterItems(_routeDelivered, searchText);
-            _routeNotDelivered = filterItems(_routeNotDelivered, searchText);
-        }
+      let _routeNotDelivered = route.filter((e) => {
+        return !(e.packagesCompleted && e.image);
+      });
 
-        setState((prev) => ({
-            ...prev,
-            ...{ route: route, routeEnd: _routeDelivered, routeCurrent: _routeNotDelivered, routeCurrentItemFooter: routeCurrentItemFooter },
-        }));
+      const routeCurrentItemFooter = _routeNotDelivered.find((x) => {
+        return (
+          x.packages.some((y) => {
+            return y.scanned;
+          }) && !x.image
+        );
+      });
 
-        console.log(_routeNotDelivered)
+      if (searchText) {
+        _routeDelivered = filterItems(_routeDelivered, searchText);
+        _routeNotDelivered = filterItems(_routeNotDelivered, searchText);
+      }
 
-        await Storage.set({
-            key: "Route",
-            value: JSON.stringify(route),
-        });
+      setState((prev) => ({
+        ...prev,
+        ...{
+          route: route,
+          routeEnd: _routeDelivered,
+          routeCurrent: _routeNotDelivered,
+          routeCurrentItemFooter: routeCurrentItemFooter,
+        },
+      }));
 
+      console.log(_routeNotDelivered);
 
-        const networkStatus = await Network.getStatus();
-        if(networkStatus.connected)
-        {
-            await CheckOfflineRequests();
-        }
+      await Storage.set({
+        key: "Route",
+        value: JSON.stringify(route),
+      });
 
-
-    }
+      const networkStatus = await Network.getStatus();
+      if (networkStatus.connected) {
+        await CheckOfflineRequests();
+      }
+    };
 
     const CheckOfflineRequests = async () => {
+      const { value } = await Storage.get({ key: "OfflineRequests" });
+      await Storage.remove({ key: "OfflineRequests" });
 
-        const { value } = await Storage.get({ key: "OfflineRequests" });
-        await Storage.remove({ key: "OfflineRequests" });
+      if (value) {
+        let offlineRequests = JSON.parse(value) as OfflineRequestProps[];
+        offlineRequests.reverse();
 
-        if(value)
-        {
-      
-          let offlineRequests = JSON.parse(value) as OfflineRequestProps[];
-          offlineRequests.reverse();
-      
-          if(offlineRequests.length > 0)
-          {
-      
-            presentLoading({
-              message: "Synchronizowanie danych z serwerem",
-              spinner: "crescent"
+        if (offlineRequests.length > 0) {
+          presentLoading({
+            message: "Synchronizowanie danych z serwerem",
+            spinner: "crescent",
+          });
+
+          for (const e of offlineRequests) {
+            const rq = await api.request({
+              url: e.url,
+              method: e.method,
+              data: e.body,
             });
-
-            for (const e of offlineRequests) {
-              const rq = await api.request({
-                url: e.url,
-                method: e.method,
-                data: e.body
-              });
-              const rqData = await rq;
-            }
-
-            setTimeout(async () => {
-                await dismissLoading();
-            }, 500);
-
-            //   setTimeout(async () => {
-              
-            //   await api.get("routes/").then(async (response) => {
-            //     let route = response.data as RouteProps[];
-          
-            //     RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
-            //   });
-
-            //   setTimeout(() => {
-            //     dismissLoading();
-            //   }, 500);
-
-            //    }, 200);
-
-            
-
-      
+            const rqData = await rq;
           }
-          
-      
-        }
 
-    }
+          setTimeout(async () => {
+            await dismissLoading();
+          }, 500);
+
+          //   setTimeout(async () => {
+
+          //   await api.get("routes/").then(async (response) => {
+          //     let route = response.data as RouteProps[];
+
+          //     RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
+          //   });
+
+          //   setTimeout(() => {
+          //     dismissLoading();
+          //   }, 500);
+
+          //    }, 200);
+        }
+      }
+    };
 
     const GetRouteFromServer = async () => {
-
-        const result = await api.get("routes/");
-        return await result.data as RouteProps[];
-
-    }
+      const result = await api.get("routes/");
+      return (await result.data) as RouteProps[];
+    };
 
     const SaveRouteToStorage = async (route: RouteProps[]) => {
-
-        await Storage.set({
-            key: "Route",
-            value: JSON.stringify(route),
-        });
-
-    }
+      await Storage.set({
+        key: "Route",
+        value: JSON.stringify(route),
+      });
+    };
 
     const AssignRouteFromServer = async () => {
+      const result = await GetRouteFromServer();
+      await SaveRouteToStorage(result);
+    };
 
-        const result = await GetRouteFromServer();
-        await SaveRouteToStorage(result);
+    const GetBlobFromBase64 = (imageBase64: string) => {
+      const byteCharacters = atob(imageBase64);
 
-    }
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+
+      const byteArray = new Uint8Array(byteNumbers);
+      return new Blob([byteArray], {type: 'image/jpeg'});
+    };
 
     const UpdateRouteImage = async (id: number, image: ImageProps) => {
+      const _route = state.route;
 
-        const _route = state.route;
-
-        if(_route)
-        {
-            for (const n of _route) {
-                if(n.id == id)
-                {
-                    n.image = image.webPath;
-                }
-            }
-
-            presentPhotoLoading({ spinner: "crescent", message: "Wysyłanie" });
-            api
-              .post("routes/addresses/" + id + "/image", {
-                image: image.base64,
-              })
-              .then((response) => {
-                console.log(response);
-              })
-              .finally(() => {
-                dismissPhotoLoading();
-              });
-
-            await Init(_route);
-
+      if (_route) {
+        for (const n of _route) {
+          if (n.id == id) {
+            n.image = image.webPath;
+          }
         }
 
         
+        if (image.base64) {
+          new Compressor(GetBlobFromBase64(image.base64), {
+            quality: 0.7,
 
-    }
+            // The compression process is asynchronous,
+            // which means you have to access the `result` in the `success` hook function.
+            success(result) {
+              let reader = new FileReader();
+              reader.readAsDataURL(result);
+              reader.onloadend = function () {
+                presentPhotoLoading({
+                  spinner: "crescent",
+                  message: "Wysyłanie",
+                });
+                api
+                  .post("routes/addresses/" + id + "/image", {
+                    image: (reader.result as string).replace("data:image/jpeg;base64,", ""),
+                  })
+                  .then((response) => {
+                    console.log(response);
+                  })
+                  .finally(() => {
+                    dismissPhotoLoading();
+                  });
+
+                Init(_route);
+              };
+            },
+            error(err) {
+              console.log(err.message);
+            },
+          });
+        }
+      }
+    };
 
     const UpdateRoutePackageImage = async (packageId: number, image: ImageProps) => {
 
@@ -437,21 +438,40 @@ export const useRoute = () => {
                 }
             }
 
-            console.log(_route)
+            
+            if (image.base64) {
+                new Compressor(GetBlobFromBase64(image.base64), {
+                  quality: 0.7,
+      
+                  // The compression process is asynchronous,
+                  // which means you have to access the `result` in the `success` hook function.
+                  success(result) {
+                    let reader = new FileReader();
+                    reader.readAsDataURL(result);
+                    reader.onloadend = function () {
+                        presentPhotoLoading({ spinner: "crescent", message: "Wysyłanie" });
+                        api
+                          .post("routes/addresses/packages/" + packageId + "/image", {
+                            image: (reader.result as string).replace("data:image/jpeg;base64,", ""),
+                          })
+                          .then((response) => {
+                            console.log(response);
+                          })
+                          .finally(() => {
+                            dismissPhotoLoading();
+                          });
+            
+                        Init(_route);
+                    };
+                  },
+                  error(err) {
+                    console.log(err.message);
+                  },
+                });
+              }
 
-            presentPhotoLoading({ spinner: "crescent", message: "Wysyłanie" });
-            api
-              .post("routes/addresses/packages/" + packageId + "/image", {
-                image: image.base64,
-              })
-              .then((response) => {
-                console.log(response);
-              })
-              .finally(() => {
-                dismissPhotoLoading();
-              });
 
-            await Init(_route);
+            
 
 
 
