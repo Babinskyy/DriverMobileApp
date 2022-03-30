@@ -62,3 +62,7 @@ export type OfflineRequestProps = {
   method: Method;
   body: any;
 }
+export type ImageProps = {
+  webPath: string | undefined;
+  base64: string | undefined;
+}

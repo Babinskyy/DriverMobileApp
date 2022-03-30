@@ -15,6 +15,9 @@
     "@capacitor/network": "^1.0.7",
     "@capacitor/status-bar": "1.0.8",
     "@capacitor/storage": "^1.2.5",
+    "@ionic-native/barcode-scanner": "^5.36.0",
+    "@ionic-native/core": "^5.36.0",
+    "@ionic-native/qr-scanner": "^5.36.0",
     "@ionic/lab": "^3.2.11",
     "@ionic/react": "^6.0.0",
     "@ionic/react-router": "^6.0.0",
@@ -30,6 +33,7 @@
     "axios": "^0.26.1",
     "cordova-plugin-vibration": "^3.1.1",
     "ionicons": "^5.4.0",
+    "jetifier": "^2.0.0",
     "node-sass": "^7.0.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
@@ -77,7 +81,8 @@
     ]
   },
   "devDependencies": {
-    "@capacitor/cli": "3.4.3"
+    "@capacitor/cli": "3.4.3",
+    "@types/cordova-plugin-qrscanner": "^1.0.31"
   },
   "description": "An Ionic project"
 }

@@ -1,10 +1,19 @@
-import { SetStateAction } from "react";
-import { OfflineRequestProps, RouteProps } from "../components/Types"
+import { SetStateAction, useEffect } from "react";
+import { ImageProps, OfflineRequestProps, RouteProps } from "../components/Types"
 import { Storage } from "@capacitor/storage";
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { Filesystem, Directory, Encoding, ReadFileResult } from '@capacitor/filesystem';
 import { isPlatform } from "@ionic/core";
 import { Method } from "axios";
+import api from "./../services/api";
+
+import {
+    GlobalStateProvider,
+    useGlobalState,
+    GlobalStateInterface,
+  } from "./../GlobalStateProvider";
+import { useIonLoading } from "@ionic/react";
+import { Network } from "@capacitor/network";
 
 export const GetPhoto = async () => {
 
@@ -18,9 +27,9 @@ export const GetPhoto = async () => {
         });
     
         return {
-            webPath: image.base64String,
+            webPath: "data:image/png;base64, " + image.base64String,
             base64: image.base64String
-        }
+        } as ImageProps
     }
     else
     {
@@ -106,6 +115,9 @@ export const RefreshRoute = async (route: RouteProps[], routeType: "undelivered"
         setFooterItem(undefined);
     }
 
+    
+
+
     if(routeType == "undelivered")
     {
         setItems(_route);
@@ -167,4 +179,361 @@ export const AddOfflineRequest = async (url: string, method: Method, body: any) 
 
     await Storage.set({ key: "OfflineRequests", value: JSON.stringify(offlineRequests) });
 
+}
+
+
+
+
+
+export const useRoute = () => {
+
+    const { setState, state } = useGlobalState();
+    const [presentPhotoLoading, dismissPhotoLoading] = useIonLoading();
+    const [presentLoading, dismissLoading] = useIonLoading();
+
+    useEffect(() => {
+
+        InitWithServer();
+
+    }, [])
+
+
+    const InitWithServer = async (routeParam?: RouteProps[]) => {
+        
+        console.log("Inicjalizacja trasy")
+        await Init(routeParam);
+        console.log("Ściąganie trasy z serwera")
+        await AssignRouteFromServer();
+
+        const { value } = await Storage.get({ key: "Route" });
+        if(JSON.stringify(state.route) !== value)
+        {
+            console.log("AKTUALIZACJA trasy w pamięci aplikacji")
+            await Init();
+        }
+    }
+
+
+
+    const filterItems = (route: RouteProps[], searchText: string) => {
+        if (searchText.length > 0) {
+            const tempItems = route.filter((e) => {
+              return (
+                e.packages.some((_e) => {
+                  return _e.name.toLowerCase().includes(searchText.toLowerCase());
+                }) || e.street.toLowerCase().includes(searchText.toLowerCase())
+              );
+            });
+            if (tempItems) {
+                return tempItems;
+            }
+          }
+          return [];
+    }
+
+
+
+    const Init = async (routeParam?: RouteProps[], searchText?: string) => {
+
+        let route: RouteProps[] = [];
+
+        if(routeParam)
+        {
+            route = routeParam;
+        }
+        else
+        {
+            const { value } = await Storage.get({ key: "Route" });
+
+            if(!value)
+            {
+                return;
+            }
+
+            route = JSON.parse(value) as RouteProps[];
+
+        }
+
+        for (const n of route) {
+            if(n.packages.every(e => e.scanned))
+            {
+                n.packagesCompleted = true; 
+            }
+        }
+        
+        let _routeDelivered = route.filter((e) => {
+            return e.packagesCompleted && e.image;
+        });
+        _routeDelivered.sort((a, b) => {
+            return b.order - a.order
+        });
+        
+        let _routeNotDelivered = route.filter((e) => {
+            return !(e.packagesCompleted && e.image);
+        });
+
+        const routeCurrentItemFooter = _routeNotDelivered.find((x) => {
+            return (
+              x.packages.some((y) => {
+                return y.scanned;
+              }) && !x.image
+            );
+        });
+
+        if(searchText)
+        {
+            _routeDelivered = filterItems(_routeDelivered, searchText);
+            _routeNotDelivered = filterItems(_routeNotDelivered, searchText);
+        }
+
+        setState((prev) => ({
+            ...prev,
+            ...{ route: route, routeEnd: _routeDelivered, routeCurrent: _routeNotDelivered, routeCurrentItemFooter: routeCurrentItemFooter },
+        }));
+
+        console.log(_routeNotDelivered)
+
+        await Storage.set({
+            key: "Route",
+            value: JSON.stringify(route),
+        });
+
+
+        const networkStatus = await Network.getStatus();
+        if(networkStatus.connected)
+        {
+            await CheckOfflineRequests();
+        }
+
+
+    }
+
+    const CheckOfflineRequests = async () => {
+
+        const { value } = await Storage.get({ key: "OfflineRequests" });
+        await Storage.remove({ key: "OfflineRequests" });
+
+        if(value)
+        {
+      
+          let offlineRequests = JSON.parse(value) as OfflineRequestProps[];
+          offlineRequests.reverse();
+      
+          if(offlineRequests.length > 0)
+          {
+      
+            presentLoading({
+              message: "Synchronizowanie danych z serwerem",
+              spinner: "crescent"
+            });
+
+            for (const e of offlineRequests) {
+              const rq = await api.request({
+                url: e.url,
+                method: e.method,
+                data: e.body
+              });
+              const rqData = await rq;
+            }
+
+            setTimeout(async () => {
+                await dismissLoading();
+            }, 500);
+
+            //   setTimeout(async () => {
+              
+            //   await api.get("routes/").then(async (response) => {
+            //     let route = response.data as RouteProps[];
+          
+            //     RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
+            //   });
+
+            //   setTimeout(() => {
+            //     dismissLoading();
+            //   }, 500);
+
+            //    }, 200);
+
+            
+
+      
+          }
+          
+      
+        }
+
+    }
+
+    const GetRouteFromServer = async () => {
+
+        const result = await api.get("routes/");
+        return await result.data as RouteProps[];
+
+    }
+
+    const SaveRouteToStorage = async (route: RouteProps[]) => {
+
+        await Storage.set({
+            key: "Route",
+            value: JSON.stringify(route),
+        });
+
+    }
+
+    const AssignRouteFromServer = async () => {
+
+        const result = await GetRouteFromServer();
+        await SaveRouteToStorage(result);
+
+    }
+
+    const UpdateRouteImage = async (id: number, image: ImageProps) => {
+
+        const _route = state.route;
+
+        if(_route)
+        {
+            for (const n of _route) {
+                if(n.id == id)
+                {
+                    n.image = image.webPath;
+                }
+            }
+
+            presentPhotoLoading({ spinner: "crescent", message: "Wysyłanie" });
+            api
+              .post("routes/addresses/" + id + "/image", {
+                image: image.base64,
+              })
+              .then((response) => {
+                console.log(response);
+              })
+              .finally(() => {
+                dismissPhotoLoading();
+              });
+
+            await Init(_route);
+
+        }
+
+        
+
+    }
+
+    const UpdateRoutePackageImage = async (packageId: number, image: ImageProps) => {
+
+        const _route = state.route;
+
+        if(_route)
+        {
+            for (const n of _route) {
+                for (const _package of n.packages) {
+                    if(_package.id == packageId)
+                    {
+                        _package.image = image.webPath;
+                        _package.scanned = true
+                        // n.flag = !n.flag;
+                    }
+                }
+            }
+
+            console.log(_route)
+
+            presentPhotoLoading({ spinner: "crescent", message: "Wysyłanie" });
+            api
+              .post("routes/addresses/packages/" + packageId + "/image", {
+                image: image.base64,
+              })
+              .then((response) => {
+                console.log(response);
+              })
+              .finally(() => {
+                dismissPhotoLoading();
+              });
+
+            await Init(_route);
+
+
+
+        }
+
+        
+
+    }
+
+
+    const ScanRoutePackage = async (packageId: number, confirmationString: string) => {
+
+        const _route = state.route;
+
+        if (_route) {
+          for (const n of _route) {
+            for (const _package of n.packages) {
+              if (_package.id == packageId) {
+                _package.scanned = true;
+              }
+            }
+          }
+
+          console.log(_route);
+
+          api
+            .patch("routes/addresses/packages/" + packageId, {
+              isScanned: true,
+              confirmationString: confirmationString,
+            })
+            .then(async (response) => {});
+
+          await Init(_route);
+        }
+
+        
+
+    }
+
+
+    const ChangeRouteToDefault = async (id: number) => {
+
+        const _route = state.route;
+
+        if(_route)
+        {
+            for (const n of _route) {
+                if(n.id == id)
+                {
+                    n.packagesCompleted = false;
+                    n.image = undefined;
+                    n.packages.map((_e) => {
+                        _e.scanned = false;
+                    });
+                }
+            }
+
+            api
+              .patch("routes/address/" + id + "/default")
+              .then((response) => {
+                console.log(response);
+              })
+              .finally(() => {
+              });
+
+            await Init(_route);
+
+        }
+
+        
+
+    }
+
+
+    return {
+        UpdateRouteImage,
+        InitWithServer,
+        UpdateRoutePackageImage,
+        ChangeRouteToDefault,
+        ScanRoutePackage,
+        Init
+    };
+
+    
 }

@@ -273,9 +273,6 @@ const Warehouse: React.FC = () => {
   };
 
   const startScan = async () => {
-    setTimeout(() => {
-      BarcodeScanner.enableTorch();
-    }, 150);
 
     await BarcodeScanner.startScanning(
       { targetedFormats: [SupportedFormat.QR_CODE] },
@@ -311,7 +308,7 @@ const Warehouse: React.FC = () => {
                   cssClass: "warehouse-scanner-toast",
                   duration: 5000,
                 });
-              }, 150);
+              }, 500);
             } else if (scannedPackage) {
               new Audio(
                 "https://www.myinstants.com/media/sounds/applepay.mp3"
@@ -329,7 +326,7 @@ const Warehouse: React.FC = () => {
                     duration: 5000,
                   });
                 }
-              }, 150);
+              }, 500);
 
               let tempItems = packages;
 
@@ -404,7 +401,7 @@ const Warehouse: React.FC = () => {
                   cssClass: "warehouse-scanner-toast",
                   duration: 5000,
                 });
-              }, 150);
+              }, 500);
             }
           } catch (error) {
             console.log(error);

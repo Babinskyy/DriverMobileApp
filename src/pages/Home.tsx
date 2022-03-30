@@ -84,15 +84,22 @@ import ThreeDotsPopover from "../components/ThreeDotsPopover";
 import { RouterProps } from "react-router";
 import {
   GetPhoto,
-  RefreshRoute,
-  UpdateRouteElement,
+  useRoute,
 } from "../services/Utility";
 import { Network } from "@capacitor/network";
 
 import { App } from '@capacitor/app';
 
+import {
+  GlobalStateProvider,
+  useGlobalState,
+  GlobalStateInterface,
+} from "./../GlobalStateProvider";
+
 const Home: React.FC = () => {
   const { navigate } = useContext(NavContext);
+
+  const { state, setState } = useGlobalState();
 
   const headerRef = useRef<HTMLIonHeaderElement>(null);
 
@@ -141,37 +148,38 @@ const Home: React.FC = () => {
 
   const [presentLoading, dismissLoading] = useIonLoading();
 
+  const { Init, UpdateRouteImage, InitWithServer, UpdateRoutePackageImage, ChangeRouteToDefault, ScanRoutePackage } = useRoute();
 
-  useEffect(() => {
-
-
-    const AssignItemsCounter = async () => {
-
-      const { value } = await Storage.get({ key: "Route" });
-
-      if(value)
-      {
-        let tempRoute = JSON.parse(value) as RouteProps[];
-
-        setItemsCounter(tempRoute.length);
-
-        tempRoute = tempRoute.filter((e) => {
-          return e.packagesCompleted && e.image;
-        });
-        tempRoute.sort((a, b) => {
-            return b.order - a.order
-        });
-
-        setItemsCounterScanned(tempRoute.length);
-
-      }
-
-    }
-
-    AssignItemsCounter();
+  // useEffect(() => {
 
 
-  }, [items])
+  //   const AssignItemsCounter = async () => {
+
+  //     const { value } = await Storage.get({ key: "Route" });
+
+  //     if(value)
+  //     {
+  //       let tempRoute = JSON.parse(value) as RouteProps[];
+
+  //       setItemsCounter(tempRoute.length);
+
+  //       tempRoute = tempRoute.filter((e) => {
+  //         return e.packagesCompleted && e.image;
+  //       });
+  //       tempRoute.sort((a, b) => {
+  //           return b.order - a.order
+  //       });
+
+  //       setItemsCounterScanned(tempRoute.length);
+
+  //     }
+
+  //   }
+
+  //   AssignItemsCounter();
+
+
+  // }, [items])
 
 
   // useEffect(() => {
@@ -214,7 +222,9 @@ const Home: React.FC = () => {
         contentRef.current.scrollToTop();
       }
 
-      await assignRouteDeliveredFromStorageToState();
+      await InitWithServer();
+
+      // await assignRouteDeliveredFromStorageToState();
 
       // api.get("routes/").then(async (response) => {
       //   let route = response.data as RouteProps[];
@@ -235,7 +245,9 @@ const Home: React.FC = () => {
         contentRef.current.scrollToTop();
       }
 
-      await assignRouteFromStorageToState();
+      await InitWithServer();
+
+      // await assignRouteFromStorageToState();
 
       // api.get("routes/").then(async (response) => {
       //   let route = response.data as RouteProps[];
@@ -257,21 +269,22 @@ const Home: React.FC = () => {
     getUser();
   }, []);
 
-  useIonViewDidEnter(async () => {
+  // useIonViewDidEnter(async () => {
 
-    await api.get("routes/").then(async (response) => {
-      let route = response.data as RouteProps[];
+  //   await api.get("routes/").then(async (response) => {
+  //     let route = response.data as RouteProps[];
 
-      RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
-    });
+  //     RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
+
+  //   });
 
     
-  });
+  // });
 
 
-  useEffect(() => {
-    assignRouteFromStorageToState();
-  }, []);
+  // useEffect(() => {
+  //   assignRouteFromStorageToState();
+  // }, []);
 
   const CheckOfflineRequests = async () => {
 
@@ -309,11 +322,7 @@ const Home: React.FC = () => {
 
             setTimeout(async () => {
               
-              await api.get("routes/").then(async (response) => {
-                let route = response.data as RouteProps[];
-          
-                RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
-              });
+              Init();
 
               setTimeout(() => {
                 dismissLoading();
@@ -368,51 +377,33 @@ const Home: React.FC = () => {
     
 
 
-  const assignRouteFromStorageToState = async () => {
-    const { value } = await Storage.get({ key: "Route" });
+  
 
-    if (value) {
-      let routeCollection = JSON.parse(value) as RouteProps[];
+  // const filterItems = (searchText: string) => {
+  //   if (searchText.length > 0) {
+  //     const tempItems = itemsStatic?.filter((e) => {
+  //       return (
+  //         e.packages.some((_e) => {
+  //           return _e.name.toLowerCase().includes(searchText.toLowerCase());
+  //         }) || e.street.toLowerCase().includes(searchText.toLowerCase())
+  //       );
+  //     });
+  //     if (tempItems) {
+  //       setItems(tempItems);
+  //     }
+  //   } else {
+  //     if (itemsStatic) {
+  //       setItems(itemsStatic);
+  //     }
+  //   }
 
-      RefreshRoute(routeCollection, "undelivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
-    }
-  };
-
-  const assignRouteDeliveredFromStorageToState = async () => {
-    const { value } = await Storage.get({ key: "Route" });
-
-    if (value) {
-      let routeCollection = JSON.parse(value) as RouteProps[];
-
-      RefreshRoute(routeCollection, "delivered", setItems, setItemsStatic, setFooterItem, footerItem, true);
-    }
-  };
-
-  const filterItems = (searchText: string) => {
-    if (searchText.length > 0) {
-      const tempItems = itemsStatic?.filter((e) => {
-        return (
-          e.packages.some((_e) => {
-            return _e.name.toLowerCase().includes(searchText.toLowerCase());
-          }) || e.street.toLowerCase().includes(searchText.toLowerCase())
-        );
-      });
-      if (tempItems) {
-        setItems(tempItems);
-      }
-    } else {
-      if (itemsStatic) {
-        setItems(itemsStatic);
-      }
-    }
-
-    if(contentRef.current)
-    {
-      contentRef.current.scrollToTop(500);
-    }
+  //   if(contentRef.current)
+  //   {
+  //     contentRef.current.scrollToTop(500);
+  //   }
     
 
-  };
+  // };
 
   const checkPermission = async () => {
     // check or request permission
@@ -425,15 +416,16 @@ const Home: React.FC = () => {
 
     return false;
   };
+  
 
-  const startScan = async (index: number) => {
-    if (items) {
-      setChoosedItem(items[index]);
+  const startScan = async (choosedItem: RouteProps) => {
+    if (choosedItem) {
+      setChoosedItem(choosedItem);
     }
 
-    setTimeout(() => {
-      BarcodeScanner.enableTorch();
-    }, 150);
+    // setTimeout(() => {
+    //   BarcodeScanner.enableTorch();
+    // }, 150);
 
     await BarcodeScanner.startScanning(
       { targetedFormats: [SupportedFormat.QR_CODE] },
@@ -443,7 +435,7 @@ const Home: React.FC = () => {
             const code = result.content?.split("|")[1];
 
             if (code) {
-              const tempChoosedItem = items[index];
+              const tempChoosedItem = choosedItem;
 
               const selectedDietIndex = tempChoosedItem.packages.findIndex(
                 (e) => {
@@ -470,40 +462,45 @@ const Home: React.FC = () => {
                     cssClass: "home-scanner-toast",
                     duration: 5000,
                   });
-                }, 150);
+                }, 500);
                 Vibration.vibrate(500);
               } else if (selectedDietIndex >= 0) {
-                const newItem = { ...tempChoosedItem };
-                newItem.packages[selectedDietIndex].scanned = true;
-                newItem.packages[selectedDietIndex].confirmationString =
-                  result.content as string;
 
-                newItem.packagesCompleted = newItem.packages.every(
-                  (e) => e.scanned
-                );
 
-                UpdateRouteElement(
-                  undefined,
-                  newItem,
-                  "undelivered",
-                  setItems,
-                  setItemsStatic,
-                  setFooterItem,
-                  footerItem,
-                  true
-                );
-                setChoosedItem(newItem);
+                await ScanRoutePackage(choosedItem.id, result.content as string);
 
-                api
-                  .patch(
-                    "routes/addresses/packages/" +
-                      newItem.packages[selectedDietIndex].id,
-                    {
-                      isScanned: true,
-                      confirmationString: result.content,
-                    }
-                  )
-                  .then(async (response) => {});
+                // const newItem = { ...tempChoosedItem };
+                // newItem.packages[selectedDietIndex].scanned = true;
+                // newItem.packages[selectedDietIndex].confirmationString =
+                //   result.content as string;
+
+                // newItem.packagesCompleted = newItem.packages.every(
+                //   (e) => e.scanned
+                // );
+
+                // UpdateRouteElement(
+                //   undefined,
+                //   newItem,
+                //   "undelivered",
+                //   setItems,
+                //   setItemsStatic,
+                //   setFooterItem,
+                //   footerItem,
+                //   true
+                // );
+                
+                // setChoosedItem(newItem);
+
+                // api
+                //   .patch(
+                //     "routes/addresses/packages/" +
+                //       newItem.packages[selectedDietIndex].id,
+                //     {
+                //       isScanned: true,
+                //       confirmationString: result.content,
+                //     }
+                //   )
+                //   .then(async (response) => {});
 
                 new Audio(
                   "https://www.myinstants.com/media/sounds/applepay.mp3"
@@ -711,7 +708,21 @@ const Home: React.FC = () => {
               "--box-shadow": "none",
               "--background": "none",
             }}
-            onIonChange={(e) => filterItems(e.detail.value!)}
+            // onIonChange={(e) => filterItems(e.detail.value!)}
+            onIonChange={(e) => {
+
+              const text = e.detail.value!;
+
+              // setState((prev) => ({
+              //   ...prev,
+              //   ...{ searchText: text.length > 1 ? text : undefined },
+              // }));
+
+              Init(state.route, text);
+
+            }}
+            
+
           ></IonSearchbar>
           <IonButtons slot="end">
             <IonButton
@@ -719,11 +730,7 @@ const Home: React.FC = () => {
               onClick={async () => {
                 setRotate(!rotate);
                 
-                await api.get("routes/").then(async (response) => {
-                  let route = response.data as RouteProps[];
-            
-                  RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
-                });
+                Init();
                 
               }}
             >
@@ -771,12 +778,12 @@ const Home: React.FC = () => {
       >
         <>
           <IonList className="list-order">
-            {items.slice(0, infinityCounter).map((e, i) => {
+            {(itemsMode == "undelivered" ? state.routeCurrent : state.routeEnd)?.slice(0, infinityCounter).map((e, i) => {
               return (
                 <div key={e.id} className="item-container">
                   {i >= 0 ? (
                     <div className="counter">
-                      {i + 1}/{items.length}
+                      {i + 1}
                     </div>
                   ) : (
                     <></>
@@ -804,51 +811,45 @@ const Home: React.FC = () => {
                         }
                         onClick={async (event) => {
 
-                          console.log(e.packages?.every((_e) => {
-                            return _e.scanned;
-                          }) &&
-                          !e.image);
-
                           if (
-                            e.packages?.every((_e) => {
-                              return _e.scanned;
-                            }) &&
-                            !e.image
+                            e.packagesCompleted && !e.image
                           ) {
+
+
                             const image = await GetPhoto();
 
-                            const newItem = e;
+                            await UpdateRouteImage(e.id, image);
 
-                            if (newItem) {
-                              newItem.image = image.webPath;
-                              newItem.packagesCompleted = true;
+                            // if (newItem) {
+                            //   newItem.image = image.webPath;
+                            //   newItem.packagesCompleted = true;
 
-                              console.log(image);
+                            //   console.log(image);
 
-                              UpdateRouteElement(
-                                undefined,
-                                newItem,
-                                "undelivered",
-                                setItems,
-                                setItemsStatic,
-                                setFooterItem,
-                                footerItem,
-                                true
-                              );
+                            //   UpdateRouteElement(
+                            //     undefined,
+                            //     newItem,
+                            //     "undelivered",
+                            //     setItems,
+                            //     setItemsStatic,
+                            //     setFooterItem,
+                            //     footerItem,
+                            //     true
+                            //   );
 
 
-                              presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
-                              api
-                                .post("routes/addresses/" + e.id + "/image", {
-                                  image: image.base64,
-                                })
-                                .then((response) => {
-                                  console.log(response);
-                                })
-                                .finally(() => {
-                                  dismissPhotoLoading();
-                                });
-                            }
+                            //   presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
+                            //   api
+                            //     .post("routes/addresses/" + e.id + "/image", {
+                            //       image: image.base64,
+                            //     })
+                            //     .then((response) => {
+                            //       console.log(response);
+                            //     })
+                            //     .finally(() => {
+                            //       dismissPhotoLoading();
+                            //     });
+                            // }
                           } else if (e.image) {
                             presentAlert({
                               mode: "ios",
@@ -862,31 +863,34 @@ const Home: React.FC = () => {
                                 {
                                   text: "Cofnij",
                                   handler: async () => {
-                                    const newItem = { ...e };
 
-                                    newItem.packagesCompleted = false;
-                                    newItem.image = undefined;
-                                    newItem.packages.map((_e) => {
-                                      _e.scanned = false;
-                                    });
+                                    ChangeRouteToDefault(e.id);
 
-                                    UpdateRouteElement(
-                                      undefined,
-                                      newItem,
-                                      "delivered",
-                                      setItems,
-                                      setItemsStatic,
-                                      setFooterItem,
-                                      footerItem,
-                                      true
-                                    );
+                                    // const newItem = { ...e };
+
+                                    // newItem.packagesCompleted = false;
+                                    // newItem.image = undefined;
+                                    // newItem.packages.map((_e) => {
+                                    //   _e.scanned = false;
+                                    // });
+
+                                    // UpdateRouteElement(
+                                    //   undefined,
+                                    //   newItem,
+                                    //   "delivered",
+                                    //   setItems,
+                                    //   setItemsStatic,
+                                    //   setFooterItem,
+                                    //   footerItem,
+                                    //   true
+                                    // );
                                   },
                                 },
                               ],
                               onDidDismiss: (e) => console.log("did dismiss"),
                             });
                           } else if (
-                            items.find((x) => {
+                            state.routeCurrent?.find((x) => {
                               return (
                                 x.packages.some((y) => {
                                   return y.scanned;
@@ -894,7 +898,7 @@ const Home: React.FC = () => {
                               );
                             }) &&
                             e.id !=
-                              items.find((x) => {
+                            state.routeCurrent?.find((x) => {
                                 return (
                                   x.packages.some((y) => {
                                     return y.scanned;
@@ -906,7 +910,7 @@ const Home: React.FC = () => {
 
                             let _message = "";
 
-                            const element = items.find((x) => {
+                            const element = state.routeCurrent?.find((x) => {
                               return (
                                 x.packages.some((y) => {
                                   return y.scanned;
@@ -955,8 +959,8 @@ const Home: React.FC = () => {
                               });
                             }
                           } else {
-                            const tempItems = items;
-                            const isCameraWaiting = tempItems.some((x) => {
+                            const tempItems = state.routeCurrent;
+                            const isCameraWaiting = tempItems?.some((x) => {
                               return x.packagesCompleted && !x.image;
                             });
 
@@ -969,7 +973,7 @@ const Home: React.FC = () => {
                                   body.style.background = "transparent";
                                 }
                                 setScanning(true);
-                                startScan(tempItems.findIndex((x) => x.id == e.id));
+                                startScan(e);
                             }
                           }
                         }}
@@ -1026,7 +1030,7 @@ const Home: React.FC = () => {
               event.target.complete();
             }}
             threshold="500px"
-            disabled={infinityCounter >= items.length}
+            disabled={infinityCounter >= (itemsMode == "undelivered" ? state.routeCurrent ? state.routeCurrent.length : 0 : state.routeEnd ? state.routeEnd.length : 0)}
           >
             <IonInfiniteScrollContent
               loadingSpinner="bubbles"
@@ -1039,7 +1043,7 @@ const Home: React.FC = () => {
         <></>
       ) : (
         <IonFooter>
-          {footerItem && itemsMode == "undelivered" && !footerItem.image ? (
+          {state.routeCurrentItemFooter && itemsMode == "undelivered" && !state.routeCurrentItemFooter?.image ? (
             <IonList className="list-order border" style={{ paddingBottom: "0"}} >
               <div className="item-container" style={{ paddingTop: "5px", borderBottom: "none" }} >
                 <IonLabel>
@@ -1047,107 +1051,109 @@ const Home: React.FC = () => {
                     <IonIcon
                       className="icon-scan"
                       color={
-                        footerItem.image
+                        state.routeCurrentItemFooter?.image
                           ? "secondary"
-                          : footerItem.packagesCompleted
+                          : state.routeCurrentItemFooter?.packagesCompleted
                           ? "tertiary"
-                          : footerItem.packages.some((x) => x.scanned)
+                          : state.routeCurrentItemFooter?.packages.some((x) => x.scanned)
                           ? "tertiary"
                           : "primary"
                       }
                       slot="start"
                       icon={
-                        footerItem.image
+                        state.routeCurrentItemFooter?.image
                           ? syncOutline
-                          : footerItem.packagesCompleted
+                          : state.routeCurrentItemFooter?.packagesCompleted
                           ? cameraOutline
                           : barcodeOutline
                       }
                       onClick={async (event) => {
                         if (
-                          footerItem.packages?.every((_e) => {
+                          state.routeCurrentItemFooter?.packages?.every((_e) => {
                             return _e.scanned;
                           }) &&
-                          !footerItem.image
+                          !state.routeCurrentItemFooter?.image
                         ) {
                           const image = await GetPhoto();
 
-                          const newItem = footerItem;
+                          await UpdateRouteImage(state.routeCurrentItemFooter.id, image);
 
-                          if (newItem) {
-                            newItem.image = image.webPath;
+                          // const newItem = state.routeCurrentItemFooter;
 
-                            console.log(image);
+                          // if (newItem) {
+                          //   newItem.image = image.webPath;
 
-                            UpdateRouteElement(
-                              undefined,
-                              newItem,
-                              "undelivered",
-                              setItems,
-                              setItemsStatic,
-                              setFooterItem,
-                              footerItem,
-                              true
-                            );
+                          //   console.log(image);
 
-                            presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
-                            api
-                              .post("routes/addresses/" + footerItem.id + "/image", {
-                                image: image.base64,
-                              })
-                              .then((response) => {
-                                console.log(response);
-                              })
-                              .finally(() => {
-                                dismissPhotoLoading();
-                              });
-                          }
-                        } else if (footerItem.image) {
+                          //   UpdateRouteElement(
+                          //     undefined,
+                          //     newItem,
+                          //     "undelivered",
+                          //     setItems,
+                          //     setItemsStatic,
+                          //     setFooterItem,
+                          //     footerItem,
+                          //     true
+                          //   );
+
+                          //   presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
+                          //   api
+                          //     .post("routes/addresses/" + state.routeCurrentItemFooter?.id + "/image", {
+                          //       image: image.base64,
+                          //     })
+                          //     .then((response) => {
+                          //       console.log(response);
+                          //     })
+                          //     .finally(() => {
+                          //       dismissPhotoLoading();
+                          //     });
+                          // }
+                        } else if (state.routeCurrentItemFooter?.image) {
                           presentAlert({
                             mode: "ios",
                             cssClass: "missing-qr-alert",
                             header:
                               "Czy na pewno chcesz cofnąć dostarczenie adresu?",
                             subHeader: "Wybrany adres:",
-                            message: footerItem.street + " " + footerItem.houseNumber,
+                            message: state.routeCurrentItemFooter?.street + " " + state.routeCurrentItemFooter?.houseNumber,
                             buttons: [
                               "Anuluj",
                               {
                                 text: "Cofnij",
                                 handler: async () => {
-                                  const newItem = { ...footerItem };
+                                  const newItem = { ...state.routeCurrentItemFooter };
 
                                   newItem.packagesCompleted = false;
                                   newItem.image = undefined;
-                                  newItem.packages.map((_e) => {
+                                  newItem.packages?.map((_e) => {
                                     _e.scanned = false;
                                   });
 
-                                  UpdateRouteElement(
-                                    undefined,
-                                    newItem,
-                                    "delivered",
-                                    setItems,
-                                    setItemsStatic,
-                                    setFooterItem,
-                                    footerItem,
-                                    true
-                                  );
+                                  // UpdateRouteElement(
+                                  //   undefined,
+                                  //   newItem,
+                                  //   "delivered",
+                                  //   setItems,
+                                  //   setItemsStatic,
+                                  //   setFooterItem,
+                                  //   footerItem,
+                                  //   true
+                                  // );
                                 },
                               },
                             ],
                             onDidDismiss: (e) => console.log("did dismiss"),
                           });
                         } else if (
-                          items.find((x) => {
+                          state.routeCurrent?.find((x) => {
                             return (
                               x.packages.some((y) => {
                                 return y.scanned;
                               }) && !x.image
                             );
                           }) &&
-                          footerItem.id !=
-                            items.find((x) => {
+                          state.routeCurrentItemFooter?.id !=
+                            state.routeCurrent?.find((x) => {
                               return (
                                 x.packages.some((y) => {
                                   return y.scanned;
@@ -1155,11 +1161,11 @@ const Home: React.FC = () => {
                               );
                             })?.id
                         ) {
-                          console.log(footerItem.packages);
+                          console.log(state.routeCurrentItemFooter?.packages);
 
                           let _message = "";
 
-                          const element = items.find((x) => {
+                          const element = state.routeCurrent?.find((x) => {
                             return (
                               x.packages.some((y) => {
                                 return y.scanned;
@@ -1183,8 +1189,8 @@ const Home: React.FC = () => {
                             });
                           }
                         } else {
-                          const tempItems = items;
-                          const isCameraWaiting = tempItems.some((e) => {
+                          const tempItems = state.routeCurrent;
+                          const isCameraWaiting = tempItems?.some((e) => {
                             return e.packagesCompleted && !e.image;
                           });
 
@@ -1197,9 +1203,11 @@ const Home: React.FC = () => {
                               body.style.background = "transparent";
                             }
                             setScanning(true);
-                            startScan(
-                              items.findIndex((_e) => _e.id == footerItem.id)
-                            );
+                            if(state.routeCurrentItemFooter)
+                            {
+                              startScan(state.routeCurrentItemFooter);
+                            }
+                           
                           }
                         }
                       }}
@@ -1210,12 +1218,12 @@ const Home: React.FC = () => {
                       onClick={() => {
                         if (items) {
                           setShowOrderInfoModal(true);
-                          setItemModalInfo(footerItem);
+                          setItemModalInfo(state.routeCurrentItemFooter);
                         }
                       }}
                     >
-                      <h4 style={{ color: "var(--ion-color-dark)" }} className="address capitalize">{`${footerItem.street} ${footerItem.houseNumber}`}</h4>
-                      <p className="capitalize">{`${footerItem.postCode} ${footerItem.city}`}</p>
+                      <h4 style={{ color: "var(--ion-color-dark)" }} className="address capitalize">{`${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`}</h4>
+                      <p className="capitalize">{`${state.routeCurrentItemFooter?.postCode} ${state.routeCurrentItemFooter?.city}`}</p>
                     </IonLabel>
                     <IonIcon
                       className="icon-navigation"
@@ -1224,7 +1232,7 @@ const Home: React.FC = () => {
                       icon={navigateOutline}
                       onClick={(event) => {
                         setAddress(
-                          `${footerItem.street} ${footerItem.houseNumber}`
+                          `${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`
                         );
                         present({
                           event: event.nativeEvent,
@@ -1232,7 +1240,7 @@ const Home: React.FC = () => {
                       }}
                     />
                   </div>
-                  {footerItem.packages.map((_e) => {
+                  {state.routeCurrentItemFooter?.packages.map((_e) => {
                     return (
                       <IonItem className="item-diet" lines="none">
                         <IonIcon
@@ -1252,13 +1260,13 @@ const Home: React.FC = () => {
             <></>
           )}
           {
-            footerItem
+            state.routeCurrentItemFooter
             ?
             <></>
             :
 <IonItem style={{ "--min-height": "35px" }}>
             <IonLabel slot="end" style={{ marginTop: "0", marginBottom: "0" }}>
-              {itemsCounterScanned}/{itemsCounter}
+              {state.routeEnd?.length}/{state.route?.length}
             </IonLabel>
           </IonItem>
           }
@@ -1312,39 +1320,41 @@ const Home: React.FC = () => {
 
                 const image = await GetPhoto();
 
-                const newItem = choosedItem;
-                if (newItem) {
-                  newItem.image = image.webPath;
-                  newItem.packagesCompleted = true;
+                await UpdateRouteImage(choosedItem.id, image);
 
-                  console.log(image);
+              //   const newItem = choosedItem;
+              //   if (newItem) {
+              //     newItem.image = image.webPath;
+              //     newItem.packagesCompleted = true;
 
-                  UpdateRouteElement(
-                    undefined,
-                    newItem,
-                    "undelivered",
-                    setItems,
-                    setItemsStatic,
-                    setFooterItem,
-                    footerItem,
-                    true
-                  );
-                }
+              //     console.log(image);
 
-                presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
-                api
-                  .post("routes/addresses/" + choosedItem.id + "/image", {
-                    image: image.base64,
-                  })
-                  .then((response) => {
-                    console.log(response);
-                  })
-                  .finally(() => {
-                    dismissPhotoLoading();
-                  });
+              //     UpdateRouteElement(
+              //       undefined,
+              //       newItem,
+              //       "undelivered",
+              //       setItems,
+              //       setItemsStatic,
+              //       setFooterItem,
+              //       footerItem,
+              //       true
+              //     );
+              //   }
 
-                  stopScan();
-                  setScanning(false);
+              //   presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
+              //   api
+              //     .post("routes/addresses/" + choosedItem.id + "/image", {
+              //       image: image.base64,
+              //     })
+              //     .then((response) => {
+              //       console.log(response);
+              //     })
+              //     .finally(() => {
+              //       dismissPhotoLoading();
+              //     });
+
+                stopScan();
+                setScanning(false);
 
               }}
             >
@@ -1385,57 +1395,61 @@ const Home: React.FC = () => {
                               {
                                 text: "Zrób zdjęcie",
                                 handler: async (e) => {
+
                                   const image = await GetPhoto();
+                                  await UpdateRoutePackageImage(_e.id, image);
 
-                                  const newItem = items.find(
-                                    (e) => e.id == choosedItem.id
-                                  );
-                                  if (newItem) {
-                                    const tempPackageIndex =
-                                      newItem.packages.findIndex(
-                                        (x) => x.id == _e.id
-                                      );
+                                  // setChoosedItem(_e);
 
-                                    newItem.packages[tempPackageIndex].scanned =
-                                      true;
-                                    newItem.packages[tempPackageIndex].image =
-                                      image.webPath;
+                                  // const newItem = items.find(
+                                  //   (e) => e.id == choosedItem.id
+                                  // );
+                                  // if (newItem) {
+                                  //   const tempPackageIndex =
+                                  //     newItem.packages.findIndex(
+                                  //       (x) => x.id == _e.id
+                                  //     );
 
-                                    newItem.packagesCompleted =
-                                      newItem.packages.every((e) => e.scanned);
+                                  //   newItem.packages[tempPackageIndex].scanned =
+                                  //     true;
+                                  //   newItem.packages[tempPackageIndex].image =
+                                  //     image.webPath;
 
-                                    console.log(newItem);
+                                  //   newItem.packagesCompleted =
+                                  //     newItem.packages.every((e) => e.scanned);
 
-                                    UpdateRouteElement(
-                                      undefined,
-                                      newItem,
-                                      "undelivered",
-                                      setItems,
-                                      setItemsStatic,
-                                      setFooterItem,
-                                      footerItem,
-                                      true
-                                    );
+                                  //   console.log(newItem);
 
-                                    setChoosedItem(newItem);
-                                  }
+                                  //   UpdateRouteElement(
+                                  //     undefined,
+                                  //     newItem,
+                                  //     "undelivered",
+                                  //     setItems,
+                                  //     setItemsStatic,
+                                  //     setFooterItem,
+                                  //     footerItem,
+                                  //     true
+                                  //   );
 
-                                  presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
-                                  api
-                                    .post(
-                                      "routes/addresses/packages/" +
-                                        _e.id +
-                                        "/image",
-                                      {
-                                        image: image.base64,
-                                      }
-                                    )
-                                    .then((response) => {
-                                      console.log(response);
-                                    })
-                                    .finally(() => {
-                                      dismissPhotoLoading();
-                                    });
+                                  //   setChoosedItem(newItem);
+                                  // }
+
+                                  // presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
+                                  // api
+                                  //   .post(
+                                  //     "routes/addresses/packages/" +
+                                  //       _e.id +
+                                  //       "/image",
+                                  //     {
+                                  //       image: image.base64,
+                                  //     }
+                                  //   )
+                                  //   .then((response) => {
+                                  //     console.log(response);
+                                  //   })
+                                  //   .finally(() => {
+                                  //     dismissPhotoLoading();
+                                  //   });
 
                                   // let tempItems = items;
                                   // let tempChoosedItem = choosedItem;
