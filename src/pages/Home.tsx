@@ -467,7 +467,7 @@ const Home: React.FC = () => {
               } else if (selectedDietIndex >= 0) {
 
 
-                await ScanRoutePackage(choosedItem.id, result.content as string);
+                await ScanRoutePackage(tempChoosedItem.packages[selectedDietIndex].id, result.content as string);
 
                 // const newItem = { ...tempChoosedItem };
                 // newItem.packages[selectedDietIndex].scanned = true;
