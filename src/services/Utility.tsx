@@ -388,7 +388,7 @@ export const useRoute = () => {
         if (image.base64) {
           new Compressor(GetBlobFromBase64(image.base64), {
             quality: 0.7,
-
+            maxWidth: 1080,
             // The compression process is asynchronous,
             // which means you have to access the `result` in the `success` hook function.
             success(result) {
@@ -442,7 +442,7 @@ export const useRoute = () => {
             if (image.base64) {
                 new Compressor(GetBlobFromBase64(image.base64), {
                   quality: 0.7,
-      
+                  maxWidth: 1080,
                   // The compression process is asynchronous,
                   // which means you have to access the `result` in the `success` hook function.
                   success(result) {
