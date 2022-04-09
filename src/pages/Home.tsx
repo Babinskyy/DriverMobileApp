@@ -97,6 +97,23 @@ import {
 } from "./../GlobalStateProvider";
 
 const Home: React.FC = () => {
+
+  const [ isScanOptional, setIsScanOptional ] = useState(false);
+
+  useEffect(() => {
+
+    const checkIsScanOptional = async () => {
+      const user = await auth.getCurrentUser();
+      if(user)
+      {
+        setIsScanOptional(user.optionalScan);
+      }
+    }
+
+    checkIsScanOptional();
+
+  }, [])
+
   const { navigate } = useContext(NavContext);
 
   const { state, setState } = useGlobalState();
@@ -795,7 +812,7 @@ const Home: React.FC = () => {
                         color={
                           e.image
                             ? "secondary"
-                            : e.packagesCompleted
+                            : e.packagesCompleted || isScanOptional
                             ? "tertiary"
                             : e.packages.some((x) => x.scanned)
                             ? "tertiary"
@@ -805,14 +822,14 @@ const Home: React.FC = () => {
                         icon={
                           e.image
                             ? syncOutline
-                            : e.packagesCompleted
+                            : e.packagesCompleted || isScanOptional
                             ? cameraOutline
                             : barcodeOutline
                         }
                         onClick={async (event) => {
 
                           if (
-                            e.packagesCompleted && !e.image
+                            (e.packagesCompleted || isScanOptional) && !e.image
                           ) {
 
 
@@ -1063,15 +1080,15 @@ const Home: React.FC = () => {
                       icon={
                         state.routeCurrentItemFooter?.image
                           ? syncOutline
-                          : state.routeCurrentItemFooter?.packagesCompleted
+                          : state.routeCurrentItemFooter?.packagesCompleted || isScanOptional
                           ? cameraOutline
                           : barcodeOutline
                       }
                       onClick={async (event) => {
                         if (
-                          state.routeCurrentItemFooter?.packages?.every((_e) => {
+                          state.routeCurrentItemFooter && (state.routeCurrentItemFooter?.packages?.every((_e) => {
                             return _e.scanned;
-                          }) &&
+                          })  || isScanOptional) &&
                           !state.routeCurrentItemFooter?.image
                         ) {
                           const image = await GetPhoto();

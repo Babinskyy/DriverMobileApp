@@ -6,6 +6,7 @@ import { Filesystem, Directory, Encoding, ReadFileResult } from '@capacitor/file
 import { isPlatform } from "@ionic/core";
 import { Method } from "axios";
 import api from "./../services/api";
+import auth from "./../services/auth.service";
 
 import Compressor from 'compressorjs';
 
@@ -234,6 +235,14 @@ export const useRoute = () => {
     };
 
     const Init = async (routeParam?: RouteProps[], searchText?: string) => {
+
+      const user = await auth.getCurrentUser();
+      let isScanOptional = false;
+      if(user)
+      {
+        isScanOptional = user.optionalScan;
+      }
+
       let route: RouteProps[] = [];
 
       if (routeParam) {
@@ -255,14 +264,14 @@ export const useRoute = () => {
       }
 
       let _routeDelivered = route.filter((e) => {
-        return e.packagesCompleted && e.image;
+        return (e.packagesCompleted || isScanOptional) && e.image;
       });
       _routeDelivered.sort((a, b) => {
         return b.order - a.order;
       });
 
       let _routeNotDelivered = route.filter((e) => {
-        return !(e.packagesCompleted && e.image);
+        return !((e.packagesCompleted || isScanOptional) && e.image);
       });
 
       const routeCurrentItemFooter = _routeNotDelivered.find((x) => {
