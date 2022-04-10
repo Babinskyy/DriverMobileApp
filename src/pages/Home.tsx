@@ -98,22 +98,6 @@ import {
 
 const Home: React.FC = () => {
 
-  const [ isScanOptional, setIsScanOptional ] = useState(false);
-
-  useEffect(() => {
-
-    const checkIsScanOptional = async () => {
-      const user = await auth.getCurrentUser();
-      if(user)
-      {
-        setIsScanOptional(user.optionalScan);
-      }
-    }
-
-    checkIsScanOptional();
-
-  }, [])
-
   const { navigate } = useContext(NavContext);
 
   const { state, setState } = useGlobalState();
@@ -812,7 +796,7 @@ const Home: React.FC = () => {
                         color={
                           e.image
                             ? "secondary"
-                            : e.packagesCompleted || isScanOptional
+                            : e.packagesCompleted || state.isScanOptional
                             ? "tertiary"
                             : e.packages.some((x) => x.scanned)
                             ? "tertiary"
@@ -822,14 +806,14 @@ const Home: React.FC = () => {
                         icon={
                           e.image
                             ? syncOutline
-                            : e.packagesCompleted || isScanOptional
+                            : e.packagesCompleted || state.isScanOptional
                             ? cameraOutline
                             : barcodeOutline
                         }
                         onClick={async (event) => {
 
                           if (
-                            (e.packagesCompleted || isScanOptional) && !e.image
+                            (e.packagesCompleted || state.isScanOptional) && !e.image
                           ) {
 
 
@@ -882,25 +866,6 @@ const Home: React.FC = () => {
                                   handler: async () => {
 
                                     ChangeRouteToDefault(e.id);
-
-                                    // const newItem = { ...e };
-
-                                    // newItem.packagesCompleted = false;
-                                    // newItem.image = undefined;
-                                    // newItem.packages.map((_e) => {
-                                    //   _e.scanned = false;
-                                    // });
-
-                                    // UpdateRouteElement(
-                                    //   undefined,
-                                    //   newItem,
-                                    //   "delivered",
-                                    //   setItems,
-                                    //   setItemsStatic,
-                                    //   setFooterItem,
-                                    //   footerItem,
-                                    //   true
-                                    // );
                                   },
                                 },
                               ],
@@ -1080,7 +1045,7 @@ const Home: React.FC = () => {
                       icon={
                         state.routeCurrentItemFooter?.image
                           ? syncOutline
-                          : state.routeCurrentItemFooter?.packagesCompleted || isScanOptional
+                          : state.routeCurrentItemFooter?.packagesCompleted || state.isScanOptional
                           ? cameraOutline
                           : barcodeOutline
                       }
@@ -1088,7 +1053,7 @@ const Home: React.FC = () => {
                         if (
                           state.routeCurrentItemFooter && (state.routeCurrentItemFooter?.packages?.every((_e) => {
                             return _e.scanned;
-                          })  || isScanOptional) &&
+                          })  || state.isScanOptional) &&
                           !state.routeCurrentItemFooter?.image
                         ) {
                           const image = await GetPhoto();

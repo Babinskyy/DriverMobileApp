@@ -196,6 +196,28 @@ export const useRoute = () => {
 
     useEffect(() => {
 
+      const checkOptionalScan = async () => {
+        const scanOptionalRequest = await api.get("/drivers/is-scan-optional");
+        const scanOptionalResult = await scanOptionalRequest.data;
+  
+        let isScanOptional = false;
+        if(scanOptionalResult)
+        {
+          isScanOptional = scanOptionalResult;
+        }
+
+        setState((prev) => ({
+          ...prev,
+          ...{
+            isScanOptional: isScanOptional
+          },
+        }));
+      }
+
+      checkOptionalScan();
+
+      
+
         InitWithServer();
 
     }, [])
@@ -236,12 +258,7 @@ export const useRoute = () => {
 
     const Init = async (routeParam?: RouteProps[], searchText?: string) => {
 
-      const user = await auth.getCurrentUser();
-      let isScanOptional = false;
-      if(user)
-      {
-        isScanOptional = user.optionalScan;
-      }
+      
 
       let route: RouteProps[] = [];
 
@@ -264,14 +281,14 @@ export const useRoute = () => {
       }
 
       let _routeDelivered = route.filter((e) => {
-        return (e.packagesCompleted || isScanOptional) && e.image;
+        return (e.packagesCompleted || state.isScanOptional) && e.image;
       });
       _routeDelivered.sort((a, b) => {
         return b.order - a.order;
       });
 
       let _routeNotDelivered = route.filter((e) => {
-        return !((e.packagesCompleted || isScanOptional) && e.image);
+        return !((e.packagesCompleted || state.isScanOptional) && e.image);
       });
 
       const routeCurrentItemFooter = _routeNotDelivered.find((x) => {

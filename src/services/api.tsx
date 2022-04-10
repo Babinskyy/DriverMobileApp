@@ -3,11 +3,12 @@ import TokenService from "./token.service";
 import { User } from "./userProps";
 import { AddOfflineRequest } from "./Utility";
 import { Network } from '@capacitor/network';
+import { Storage } from "@capacitor/storage";
 
 const instance = axios.create({
   withCredentials: true,
-  // baseURL: "https://broccoliapi.azurewebsites.net",
-  baseURL: "https://localhost:55931",
+  baseURL: "https://broccoliapi.ebert.link",
+  // baseURL: "https://localhost:55931",
   headers: {
     "Content-Type": "application/json",
   },
@@ -52,6 +53,7 @@ instance.interceptors.response.use(
         } catch (_error) {
           // await tokenService.removeUser();
           window.location.replace("/login");
+          await Storage.clear();
           return Promise.reject(_error);
         }
       }

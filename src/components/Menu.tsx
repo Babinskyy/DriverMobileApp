@@ -143,6 +143,9 @@ const Menu: React.FC = () => {
           className="menu-item"
           color="danger"
           onClick={async () => {
+
+            await Storage.clear();
+
             auth.logout().finally(() => {
               setTimeout(() => {
                 history.replace("/login");

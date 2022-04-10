@@ -11,6 +11,8 @@ export interface GlobalStateInterface {
 
     searchText: string,
 
+    isScanOptional: boolean
+
 }
 
 const GlobalStateContext = createContext({
