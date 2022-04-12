@@ -85,6 +85,7 @@ import { RouterProps } from "react-router";
 import {
   GetPhoto,
   useRoute,
+  CheckOfflineRequests as _CheckOfflineRequests
 } from "../services/Utility";
 import { Network } from "@capacitor/network";
 
@@ -288,71 +289,82 @@ const Home: React.FC = () => {
   // }, []);
 
   const CheckOfflineRequests = async () => {
-
+    
     const networkStatus = await Network.getStatus();
 
     if(networkStatus.connected)
     {
-      try {
-
-        const { value } = await Storage.get({ key: "OfflineRequests" });
-        await Storage.remove({ key: "OfflineRequests" });
-    
-        if(value)
-        {
-      
-          let offlineRequests = JSON.parse(value) as OfflineRequestProps[];
-          offlineRequests.reverse();
-      
-          if(offlineRequests.length > 0)
-          {
-      
-            presentLoading({
-              message: "Synchronizowanie danych z serwerem",
-              spinner: "crescent"
-            });
-
-            for (const e of offlineRequests) {
-              const rq = await api.request({
-                url: e.url,
-                method: e.method,
-                data: e.body
-              });
-              const rqData = await rq;
-            }
-
-            setTimeout(async () => {
-              
-              Init();
-
-              setTimeout(() => {
-                dismissLoading();
-              }, 500);
-
-            }, 200);
-
-            
-
-            
-
-
-            return;
-      
-          }
-          
-      
-        }
-
-      } catch (error) {
-        
-      }
-  
+      await _CheckOfflineRequests();
     }
 
+  }
+
+  // const CheckOfflineRequests = async () => {
+
+  //   const networkStatus = await Network.getStatus();
+
+  //   if(networkStatus.connected)
+  //   {
+  //     try {
+
+  //       const { value } = await Storage.get({ key: "OfflineRequests" });
+  //       await Storage.remove({ key: "OfflineRequests" });
+    
+  //       if(value)
+  //       {
+      
+  //         let offlineRequests = JSON.parse(value) as OfflineRequestProps[];
+  //         offlineRequests.reverse();
+      
+  //         if(offlineRequests.length > 0)
+  //         {
+      
+  //           presentLoading({
+  //             message: "Synchronizowanie danych z serwerem",
+  //             spinner: "crescent"
+  //           });
+
+  //           for (const e of offlineRequests) {
+  //             const rq = await api.request({
+  //               url: e.url,
+  //               method: e.method,
+  //               data: e.body
+  //             });
+  //             const rqData = await rq;
+  //           }
+
+  //           setTimeout(async () => {
+              
+  //             Init();
+
+  //             setTimeout(() => {
+  //               dismissLoading();
+  //             }, 500);
+
+  //           }, 200);
+
+            
+
+            
+
+
+  //           return;
+      
+  //         }
+          
+      
+  //       }
+
+  //     } catch (error) {
+        
+  //     }
+  
+  //   }
+
 
     
   
-  }
+  // }
 
     useEffect(() => {
       

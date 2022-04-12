@@ -6,6 +6,8 @@ import { Network } from '@capacitor/network';
 import { Storage } from "@capacitor/storage";
 
 const instance = axios.create({
+  timeout: 5000,
+  timeoutErrorMessage: "Za długi czas oczekiwania",
   withCredentials: true,
   baseURL: "https://broccoliapi.ebert.link",
   // baseURL: "https://localhost:55931",

@@ -7,6 +7,7 @@ import { isPlatform } from "@ionic/core";
 import { Method } from "axios";
 import api from "./../services/api";
 import auth from "./../services/auth.service";
+import { v4 as uuidv4 } from 'uuid';
 
 import Compressor from 'compressorjs';
 
@@ -175,6 +176,7 @@ export const AddOfflineRequest = async (url: string, method: Method, body: any) 
     }
 
     offlineRequests.push({
+        key: uuidv4(),
         url: url,
         body: body,
         method: method
@@ -185,7 +187,56 @@ export const AddOfflineRequest = async (url: string, method: Method, body: any) 
 }
 
 
+export const CheckOfflineRequests = async () => {
+  const value1 = await Storage.get({ key: "OfflineRequests" });
+  // await Storage.remove({ key: "OfflineRequests" });
 
+  if (value1.value) {
+    const offlineRequests = JSON.parse(value1.value) as OfflineRequestProps[];
+
+    if (offlineRequests.length > 0) {
+      // presentLoading({
+      //   message: "Synchronizowanie danych z serwerem",
+      //   spinner: "crescent",
+      // });
+
+      for (const e of offlineRequests) {
+        try {
+          const rq = await api.request({
+            url: e.url,
+            method: e.method,
+            data: e.body,
+          });
+          const rqData = await rq;
+
+          const value2 = await Storage.get({ key: "OfflineRequests" });
+          if (value2.value) {
+            const offlineRequests2 = JSON.parse(value2.value) as OfflineRequestProps[];
+            const valueToSave = offlineRequests2.filter((s) => s.key != e.key);
+  
+            await Storage.set({
+              key: "OfflineRequests",
+              value: JSON.stringify(valueToSave)
+            });
+          }
+
+        } catch (error: any) {
+          if (error.code === "ECONNABORTED") {
+            console.log("timeout");
+          }
+          break;
+        }
+
+        
+        
+      }
+
+      // setTimeout(async () => {
+      //   await dismissLoading();
+      // }, 500);
+    }
+  }
+};
 
 
 export const useRoute = () => {
@@ -197,14 +248,47 @@ export const useRoute = () => {
     useEffect(() => {
 
       const checkOptionalScan = async () => {
-        const scanOptionalRequest = await api.get("/drivers/is-scan-optional");
-        const scanOptionalResult = await scanOptionalRequest.data;
-  
         let isScanOptional = false;
-        if(scanOptionalResult)
+
+        const { value } = await Storage.get({
+          key: "isScanOptional"
+        })
+
+        if(value)
         {
-          isScanOptional = scanOptionalResult;
+          const valueBoolean = JSON.parse(value);
+          if(valueBoolean)
+          {
+            isScanOptional = true;
+            
+            setState((prev) => ({
+              ...prev,
+              ...{
+                isScanOptional: isScanOptional
+              },
+            }));
+
+          }
         }
+
+        try {
+          const scanOptionalRequest = await api.get("/drivers/is-scan-optional");
+          const scanOptionalResult = await scanOptionalRequest.data;
+          
+
+          if(scanOptionalResult)
+          {
+            isScanOptional = await scanOptionalResult;
+          }
+
+        } catch (error) {
+          
+        }
+
+        await Storage.set({
+          key: "isScanOptional",
+          value: JSON.stringify(isScanOptional)
+        })
 
         setState((prev) => ({
           ...prev,
@@ -212,6 +296,7 @@ export const useRoute = () => {
             isScanOptional: isScanOptional
           },
         }));
+
       }
 
       checkOptionalScan();
@@ -327,49 +412,7 @@ export const useRoute = () => {
       }
     };
 
-    const CheckOfflineRequests = async () => {
-      const { value } = await Storage.get({ key: "OfflineRequests" });
-      await Storage.remove({ key: "OfflineRequests" });
-
-      if (value) {
-        let offlineRequests = JSON.parse(value) as OfflineRequestProps[];
-        offlineRequests.reverse();
-
-        if (offlineRequests.length > 0) {
-          presentLoading({
-            message: "Synchronizowanie danych z serwerem",
-            spinner: "crescent",
-          });
-
-          for (const e of offlineRequests) {
-            const rq = await api.request({
-              url: e.url,
-              method: e.method,
-              data: e.body,
-            });
-            const rqData = await rq;
-          }
-
-          setTimeout(async () => {
-            await dismissLoading();
-          }, 500);
-
-          //   setTimeout(async () => {
-
-          //   await api.get("routes/").then(async (response) => {
-          //     let route = response.data as RouteProps[];
-
-          //     RefreshRoute(route, itemsMode, setItems, setItemsStatic, setFooterItem, footerItem, true);
-          //   });
-
-          //   setTimeout(() => {
-          //     dismissLoading();
-          //   }, 500);
-
-          //    }, 200);
-        }
-      }
-    };
+    
 
     const GetRouteFromServer = async () => {
       const result = await api.get("routes/");
@@ -406,6 +449,12 @@ export const useRoute = () => {
       if (_route) {
         for (const n of _route) {
           if (n.id == id) {
+
+            for (const k of n.packages) {
+              k.scanned = true;
+              k.confirmationString = "-" + uuidv4();
+            }
+
             n.image = image.webPath;
           }
         }

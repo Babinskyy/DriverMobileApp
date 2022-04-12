@@ -58,6 +58,7 @@ export type DietItemProps = {
   i?: number;
 }
 export type OfflineRequestProps = {
+  key: string;
   url: string;
   method: Method;
   body: any;

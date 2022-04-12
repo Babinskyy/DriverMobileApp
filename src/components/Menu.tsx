@@ -15,6 +15,7 @@ import {
 import {
   carOutline,
   homeOutline,
+  mapOutline,
   newspaperOutline,
   readerOutline,
 } from "ionicons/icons";
@@ -118,6 +119,23 @@ const Menu: React.FC = () => {
           >
             <IonLabel>Magazyn</IonLabel>
             <IonIcon slot="start" icon={homeOutline} />
+          </IonItem>
+          <IonItem
+            lines="none"
+            color={"/Map" == url ? "primary" : undefined}
+            button
+            className="menu-item"
+            onClick={async () => {
+              setTimeout(() => {
+                history.push("/Map");
+              }, 1);
+              if (menuRef.current) {
+                menuRef.current.setOpen(false);
+              }
+            }}
+          >
+            <IonLabel>Mapa</IonLabel>
+            <IonIcon slot="start" icon={mapOutline} />
           </IonItem>
         </IonList>
       </IonContent>
