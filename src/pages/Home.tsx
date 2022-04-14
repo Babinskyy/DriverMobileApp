@@ -392,6 +392,7 @@ const Home: React.FC = () => {
 
       const networkStatus = await Network.getStatus();
       if (networkStatus.connected) {
+        await Init();
         await CheckOfflineRequests();
         await InitWithServer();
       }
