@@ -375,8 +375,11 @@ const Home: React.FC = () => {
       //   }
       // });
 
-      await CheckOfflineRequests();
-      await InitWithServer();
+      const networkStatus = await Network.getStatus();
+      if (networkStatus.connected) {
+        await CheckOfflineRequests();
+        await InitWithServer();
+      }
     };
 
     effectAsync();
