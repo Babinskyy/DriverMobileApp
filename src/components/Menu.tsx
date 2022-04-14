@@ -162,7 +162,15 @@ const Menu: React.FC = () => {
           color="danger"
           onClick={async () => {
 
+            const { value } = await Storage.get({ key: "OfflineRequests" });
             await Storage.clear();
+            if(value)
+            {
+              await Storage.set({
+                key: "OfflineRequests",
+                value: value
+              });
+            }
 
             auth.logout().finally(() => {
               setTimeout(() => {

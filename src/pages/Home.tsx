@@ -368,26 +368,28 @@ const Home: React.FC = () => {
 
     useEffect(() => {
       
-      App.addListener('appStateChange', ({ isActive }) => {
+      App.addListener('appStateChange', async ({ isActive }) => {
         if(isActive)
         {
-          CheckOfflineRequests();
+          await CheckOfflineRequests();
         }
       })
 
-      Network.addListener('networkStatusChange', status => {
+      Network.addListener('networkStatusChange', async (status) => {
         if(status.connected)
         {
-          CheckOfflineRequests();
+          await CheckOfflineRequests();
         }
       });
 
-      CheckOfflineRequests();
+      // CheckOfflineRequests();
   
     }, []);
 
 
-    
+    useIonViewDidEnter(async () => {
+      await CheckOfflineRequests();
+    })
 
 
   
@@ -560,7 +562,7 @@ const Home: React.FC = () => {
             </IonButtons>
           </IonToolbar>
         </IonHeader>
-        <IonContent >
+        <IonContent>
           <IonListHeader>
             <IonLabel style={{ fontWeight: 700 }}>
               Podstawowe informacje
@@ -723,7 +725,6 @@ const Home: React.FC = () => {
             }}
             // onIonChange={(e) => filterItems(e.detail.value!)}
             onIonChange={(e) => {
-
               const text = e.detail.value!;
 
               // setState((prev) => ({
@@ -732,19 +733,30 @@ const Home: React.FC = () => {
               // }));
 
               Init(state.route, text);
-
             }}
-            
-
           ></IonSearchbar>
           <IonButtons slot="end">
             <IonButton
               className={rotate ? "rotated" : ""}
               onClick={async () => {
-                setRotate(!rotate);
-                
-                Init();
-                
+
+                try {
+                  
+                  presentLoading({
+                    message: "Synchronizowanie danych z serwerem",
+                    spinner: "crescent",
+                  });
+  
+                  setRotate(!rotate);
+  
+                  await CheckOfflineRequests();
+                  await InitWithServer();
+
+                } catch (error) {}
+
+
+                await dismissLoading();
+
               }}
             >
               <IonIcon slot="icon-only" icon={refreshOutline} />
@@ -791,176 +803,169 @@ const Home: React.FC = () => {
       >
         <>
           <IonList className="list-order">
-            {(itemsMode == "undelivered" ? state.routeCurrent : state.routeEnd)?.slice(0, infinityCounter).map((e, i) => {
-              return (
-                <div key={e.id} className="item-container">
-                  {i >= 0 ? (
-                    <div className="counter">
-                      {i + 1}
-                    </div>
-                  ) : (
-                    <></>
-                  )}
-                  <IonLabel>
-                    <div style={{ display: "flex" }}>
-                      <IonIcon
-                        className="icon-scan"
-                        color={
-                          e.image
-                            ? "secondary"
-                            : e.packagesCompleted || state.isScanOptional
-                            ? "tertiary"
-                            : e.packages.some((x) => x.scanned)
-                            ? "tertiary"
-                            : "primary"
-                        }
-                        slot="start"
-                        icon={
-                          e.image
-                            ? syncOutline
-                            : e.packagesCompleted || state.isScanOptional
-                            ? cameraOutline
-                            : barcodeOutline
-                        }
-                        onClick={async (event) => {
+            {(itemsMode == "undelivered" ? state.routeCurrent : state.routeEnd)
+              ?.slice(0, infinityCounter)
+              .map((e, i) => {
+                return (
+                  <div key={e.id} className="item-container">
+                    {i >= 0 ? <div className="counter">{i + 1}</div> : <></>}
+                    <IonLabel>
+                      <div style={{ display: "flex" }}>
+                        <IonIcon
+                          className="icon-scan"
+                          color={
+                            e.image
+                              ? "secondary"
+                              : e.packagesCompleted || state.isScanOptional
+                              ? "tertiary"
+                              : e.packages.some((x) => x.scanned)
+                              ? "tertiary"
+                              : "primary"
+                          }
+                          slot="start"
+                          icon={
+                            e.image
+                              ? syncOutline
+                              : e.packagesCompleted || state.isScanOptional
+                              ? cameraOutline
+                              : barcodeOutline
+                          }
+                          onClick={async (event) => {
+                            if (
+                              (e.packagesCompleted || state.isScanOptional) &&
+                              !e.image
+                            ) {
+                              const image = await GetPhoto();
 
-                          if (
-                            (e.packagesCompleted || state.isScanOptional) && !e.image
-                          ) {
+                              await UpdateRouteImage(e.id, image);
 
+                              // if (newItem) {
+                              //   newItem.image = image.webPath;
+                              //   newItem.packagesCompleted = true;
 
-                            const image = await GetPhoto();
+                              //   console.log(image);
 
-                            await UpdateRouteImage(e.id, image);
+                              //   UpdateRouteElement(
+                              //     undefined,
+                              //     newItem,
+                              //     "undelivered",
+                              //     setItems,
+                              //     setItemsStatic,
+                              //     setFooterItem,
+                              //     footerItem,
+                              //     true
+                              //   );
 
-                            // if (newItem) {
-                            //   newItem.image = image.webPath;
-                            //   newItem.packagesCompleted = true;
-
-                            //   console.log(image);
-
-                            //   UpdateRouteElement(
-                            //     undefined,
-                            //     newItem,
-                            //     "undelivered",
-                            //     setItems,
-                            //     setItemsStatic,
-                            //     setFooterItem,
-                            //     footerItem,
-                            //     true
-                            //   );
-
-
-                            //   presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
-                            //   api
-                            //     .post("routes/addresses/" + e.id + "/image", {
-                            //       image: image.base64,
-                            //     })
-                            //     .then((response) => {
-                            //       console.log(response);
-                            //     })
-                            //     .finally(() => {
-                            //       dismissPhotoLoading();
-                            //     });
-                            // }
-                          } else if (e.image) {
-                            presentAlert({
-                              mode: "ios",
-                              cssClass: "missing-qr-alert",
-                              header:
-                                "Czy na pewno chcesz cofnąć dostarczenie adresu?",
-                              subHeader: "Wybrany adres:",
-                              message: e.street + " " + e.houseNumber,
-                              buttons: [
-                                "Anuluj",
-                                {
-                                  text: "Cofnij",
-                                  handler: async () => {
-
-                                    ChangeRouteToDefault(e.id);
+                              //   presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
+                              //   api
+                              //     .post("routes/addresses/" + e.id + "/image", {
+                              //       image: image.base64,
+                              //     })
+                              //     .then((response) => {
+                              //       console.log(response);
+                              //     })
+                              //     .finally(() => {
+                              //       dismissPhotoLoading();
+                              //     });
+                              // }
+                            } else if (e.image) {
+                              presentAlert({
+                                mode: "ios",
+                                cssClass: "missing-qr-alert",
+                                header:
+                                  "Czy na pewno chcesz cofnąć dostarczenie adresu?",
+                                subHeader: "Wybrany adres:",
+                                message: e.street + " " + e.houseNumber,
+                                buttons: [
+                                  "Anuluj",
+                                  {
+                                    text: "Cofnij",
+                                    handler: async () => {
+                                      ChangeRouteToDefault(e.id);
+                                    },
                                   },
-                                },
-                              ],
-                              onDidDismiss: (e) => console.log("did dismiss"),
-                            });
-                          } else if (
-                            state.routeCurrent?.find((x) => {
-                              return (
-                                x.packages.some((y) => {
-                                  return y.scanned;
-                                }) && !x.image
-                              );
-                            }) &&
-                            e.id !=
-                            state.routeCurrent?.find((x) => {
+                                ],
+                                onDidDismiss: (e) => console.log("did dismiss"),
+                              });
+                            } else if (
+                              state.routeCurrent?.find((x) => {
                                 return (
                                   x.packages.some((y) => {
                                     return y.scanned;
                                   }) && !x.image
                                 );
-                              })?.id
-                          ) {
-                            console.log(e.packages);
+                              }) &&
+                              e.id !=
+                                state.routeCurrent?.find((x) => {
+                                  return (
+                                    x.packages.some((y) => {
+                                      return y.scanned;
+                                    }) && !x.image
+                                  );
+                                })?.id
+                            ) {
+                              console.log(e.packages);
 
-                            let _message = "";
+                              let _message = "";
 
-                            const element = state.routeCurrent?.find((x) => {
-                              return (
-                                x.packages.some((y) => {
-                                  return y.scanned;
-                                }) && !x.image
-                              );
-                            });
-
-                            if (element) {
-                              _message =
-                                element.street + " " + element.houseNumber;
-
-                              presentAlert({
-                                mode: "ios",
-                                cssClass: "missing-qr-alert",
-                                header:
-                                  "Dokończ inny rozpoczęty adres przed skanowaniem",
-                                subHeader: "Adres do zakończenia:",
-                                message: _message,
-                                buttons: [
-                                  "Powrót",
-                                  // {
-                                  //   text: "Zobacz",
-                                  //   handler: () => {
-                                  //     if (contentRef.current && element) {
-                                  //       const addressElement =
-                                  //         document.querySelector(
-                                  //           "[data-toscroll='" +
-                                  //             element.id +
-                                  //             "']"
-                                  //         ) as Element | undefined;
-
-                                  //       if (addressElement) {
-                                  //         // const addressElementBounds = addressElement.getBoundingClientRect();
-                                  //         // contentRef.current.scrollIntoView(0, addressElementBounds.top, 1000);
-                                  //         addressElement.scrollIntoView({
-                                  //           block: "center",
-                                  //           behavior: "smooth",
-                                  //           inline: "center",
-                                  //         });
-                                  //       }
-                                  //     }
-                                  //   },
-                                  // },
-                                ],
-                                onDidDismiss: (e) => console.log("did dismiss"),
+                              const element = state.routeCurrent?.find((x) => {
+                                return (
+                                  x.packages.some((y) => {
+                                    return y.scanned;
+                                  }) && !x.image
+                                );
                               });
-                            }
-                          } else {
-                            const tempItems = state.routeCurrent;
-                            const isCameraWaiting = tempItems?.some((x) => {
-                              return x.packagesCompleted && !x.image;
-                            });
 
-                            if (isCameraWaiting) {
+                              if (element) {
+                                _message =
+                                  element.street + " " + element.houseNumber;
+
+                                presentAlert({
+                                  mode: "ios",
+                                  cssClass: "missing-qr-alert",
+                                  header:
+                                    "Dokończ inny rozpoczęty adres przed skanowaniem",
+                                  subHeader: "Adres do zakończenia:",
+                                  message: _message,
+                                  buttons: [
+                                    "Powrót",
+                                    // {
+                                    //   text: "Zobacz",
+                                    //   handler: () => {
+                                    //     if (contentRef.current && element) {
+                                    //       const addressElement =
+                                    //         document.querySelector(
+                                    //           "[data-toscroll='" +
+                                    //             element.id +
+                                    //             "']"
+                                    //         ) as Element | undefined;
+
+                                    //       if (addressElement) {
+                                    //         // const addressElementBounds = addressElement.getBoundingClientRect();
+                                    //         // contentRef.current.scrollIntoView(0, addressElementBounds.top, 1000);
+                                    //         addressElement.scrollIntoView({
+                                    //           block: "center",
+                                    //           behavior: "smooth",
+                                    //           inline: "center",
+                                    //         });
+                                    //       }
+                                    //     }
+                                    //   },
+                                    // },
+                                  ],
+                                  onDidDismiss: (e) =>
+                                    console.log("did dismiss"),
+                                });
+                              }
                             } else {
-                              checkPermission();
+                              const tempItems = state.routeCurrent;
+                              const isCameraWaiting = tempItems?.some((x) => {
+                                return x.packagesCompleted && !x.image;
+                              });
+
+                              if (isCameraWaiting) {
+                              } else {
+                                checkPermission();
 
                                 const body = document.querySelector("body");
                                 if (body) {
@@ -968,53 +973,53 @@ const Home: React.FC = () => {
                                 }
                                 setScanning(true);
                                 startScan(e);
+                              }
                             }
-                          }
-                        }}
-                      />
+                          }}
+                        />
 
-                      <IonLabel
-                        className="wrap"
-                        onClick={() => {
-                          if (items) {
-                            setShowOrderInfoModal(true);
-                            setItemModalInfo(e);
-                          }
-                        }}
-                      >
-                        <h4 className="address capitalize">{`${e.street} ${e.houseNumber}`}</h4>
-                        <p className="capitalize">{`${e.postCode} ${e.city}`}</p>
-                      </IonLabel>
-                      <IonIcon
-                        className="icon-navigation"
-                        color="primary"
-                        slot="end"
-                        icon={navigateOutline}
-                        onClick={(event) => {
-                          setAddress(`${e.street} ${e.houseNumber}`);
-                          present({
-                            event: event.nativeEvent,
-                          });
-                        }}
-                      />
-                    </div>
-                    {e.packages.map((_e) => {
-                      return (
-                        <IonItem className="item-diet" lines="none">
-                          <IonIcon
-                            color={_e.scanned ? "success" : "danger"}
-                            src={_e.scanned ? checkmarkOutline : closeOutline}
-                          />
-                          <IonLabel style={{ margin: "0" }} className="wrap">
-                            {_e.name}
-                          </IonLabel>
-                        </IonItem>
-                      );
-                    })}
-                  </IonLabel>
-                </div>
-              );
-            })}
+                        <IonLabel
+                          className="wrap"
+                          onClick={() => {
+                            if (items) {
+                              setShowOrderInfoModal(true);
+                              setItemModalInfo(e);
+                            }
+                          }}
+                        >
+                          <h4 className="address capitalize">{`${e.street} ${e.houseNumber}`}</h4>
+                          <p className="capitalize">{`${e.postCode} ${e.city}`}</p>
+                        </IonLabel>
+                        <IonIcon
+                          className="icon-navigation"
+                          color="primary"
+                          slot="end"
+                          icon={navigateOutline}
+                          onClick={(event) => {
+                            setAddress(`${e.street} ${e.houseNumber}`);
+                            present({
+                              event: event.nativeEvent,
+                            });
+                          }}
+                        />
+                      </div>
+                      {e.packages.map((_e) => {
+                        return (
+                          <IonItem className="item-diet" lines="none">
+                            <IonIcon
+                              color={_e.scanned ? "success" : "danger"}
+                              src={_e.scanned ? checkmarkOutline : closeOutline}
+                            />
+                            <IonLabel style={{ margin: "0" }} className="wrap">
+                              {_e.name}
+                            </IonLabel>
+                          </IonItem>
+                        );
+                      })}
+                    </IonLabel>
+                  </div>
+                );
+              })}
           </IonList>
 
           <IonInfiniteScroll
@@ -1024,7 +1029,16 @@ const Home: React.FC = () => {
               event.target.complete();
             }}
             threshold="500px"
-            disabled={infinityCounter >= (itemsMode == "undelivered" ? state.routeCurrent ? state.routeCurrent.length : 0 : state.routeEnd ? state.routeEnd.length : 0)}
+            disabled={
+              infinityCounter >=
+              (itemsMode == "undelivered"
+                ? state.routeCurrent
+                  ? state.routeCurrent.length
+                  : 0
+                : state.routeEnd
+                ? state.routeEnd.length
+                : 0)
+            }
           >
             <IonInfiniteScrollContent
               loadingSpinner="bubbles"
@@ -1037,9 +1051,17 @@ const Home: React.FC = () => {
         <></>
       ) : (
         <IonFooter>
-          {state.routeCurrentItemFooter && itemsMode == "undelivered" && !state.routeCurrentItemFooter?.image ? (
-            <IonList className="list-order border" style={{ paddingBottom: "0"}} >
-              <div className="item-container" style={{ paddingTop: "5px", borderBottom: "none" }} >
+          {state.routeCurrentItemFooter &&
+          itemsMode == "undelivered" &&
+          !state.routeCurrentItemFooter?.image ? (
+            <IonList
+              className="list-order border"
+              style={{ paddingBottom: "0" }}
+            >
+              <div
+                className="item-container"
+                style={{ paddingTop: "5px", borderBottom: "none" }}
+              >
                 <IonLabel>
                   <div style={{ display: "flex" }}>
                     <IonIcon
@@ -1049,7 +1071,9 @@ const Home: React.FC = () => {
                           ? "secondary"
                           : state.routeCurrentItemFooter?.packagesCompleted
                           ? "tertiary"
-                          : state.routeCurrentItemFooter?.packages.some((x) => x.scanned)
+                          : state.routeCurrentItemFooter?.packages.some(
+                              (x) => x.scanned
+                            )
                           ? "tertiary"
                           : "primary"
                       }
@@ -1057,20 +1081,28 @@ const Home: React.FC = () => {
                       icon={
                         state.routeCurrentItemFooter?.image
                           ? syncOutline
-                          : state.routeCurrentItemFooter?.packagesCompleted || state.isScanOptional
+                          : state.routeCurrentItemFooter?.packagesCompleted ||
+                            state.isScanOptional
                           ? cameraOutline
                           : barcodeOutline
                       }
                       onClick={async (event) => {
                         if (
-                          state.routeCurrentItemFooter && (state.routeCurrentItemFooter?.packages?.every((_e) => {
-                            return _e.scanned;
-                          })  || state.isScanOptional) &&
+                          state.routeCurrentItemFooter &&
+                          (state.routeCurrentItemFooter?.packages?.every(
+                            (_e) => {
+                              return _e.scanned;
+                            }
+                          ) ||
+                            state.isScanOptional) &&
                           !state.routeCurrentItemFooter?.image
                         ) {
                           const image = await GetPhoto();
 
-                          await UpdateRouteImage(state.routeCurrentItemFooter.id, image);
+                          await UpdateRouteImage(
+                            state.routeCurrentItemFooter.id,
+                            image
+                          );
 
                           // const newItem = state.routeCurrentItemFooter;
 
@@ -1109,13 +1141,18 @@ const Home: React.FC = () => {
                             header:
                               "Czy na pewno chcesz cofnąć dostarczenie adresu?",
                             subHeader: "Wybrany adres:",
-                            message: state.routeCurrentItemFooter?.street + " " + state.routeCurrentItemFooter?.houseNumber,
+                            message:
+                              state.routeCurrentItemFooter?.street +
+                              " " +
+                              state.routeCurrentItemFooter?.houseNumber,
                             buttons: [
                               "Anuluj",
                               {
                                 text: "Cofnij",
                                 handler: async () => {
-                                  const newItem = { ...state.routeCurrentItemFooter };
+                                  const newItem = {
+                                    ...state.routeCurrentItemFooter,
+                                  };
 
                                   newItem.packagesCompleted = false;
                                   newItem.image = undefined;
@@ -1197,11 +1234,9 @@ const Home: React.FC = () => {
                               body.style.background = "transparent";
                             }
                             setScanning(true);
-                            if(state.routeCurrentItemFooter)
-                            {
+                            if (state.routeCurrentItemFooter) {
                               startScan(state.routeCurrentItemFooter);
                             }
-                           
                           }
                         }
                       }}
@@ -1216,7 +1251,10 @@ const Home: React.FC = () => {
                         }
                       }}
                     >
-                      <h4 style={{ color: "var(--ion-color-dark)" }} className="address capitalize">{`${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`}</h4>
+                      <h4
+                        style={{ color: "var(--ion-color-dark)" }}
+                        className="address capitalize"
+                      >{`${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`}</h4>
                       <p className="capitalize">{`${state.routeCurrentItemFooter?.postCode} ${state.routeCurrentItemFooter?.city}`}</p>
                     </IonLabel>
                     <IonIcon
@@ -1253,18 +1291,18 @@ const Home: React.FC = () => {
           ) : (
             <></>
           )}
-          {
-            state.routeCurrentItemFooter
-            ?
+          {state.routeCurrentItemFooter ? (
             <></>
-            :
-<IonItem style={{ "--min-height": "35px" }}>
-            <IonLabel slot="end" style={{ marginTop: "0", marginBottom: "0" }}>
-              {state.routeEnd?.length}/{state.route?.length}
-            </IonLabel>
-          </IonItem>
-          }
-          
+          ) : (
+            <IonItem style={{ "--min-height": "35px" }}>
+              <IonLabel
+                slot="end"
+                style={{ marginTop: "0", marginBottom: "0" }}
+              >
+                {state.routeEnd?.length}/{state.route?.length}
+              </IonLabel>
+            </IonItem>
+          )}
         </IonFooter>
       )}
       {scanning ? (
@@ -1310,46 +1348,43 @@ const Home: React.FC = () => {
               className="order-photo"
               color="success"
               onClick={async () => {
-                
-
                 const image = await GetPhoto();
 
                 await UpdateRouteImage(choosedItem.id, image);
 
-              //   const newItem = choosedItem;
-              //   if (newItem) {
-              //     newItem.image = image.webPath;
-              //     newItem.packagesCompleted = true;
+                //   const newItem = choosedItem;
+                //   if (newItem) {
+                //     newItem.image = image.webPath;
+                //     newItem.packagesCompleted = true;
 
-              //     console.log(image);
+                //     console.log(image);
 
-              //     UpdateRouteElement(
-              //       undefined,
-              //       newItem,
-              //       "undelivered",
-              //       setItems,
-              //       setItemsStatic,
-              //       setFooterItem,
-              //       footerItem,
-              //       true
-              //     );
-              //   }
+                //     UpdateRouteElement(
+                //       undefined,
+                //       newItem,
+                //       "undelivered",
+                //       setItems,
+                //       setItemsStatic,
+                //       setFooterItem,
+                //       footerItem,
+                //       true
+                //     );
+                //   }
 
-              //   presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
-              //   api
-              //     .post("routes/addresses/" + choosedItem.id + "/image", {
-              //       image: image.base64,
-              //     })
-              //     .then((response) => {
-              //       console.log(response);
-              //     })
-              //     .finally(() => {
-              //       dismissPhotoLoading();
-              //     });
+                //   presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
+                //   api
+                //     .post("routes/addresses/" + choosedItem.id + "/image", {
+                //       image: image.base64,
+                //     })
+                //     .then((response) => {
+                //       console.log(response);
+                //     })
+                //     .finally(() => {
+                //       dismissPhotoLoading();
+                //     });
 
                 stopScan();
                 setScanning(false);
-
               }}
             >
               <IonLabel>ZDJĘCIE DOSTAWY</IonLabel>
@@ -1389,7 +1424,6 @@ const Home: React.FC = () => {
                               {
                                 text: "Zrób zdjęcie",
                                 handler: async (e) => {
-
                                   const image = await GetPhoto();
                                   await UpdateRoutePackageImage(_e.id, image);
 

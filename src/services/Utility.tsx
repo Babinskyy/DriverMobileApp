@@ -444,6 +444,12 @@ export const useRoute = () => {
     };
 
     const UpdateRouteImage = async (id: number, image: ImageProps) => {
+
+      presentPhotoLoading({
+        spinner: "crescent",
+        message: "Zapisywanie...",
+      });
+
       const _route = state.route;
 
       if (_route) {
@@ -470,20 +476,21 @@ export const useRoute = () => {
               let reader = new FileReader();
               reader.readAsDataURL(result);
               reader.onloadend = function () {
-                presentPhotoLoading({
-                  spinner: "crescent",
-                  message: "Wysyłanie",
+                
+                dismissPhotoLoading();
+
+
+                AddOfflineRequest("routes/addresses/" + id + "/image", "post", {
+                  image: (reader.result as string).replace("data:image/jpeg;base64,", ""),
                 });
-                api
-                  .post("routes/addresses/" + id + "/image", {
-                    image: (reader.result as string).replace("data:image/jpeg;base64,", ""),
-                  })
-                  .then((response) => {
-                    console.log(response);
-                  })
-                  .finally(() => {
-                    dismissPhotoLoading();
-                  });
+
+                // api
+                //   .post("routes/addresses/" + id + "/image", {
+                //     image: (reader.result as string).replace("data:image/jpeg;base64,", ""),
+                //   })
+                //   .then((response) => {
+                //     console.log(response);
+                //   })
 
                 Init(_route);
               };
@@ -524,18 +531,11 @@ export const useRoute = () => {
                     let reader = new FileReader();
                     reader.readAsDataURL(result);
                     reader.onloadend = function () {
-                        presentPhotoLoading({ spinner: "crescent", message: "Wysyłanie" });
-                        api
-                          .post("routes/addresses/packages/" + packageId + "/image", {
-                            image: (reader.result as string).replace("data:image/jpeg;base64,", ""),
-                          })
-                          .then((response) => {
-                            console.log(response);
-                          })
-                          .finally(() => {
-                            dismissPhotoLoading();
-                          });
-            
+
+                      AddOfflineRequest("routes/addresses/packages/" + packageId + "/image", "post", {
+                        image: (reader.result as string).replace("data:image/jpeg;base64,", ""),
+                      });
+
                         Init(_route);
                     };
                   },
