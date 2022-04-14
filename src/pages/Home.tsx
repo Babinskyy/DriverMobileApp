@@ -361,7 +361,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     const effectAsync = async () => {
       await App.removeAllListeners();
-      await Network.removeAllListeners();
+      // await Network.removeAllListeners();
 
       App.addListener("appStateChange", async ({ isActive }) => {
         if (isActive) {
@@ -376,6 +376,7 @@ const Home: React.FC = () => {
       // });
 
       await CheckOfflineRequests();
+      await InitWithServer();
     };
 
     effectAsync();
