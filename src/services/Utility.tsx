@@ -300,7 +300,7 @@ export const useRoute = () => {
 
     checkOptionalScan();
 
-    InitWithServer();
+    // InitWithServer();
   }, []);
 
   const InitWithServer = async (routeParam?: RouteProps[]) => {
