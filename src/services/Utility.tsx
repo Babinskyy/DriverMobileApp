@@ -372,10 +372,32 @@ export const useRoute = () => {
       );
     });
 
+    let _searchText = "";
+
+    if(searchText == undefined && state.searchText != undefined)
+    {
+      _searchText = state.searchText;
+    }
+    else if(searchText || searchText == "")
+    {
+      _searchText = searchText;
+    }
+
     if (searchText) {
       _routeDelivered = filterItems(_routeDelivered, searchText);
       _routeNotDelivered = filterItems(_routeNotDelivered, searchText);
     }
+    else
+    {
+      if (state.searchText && !(searchText || searchText == "")) {
+        _routeDelivered = filterItems(_routeDelivered, state.searchText);
+        _routeNotDelivered = filterItems(_routeNotDelivered, state.searchText);
+      }
+    }
+
+    
+
+
 
     setState((prev) => ({
       ...prev,
@@ -384,6 +406,7 @@ export const useRoute = () => {
         routeEnd: _routeDelivered,
         routeCurrent: _routeNotDelivered,
         routeCurrentItemFooter: routeCurrentItemFooter,
+        searchText: _searchText
       },
     }));
 

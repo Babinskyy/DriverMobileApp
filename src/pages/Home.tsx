@@ -715,14 +715,14 @@ const Home: React.FC = () => {
             }}
             // onIonChange={(e) => filterItems(e.detail.value!)}
             onIonChange={(e) => {
-              const text = e.detail.value!;
+              const text = e.detail.value;
 
               // setState((prev) => ({
               //   ...prev,
               //   ...{ searchText: text.length > 1 ? text : undefined },
               // }));
 
-              Init(state.route, text);
+              Init(undefined, text == undefined ? "" : text);
             }}
           ></IonSearchbar>
           <IonButtons slot="end">
