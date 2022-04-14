@@ -231,8 +231,16 @@ const Home: React.FC = () => {
         contentRef.current.scrollToTop();
       }
 
-      await CheckOfflineRequests();
-      await InitWithServer();
+      const networkStatus = await Network.getStatus();
+      if (networkStatus.connected) {
+        await CheckOfflineRequests();
+        await InitWithServer();
+      }
+      else 
+      {
+        await Init();
+      }
+
 
       // await assignRouteDeliveredFromStorageToState();
 
@@ -252,8 +260,15 @@ const Home: React.FC = () => {
         contentRef.current.scrollToTop();
       }
 
-      await CheckOfflineRequests();
-      await InitWithServer();
+      const networkStatus = await Network.getStatus();
+      if (networkStatus.connected) {
+        await CheckOfflineRequests();
+        await InitWithServer();
+      }
+      else 
+      {
+        await Init();
+      }
 
       // await assignRouteFromStorageToState();
 
@@ -379,6 +394,10 @@ const Home: React.FC = () => {
       if (networkStatus.connected) {
         await CheckOfflineRequests();
         await InitWithServer();
+      }
+      else 
+      {
+        await Init();
       }
     };
 
@@ -741,8 +760,13 @@ const Home: React.FC = () => {
 
                   setRotate(!rotate);
 
-                  await CheckOfflineRequests();
-                  await InitWithServer();
+                  const networkStatus = await Network.getStatus();
+                  if (networkStatus.connected) {
+                    await CheckOfflineRequests();
+                    await InitWithServer();
+                  } else {
+                    await Init();
+                  }
                 } catch (error) {}
 
                 await dismissLoading();
