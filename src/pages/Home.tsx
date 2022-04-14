@@ -796,6 +796,34 @@ const Home: React.FC = () => {
                     {i >= 0 ? <div className="counter">{i + 1}</div> : <></>}
                     <IonLabel>
                       <div style={{ display: "flex" }}>
+                        
+                      <IonIcon
+                          className="icon-navigation"
+                          color="primary"
+                          slot="start"
+                          icon={navigateOutline}
+                          onClick={(event) => {
+                            setAddress(`${e.street} ${e.houseNumber}`);
+                            present({
+                              event: event.nativeEvent,
+                            });
+                          }}
+                        />
+
+                        <IonLabel
+                          className="wrap"
+                          onClick={() => {
+                            if (items) {
+                              setShowOrderInfoModal(true);
+                              setItemModalInfo(e);
+                            }
+                          }}
+                        >
+                          <h4 className="address capitalize">{`${e.street} ${e.houseNumber}`}</h4>
+                          <p className="capitalize">{`${e.postCode} ${e.city}`}</p>
+                        </IonLabel>
+
+
                         <IonIcon
                           className="icon-scan"
                           color={
@@ -807,7 +835,7 @@ const Home: React.FC = () => {
                               ? "tertiary"
                               : "primary"
                           }
-                          slot="start"
+                          slot="end"
                           icon={
                             e.image
                               ? syncOutline
@@ -963,30 +991,7 @@ const Home: React.FC = () => {
                           }}
                         />
 
-                        <IonLabel
-                          className="wrap"
-                          onClick={() => {
-                            if (items) {
-                              setShowOrderInfoModal(true);
-                              setItemModalInfo(e);
-                            }
-                          }}
-                        >
-                          <h4 className="address capitalize">{`${e.street} ${e.houseNumber}`}</h4>
-                          <p className="capitalize">{`${e.postCode} ${e.city}`}</p>
-                        </IonLabel>
-                        <IonIcon
-                          className="icon-navigation"
-                          color="primary"
-                          slot="end"
-                          icon={navigateOutline}
-                          onClick={(event) => {
-                            setAddress(`${e.street} ${e.houseNumber}`);
-                            present({
-                              event: event.nativeEvent,
-                            });
-                          }}
-                        />
+                        
                       </div>
                       {e.packages.map((_e) => {
                         return (
@@ -1049,6 +1054,42 @@ const Home: React.FC = () => {
               >
                 <IonLabel>
                   <div style={{ display: "flex" }}>
+
+
+                  <IonIcon
+                      className="icon-navigation"
+                      color="primary"
+                      slot="start"
+                      icon={navigateOutline}
+                      onClick={(event) => {
+                        setAddress(
+                          `${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`
+                        );
+                        present({
+                          event: event.nativeEvent,
+                        });
+                      }}
+                    />
+
+
+                    
+
+                    <IonLabel
+                      className="wrap"
+                      onClick={() => {
+                        if (items) {
+                          setShowOrderInfoModal(true);
+                          setItemModalInfo(state.routeCurrentItemFooter);
+                        }
+                      }}
+                    >
+                      <h4
+                        style={{ color: "var(--ion-color-dark)" }}
+                        className="address capitalize"
+                      >{`${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`}</h4>
+                      <p className="capitalize">{`${state.routeCurrentItemFooter?.postCode} ${state.routeCurrentItemFooter?.city}`}</p>
+                    </IonLabel>
+                    
                     <IonIcon
                       className="icon-scan"
                       color={
@@ -1062,7 +1103,7 @@ const Home: React.FC = () => {
                           ? "tertiary"
                           : "primary"
                       }
-                      slot="start"
+                      slot="end"
                       icon={
                         state.routeCurrentItemFooter?.image
                           ? syncOutline
@@ -1229,35 +1270,6 @@ const Home: React.FC = () => {
                       }}
                     />
 
-                    <IonLabel
-                      className="wrap"
-                      onClick={() => {
-                        if (items) {
-                          setShowOrderInfoModal(true);
-                          setItemModalInfo(state.routeCurrentItemFooter);
-                        }
-                      }}
-                    >
-                      <h4
-                        style={{ color: "var(--ion-color-dark)" }}
-                        className="address capitalize"
-                      >{`${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`}</h4>
-                      <p className="capitalize">{`${state.routeCurrentItemFooter?.postCode} ${state.routeCurrentItemFooter?.city}`}</p>
-                    </IonLabel>
-                    <IonIcon
-                      className="icon-navigation"
-                      color="primary"
-                      slot="end"
-                      icon={navigateOutline}
-                      onClick={(event) => {
-                        setAddress(
-                          `${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`
-                        );
-                        present({
-                          event: event.nativeEvent,
-                        });
-                      }}
-                    />
                   </div>
                   {state.routeCurrentItemFooter?.packages.map((_e) => {
                     return (
