@@ -235,12 +235,9 @@ const Home: React.FC = () => {
       if (networkStatus.connected) {
         await CheckOfflineRequests();
         await InitWithServer();
-      }
-      else 
-      {
+      } else {
         await Init();
       }
-
 
       // await assignRouteDeliveredFromStorageToState();
 
@@ -264,9 +261,7 @@ const Home: React.FC = () => {
       if (networkStatus.connected) {
         await CheckOfflineRequests();
         await InitWithServer();
-      }
-      else 
-      {
+      } else {
         await Init();
       }
 
@@ -395,9 +390,7 @@ const Home: React.FC = () => {
         await Init();
         await CheckOfflineRequests();
         await InitWithServer();
-      }
-      else 
-      {
+      } else {
         await Init();
       }
     };
@@ -825,14 +818,15 @@ const Home: React.FC = () => {
                     {i >= 0 ? <div className="counter">{i + 1}</div> : <></>}
                     <IonLabel>
                       <div style={{ display: "flex" }}>
-                        
-                      <IonIcon
+                        <IonIcon
                           className="icon-navigation"
                           color="primary"
                           slot="start"
                           icon={navigateOutline}
                           onClick={(event) => {
-                            setAddress(`${e.street} ${e.houseNumber}`);
+                            setAddress(
+                              `${e.city} ${e.postCode} ${e.street} ${e.houseNumber}`
+                            );
                             present({
                               event: event.nativeEvent,
                             });
@@ -851,7 +845,6 @@ const Home: React.FC = () => {
                           <h4 className="address capitalize">{`${e.street} ${e.houseNumber}`}</h4>
                           <p className="capitalize">{`${e.postCode} ${e.city}`}</p>
                         </IonLabel>
-
 
                         <IonIcon
                           className="icon-scan"
@@ -1019,8 +1012,6 @@ const Home: React.FC = () => {
                             }
                           }}
                         />
-
-                        
                       </div>
                       {e.packages.map((_e) => {
                         return (
@@ -1083,25 +1074,20 @@ const Home: React.FC = () => {
               >
                 <IonLabel>
                   <div style={{ display: "flex" }}>
-
-
-                  <IonIcon
+                    <IonIcon
                       className="icon-navigation"
                       color="primary"
                       slot="start"
                       icon={navigateOutline}
                       onClick={(event) => {
                         setAddress(
-                          `${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`
+                          `${state.routeCurrentItemFooter?.city} ${state.routeCurrentItemFooter?.postCode} ${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`
                         );
                         present({
                           event: event.nativeEvent,
                         });
                       }}
                     />
-
-
-                    
 
                     <IonLabel
                       className="wrap"
@@ -1118,7 +1104,7 @@ const Home: React.FC = () => {
                       >{`${state.routeCurrentItemFooter?.street} ${state.routeCurrentItemFooter?.houseNumber}`}</h4>
                       <p className="capitalize">{`${state.routeCurrentItemFooter?.postCode} ${state.routeCurrentItemFooter?.city}`}</p>
                     </IonLabel>
-                    
+
                     <IonIcon
                       className="icon-scan"
                       color={
@@ -1298,7 +1284,6 @@ const Home: React.FC = () => {
                         }
                       }}
                     />
-
                   </div>
                   {state.routeCurrentItemFooter?.packages.map((_e) => {
                     return (
