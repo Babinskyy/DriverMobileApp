@@ -231,6 +231,7 @@ const Home: React.FC = () => {
         contentRef.current.scrollToTop();
       }
 
+      await CheckOfflineRequests();
       await InitWithServer();
 
       // await assignRouteDeliveredFromStorageToState();
@@ -251,6 +252,7 @@ const Home: React.FC = () => {
         contentRef.current.scrollToTop();
       }
 
+      await CheckOfflineRequests();
       await InitWithServer();
 
       // await assignRouteFromStorageToState();

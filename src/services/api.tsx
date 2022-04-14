@@ -2,11 +2,11 @@ import axios from "axios";
 import TokenService from "./token.service";
 import { User } from "./userProps";
 import { AddOfflineRequest } from "./Utility";
-import { Network } from '@capacitor/network';
+import { Network } from "@capacitor/network";
 import { Storage } from "@capacitor/storage";
 
 const instance = axios.create({
-  timeout: 10000,
+  timeout: 15000,
   timeoutErrorMessage: "Za długi czas oczekiwania",
   withCredentials: true,
   baseURL: "https://broccoliapi.ebert.link",
@@ -17,10 +17,14 @@ const instance = axios.create({
 });
 instance.interceptors.request.use(
   async (config) => {
-
     const networkStatus = await Network.getStatus();
-    if(!networkStatus.connected && config.url && config.method != "GET" && config.method != "get" && config.method)
-    {
+    if (
+      !networkStatus.connected &&
+      config.url &&
+      config.method != "GET" &&
+      config.method != "get" &&
+      config.method
+    ) {
       await AddOfflineRequest(config.url, config.method, config.data);
     }
 
@@ -31,8 +35,8 @@ instance.interceptors.request.use(
     return config;
   },
   async (error) => {
-    console.log("request")
-    console.log(error)
+    console.log("request");
+    console.log(error);
     return Promise.reject(error);
   }
 );
@@ -58,14 +62,12 @@ instance.interceptors.response.use(
 
           const { value } = await Storage.get({ key: "OfflineRequests" });
           await Storage.clear();
-          if(value)
-          {
+          if (value) {
             await Storage.set({
               key: "OfflineRequests",
-              value: value
+              value: value,
             });
           }
-          
 
           return Promise.reject(_error);
         }
