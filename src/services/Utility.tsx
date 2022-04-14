@@ -19,7 +19,7 @@ import {
 import { useIonLoading } from "@ionic/react";
 import { Network } from "@capacitor/network";
 
-export const GetPhoto = async () => {
+export const GetPhoto = async (id: string = "") => {
 
     if(isPlatform("mobileweb") || isPlatform("desktop"))
     {
@@ -51,6 +51,17 @@ export const GetPhoto = async () => {
             imageBase64 = await Filesystem.readFile({
                 path: image.path
             });
+
+            if(imageBase64?.data)
+            {
+              const fileName = id == "" ? new Date().getTime() + '.jpg' : id + "--" + new Date().getTime() + '.jpg';
+              const savedFile = await Filesystem.writeFile({
+                path: fileName,
+                data: imageBase64.data,
+                directory: Directory.Data
+              });
+            }
+
         }
     
         return {

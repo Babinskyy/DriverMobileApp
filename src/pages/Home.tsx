@@ -741,7 +741,7 @@ const Home: React.FC = () => {
               onClick={async () => {
 
                 try {
-                  
+
                   presentLoading({
                     message: "Synchronizowanie danych z serwerem",
                     spinner: "crescent",
@@ -835,7 +835,7 @@ const Home: React.FC = () => {
                               (e.packagesCompleted || state.isScanOptional) &&
                               !e.image
                             ) {
-                              const image = await GetPhoto();
+                              const image = await GetPhoto(e.id.toString());
 
                               await UpdateRouteImage(e.id, image);
 
@@ -1097,7 +1097,7 @@ const Home: React.FC = () => {
                             state.isScanOptional) &&
                           !state.routeCurrentItemFooter?.image
                         ) {
-                          const image = await GetPhoto();
+                          const image = await GetPhoto(state.routeCurrentItemFooter.id.toString());
 
                           await UpdateRouteImage(
                             state.routeCurrentItemFooter.id,
@@ -1348,7 +1348,7 @@ const Home: React.FC = () => {
               className="order-photo"
               color="success"
               onClick={async () => {
-                const image = await GetPhoto();
+                const image = await GetPhoto(choosedItem.id.toString());
 
                 await UpdateRouteImage(choosedItem.id, image);
 
@@ -1424,7 +1424,7 @@ const Home: React.FC = () => {
                               {
                                 text: "Zrób zdjęcie",
                                 handler: async (e) => {
-                                  const image = await GetPhoto();
+                                  const image = await GetPhoto(_e.id.toString());
                                   await UpdateRoutePackageImage(_e.id, image);
 
                                   // setChoosedItem(_e);
