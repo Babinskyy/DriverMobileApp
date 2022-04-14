@@ -58,7 +58,14 @@ import {
   swapVerticalOutline,
   syncOutline,
 } from "ionicons/icons";
-import React, { FunctionComponent, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  FunctionComponent,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import MapPopover from "../components/MapPopover";
 import PhonePopover from "../components/PhonePopover";
 import "./Home.scss";
@@ -85,11 +92,11 @@ import { RouterProps } from "react-router";
 import {
   GetPhoto,
   useRoute,
-  CheckOfflineRequests as _CheckOfflineRequests
+  CheckOfflineRequests as _CheckOfflineRequests,
 } from "../services/Utility";
 import { Network } from "@capacitor/network";
 
-import { App } from '@capacitor/app';
+import { App } from "@capacitor/app";
 
 import {
   GlobalStateProvider,
@@ -98,7 +105,6 @@ import {
 } from "./../GlobalStateProvider";
 
 const Home: React.FC = () => {
-
   const { navigate } = useContext(NavContext);
 
   const { state, setState } = useGlobalState();
@@ -127,10 +133,8 @@ const Home: React.FC = () => {
   const [itemsStatic, setItemsStatic] = useState<RouteProps[]>([]);
   const [rotate, setRotate] = useState<boolean>(false);
 
-
   const [itemsCounter, setItemsCounter] = useState(0);
   const [itemsCounterScanned, setItemsCounterScanned] = useState(0);
-
 
   const [presentToast, dismissToast] = useIonToast();
 
@@ -144,16 +148,24 @@ const Home: React.FC = () => {
 
   const [footerItem, setFooterItem] = useState<RouteProps>();
 
-  const [itemsMode, setItemsMode] = useState<"undelivered" | "delivered">("undelivered");
+  const [itemsMode, setItemsMode] = useState<"undelivered" | "delivered">(
+    "undelivered"
+  );
 
   const [presentPhotoLoading, dismissPhotoLoading] = useIonLoading();
 
   const [presentLoading, dismissLoading] = useIonLoading();
 
-  const { Init, UpdateRouteImage, InitWithServer, UpdateRoutePackageImage, ChangeRouteToDefault, ScanRoutePackage } = useRoute();
+  const {
+    Init,
+    UpdateRouteImage,
+    InitWithServer,
+    UpdateRoutePackageImage,
+    ChangeRouteToDefault,
+    ScanRoutePackage,
+  } = useRoute();
 
   // useEffect(() => {
-
 
   //   const AssignItemsCounter = async () => {
 
@@ -180,9 +192,7 @@ const Home: React.FC = () => {
 
   //   AssignItemsCounter();
 
-
   // }, [items])
-
 
   // useEffect(() => {
   //   const foundItem = items.find((x) => {
@@ -212,15 +222,12 @@ const Home: React.FC = () => {
   const [presentThreeDots, dismissThreeDots] = useIonPopover(ThreeDotsPopover, {
     onHide: () => dismissThreeDots(),
     showDelivered: async () => {
-
       setItemsMode("delivered");
-      if(itemsMode == "undelivered")
-      {
+      if (itemsMode == "undelivered") {
         setInfinityCounter(20);
       }
 
-      if(contentRef.current)
-      {
+      if (contentRef.current) {
         contentRef.current.scrollToTop();
       }
 
@@ -235,15 +242,12 @@ const Home: React.FC = () => {
       // });
     },
     showUndelivered: async () => {
-
       setItemsMode("undelivered");
-      if(itemsMode == "delivered")
-      {
+      if (itemsMode == "delivered") {
         setInfinityCounter(20);
       }
-      
-      if(contentRef.current)
-      {
+
+      if (contentRef.current) {
         contentRef.current.scrollToTop();
       }
 
@@ -280,24 +284,19 @@ const Home: React.FC = () => {
 
   //   });
 
-    
   // });
-
 
   // useEffect(() => {
   //   assignRouteFromStorageToState();
   // }, []);
 
   const CheckOfflineRequests = async () => {
-    
     const networkStatus = await Network.getStatus();
 
-    if(networkStatus.connected)
-    {
+    if (networkStatus.connected) {
       await _CheckOfflineRequests();
     }
-
-  }
+  };
 
   // const CheckOfflineRequests = async () => {
 
@@ -309,16 +308,16 @@ const Home: React.FC = () => {
 
   //       const { value } = await Storage.get({ key: "OfflineRequests" });
   //       await Storage.remove({ key: "OfflineRequests" });
-    
+
   //       if(value)
   //       {
-      
+
   //         let offlineRequests = JSON.parse(value) as OfflineRequestProps[];
   //         offlineRequests.reverse();
-      
+
   //         if(offlineRequests.length > 0)
   //         {
-      
+
   //           presentLoading({
   //             message: "Synchronizowanie danych z serwerem",
   //             spinner: "crescent"
@@ -334,7 +333,7 @@ const Home: React.FC = () => {
   //           }
 
   //           setTimeout(async () => {
-              
+
   //             Init();
 
   //             setTimeout(() => {
@@ -343,56 +342,46 @@ const Home: React.FC = () => {
 
   //           }, 200);
 
-            
-
-            
-
-
   //           return;
-      
+
   //         }
-          
-      
+
   //       }
 
   //     } catch (error) {
-        
+
   //     }
-  
+
   //   }
 
-
-    
-  
   // }
 
-    useEffect(() => {
-      
-      App.addListener('appStateChange', async ({ isActive }) => {
-        if(isActive)
-        {
-          await CheckOfflineRequests();
-        }
-      })
+  useEffect(() => {
+    const effectAsync = async () => {
+      await App.removeAllListeners();
+      await Network.removeAllListeners();
 
-      Network.addListener('networkStatusChange', async (status) => {
-        if(status.connected)
-        {
+      App.addListener("appStateChange", async ({ isActive }) => {
+        if (isActive) {
           await CheckOfflineRequests();
         }
       });
 
-      // CheckOfflineRequests();
-  
-    }, []);
+      // Network.addListener("networkStatusChange", async (status) => {
+      //   if (status.connected) {
+      //     await CheckOfflineRequests();
+      //   }
+      // });
 
-
-    useIonViewDidEnter(async () => {
       await CheckOfflineRequests();
-    })
+    };
 
+    effectAsync();
+  }, []);
 
-  
+  // useIonViewDidEnter(async () => {
+  //   await CheckOfflineRequests();
+  // });
 
   // const filterItems = (searchText: string) => {
   //   if (searchText.length > 0) {
@@ -416,7 +405,6 @@ const Home: React.FC = () => {
   //   {
   //     contentRef.current.scrollToTop(500);
   //   }
-    
 
   // };
 
@@ -431,7 +419,6 @@ const Home: React.FC = () => {
 
     return false;
   };
-  
 
   const startScan = async (choosedItem: RouteProps) => {
     if (choosedItem) {
@@ -480,9 +467,10 @@ const Home: React.FC = () => {
                 }, 500);
                 Vibration.vibrate(500);
               } else if (selectedDietIndex >= 0) {
-
-
-                await ScanRoutePackage(tempChoosedItem.packages[selectedDietIndex].id, result.content as string);
+                await ScanRoutePackage(
+                  tempChoosedItem.packages[selectedDietIndex].id,
+                  result.content as string
+                );
 
                 // const newItem = { ...tempChoosedItem };
                 // newItem.packages[selectedDietIndex].scanned = true;
@@ -503,7 +491,7 @@ const Home: React.FC = () => {
                 //   footerItem,
                 //   true
                 // );
-                
+
                 // setChoosedItem(newItem);
 
                 // api
@@ -739,24 +727,19 @@ const Home: React.FC = () => {
             <IonButton
               className={rotate ? "rotated" : ""}
               onClick={async () => {
-
                 try {
-
                   presentLoading({
                     message: "Synchronizowanie danych z serwerem",
                     spinner: "crescent",
                   });
-  
+
                   setRotate(!rotate);
-  
+
                   await CheckOfflineRequests();
                   await InitWithServer();
-
                 } catch (error) {}
 
-
                 await dismissLoading();
-
               }}
             >
               <IonIcon slot="icon-only" icon={refreshOutline} />
@@ -1097,7 +1080,9 @@ const Home: React.FC = () => {
                             state.isScanOptional) &&
                           !state.routeCurrentItemFooter?.image
                         ) {
-                          const image = await GetPhoto(state.routeCurrentItemFooter.id.toString());
+                          const image = await GetPhoto(
+                            state.routeCurrentItemFooter.id.toString()
+                          );
 
                           await UpdateRouteImage(
                             state.routeCurrentItemFooter.id,
@@ -1424,7 +1409,9 @@ const Home: React.FC = () => {
                               {
                                 text: "Zrób zdjęcie",
                                 handler: async (e) => {
-                                  const image = await GetPhoto(_e.id.toString());
+                                  const image = await GetPhoto(
+                                    _e.id.toString()
+                                  );
                                   await UpdateRoutePackageImage(_e.id, image);
 
                                   // setChoosedItem(_e);
