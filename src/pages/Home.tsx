@@ -382,6 +382,10 @@ const Home: React.FC = () => {
         if (isActive) {
           await CheckOfflineRequests();
         }
+        else
+        {
+          await CheckOfflineRequests();
+        }
       });
 
       // Network.addListener("networkStatusChange", async (status) => {

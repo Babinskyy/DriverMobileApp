@@ -489,6 +489,7 @@ export const useRoute = () => {
                   "data:image/jpeg;base64,",
                   ""
                 ),
+                date: (new Date()).toJSON()
               });
 
               // api
@@ -545,6 +546,7 @@ export const useRoute = () => {
                     "data:image/jpeg;base64,",
                     ""
                   ),
+                  date: (new Date()).toJSON()
                 }
               );
 
