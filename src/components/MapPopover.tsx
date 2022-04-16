@@ -14,7 +14,7 @@ const MapPopover: React.FC<{
       onClick={() => {
         window.open(
           "https://www.google.com/maps/dir/?api=1&destination=" +
-            encodeURIComponent("Gdańsk " + address),
+            encodeURIComponent(address),
           "_blank"
         );
         onHide();
@@ -29,7 +29,7 @@ const MapPopover: React.FC<{
       onClick={() => {
         window.open(
           // "https://mapa.targeo.pl/" + encodeURIComponent("Gdańsk " + address + "," + lng.replace(",", ".") + "," + lat.replace(",", ".")),
-          "https://mapa.targeo.pl/" + encodeURIComponent("Gdańsk " + address),
+          "https://mapa.targeo.pl/" + encodeURIComponent(address),
           "_blank"
         ); //https://mapa.targeo.pl/b%C4%99dzin%20jesionowa%2017,19,19.121525400000003,50.31193999999999
         onHide();
