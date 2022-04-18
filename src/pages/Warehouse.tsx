@@ -149,9 +149,9 @@ const Warehouse: React.FC = () => {
       }
     });
 
-    const arr = dietsDictionary.sort((a, b) => a.name.localeCompare(b.name));
-    setDietsWithNumber(arr);
-    setDietsWithNumberStatic(arr);
+    // const arr = dietsDictionary.sort((a, b) => a.name.localeCompare(b.name));
+    setDietsWithNumber(dietsDictionary);
+    setDietsWithNumberStatic(dietsDictionary);
   };
 
   const getData = async () => {
@@ -529,6 +529,7 @@ const Warehouse: React.FC = () => {
                 }}
               >
                 <IonLabel
+                  className="wrap"
                   style={{
                     fontWeight: e.scanCount == e.count ? 600 : 400,
                     textDecoration:
@@ -539,6 +540,7 @@ const Warehouse: React.FC = () => {
                   {e.name}
                 </IonLabel>
                 <IonLabel
+                  className="wrap"
                   slot="end"
                   color={e.scanCount == e.count ? "success" : ""}
                 >
