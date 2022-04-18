@@ -120,7 +120,7 @@ const Menu: React.FC = () => {
             <IonLabel>Magazyn</IonLabel>
             <IonIcon slot="start" icon={homeOutline} />
           </IonItem>
-          <IonItem
+          {/* <IonItem
             lines="none"
             color={"/Map" == url ? "primary" : undefined}
             button
@@ -136,7 +136,7 @@ const Menu: React.FC = () => {
           >
             <IonLabel>Mapa</IonLabel>
             <IonIcon slot="start" icon={mapOutline} />
-          </IonItem>
+          </IonItem> */}
         </IonList>
       </IonContent>
       <IonFooter style={{ padding: "10px" }}>
@@ -161,14 +161,12 @@ const Menu: React.FC = () => {
           className="menu-item"
           color="danger"
           onClick={async () => {
-
             const { value } = await Storage.get({ key: "OfflineRequests" });
             await Storage.clear();
-            if(value)
-            {
+            if (value) {
               await Storage.set({
                 key: "OfflineRequests",
-                value: value
+                value: value,
               });
             }
 
