@@ -36,6 +36,7 @@
     "cordova-plugin-vibration": "^3.1.1",
     "ionicons": "^5.4.0",
     "jetifier": "^2.0.0",
+    "mapbox-gl": "^2.8.1",
     "node-sass": "^7.0.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
@@ -73,9 +74,8 @@
   },
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
+      "defaults",
+      "not ie 11"
     ],
     "development": [
       "last 1 chrome version",
@@ -86,6 +86,7 @@
   "devDependencies": {
     "@capacitor/cli": "3.4.3",
     "@types/cordova-plugin-qrscanner": "^1.0.31",
+    "@types/mapbox-gl": "^2.7.0",
     "@types/uuid": "^8.3.4"
   },
   "description": "An Ionic project"

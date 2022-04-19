@@ -40,6 +40,8 @@ import "./theme/fonts.css";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Warehouse from "./pages/Warehouse";
+import Map from "./pages/Map";
+
 import { useContext, useEffect, useRef, useState } from "react";
 
 import auth from "./services/auth.service";
@@ -106,6 +108,7 @@ const App: React.FC = () => {
           <Route path="/login" exact={true} component={Login} />
           <Route path="/Warehouse" exact={true} component={Warehouse} />
           <Route path="/" exact={true} component={Home} />
+          <Route path="/Map" exact={true} component={Map} />
         </IonRouterOutlet>
 
       </IonReactRouter>

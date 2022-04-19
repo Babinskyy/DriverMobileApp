@@ -120,7 +120,7 @@ const Menu: React.FC = () => {
             <IonLabel>Magazyn</IonLabel>
             <IonIcon slot="start" icon={homeOutline} />
           </IonItem>
-          {/* <IonItem
+          <IonItem
             lines="none"
             color={"/Map" == url ? "primary" : undefined}
             button
@@ -136,7 +136,7 @@ const Menu: React.FC = () => {
           >
             <IonLabel>Mapa</IonLabel>
             <IonIcon slot="start" icon={mapOutline} />
-          </IonItem> */}
+          </IonItem>
         </IonList>
       </IonContent>
       <IonFooter style={{ padding: "10px" }}>
