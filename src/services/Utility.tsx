@@ -316,13 +316,29 @@ export const useRoute = () => {
     }
   };
 
+  const ReplacePolishLetters = (napis: string) => {
+    napis = napis.replace("ę", "e");
+    napis = napis.replace("ó", "o");
+    napis = napis.replace("ą", "a");
+    napis = napis.replace("ś", "s");
+    napis = napis.replace("ł", "l");
+    napis = napis.replace("ż", "z");
+    napis = napis.replace("ź", "z");
+    napis = napis.replace("ć", "c");
+    napis = napis.replace("ń", "n");
+    return napis;
+  };
+
   const filterItems = (route: RouteProps[], searchText: string) => {
     if (searchText.length > 0) {
+
+      searchText = ReplacePolishLetters(searchText.toLowerCase().replaceAll(" ", ""));
+
       const tempItems = route.filter((e) => {
         return (
           e.packages.some((_e) => {
-            return _e.name.toLowerCase().includes(searchText.toLowerCase());
-          }) || e.street.toLowerCase().includes(searchText.toLowerCase())
+            return ReplacePolishLetters(_e.name.toLowerCase().replaceAll(" ", "")).includes(searchText);
+          }) || ReplacePolishLetters(e.city.toLowerCase() + e.street.toLowerCase() + e.houseNumber.toLowerCase()).replaceAll(" ", "").includes(searchText)
         );
       });
       if (tempItems) {
