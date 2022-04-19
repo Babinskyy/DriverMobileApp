@@ -74,6 +74,7 @@ const Warehouse: React.FC = () => {
   const [dietsWithNumberStatic, setDietsWithNumberStatic] = useState<
     DietsDictionary[]
   >([]);
+  const [allDietsCount, setAllDietsCount] = useState<number>(0);
 
   type DietsDictionary = {
     name: string;
@@ -152,6 +153,10 @@ const Warehouse: React.FC = () => {
     // const arr = dietsDictionary.sort((a, b) => a.name.localeCompare(b.name));
     setDietsWithNumber(dietsDictionary);
     setDietsWithNumberStatic(dietsDictionary);
+
+    if (packages) {
+      setAllDietsCount(packages.length);
+    }
   };
 
   const getData = async () => {
@@ -610,6 +615,9 @@ const Warehouse: React.FC = () => {
                 startScan();
               }}
             />
+            <IonLabel className="all-diets-counter">
+              Ilość diet: {allDietsCount}
+            </IonLabel>
           </IonToolbar>
         </IonFooter>
       )}

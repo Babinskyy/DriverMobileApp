@@ -821,7 +821,7 @@ const Home: React.FC = () => {
                   <div key={e.id} className="item-container">
                     {i >= 0 ? <div className="counter">{i + 1}</div> : <></>}
                     <IonLabel>
-                      <div style={{ display: "flex" }}>
+                      <div style={{ display: "flex", marginBottom: "5px" }}>
                         <IonIcon
                           className="icon-navigation"
                           color="primary"
@@ -1077,7 +1077,7 @@ const Home: React.FC = () => {
                 style={{ paddingTop: "5px", borderBottom: "none" }}
               >
                 <IonLabel>
-                  <div style={{ display: "flex" }}>
+                  <div style={{ display: "flex", marginBottom: "5px" }}>
                     <IonIcon
                       className="icon-navigation"
                       color="primary"
