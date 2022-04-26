@@ -28,6 +28,8 @@ import {
 import { useIonLoading } from "@ionic/react";
 import { Network } from "@capacitor/network";
 
+import { BackgroundMode } from '@ionic-native/background-mode';
+
 export const GetPhoto = async (id: string = "") => {
   if (isPlatform("mobileweb") || isPlatform("desktop")) {
     const image = await Camera.getPhoto({
@@ -266,13 +268,6 @@ export const useRoute = () => {
         const valueBoolean = JSON.parse(value);
         if (valueBoolean) {
           isScanOptional = true;
-
-          setState((prev) => ({
-            ...prev,
-            ...{
-              isScanOptional: isScanOptional,
-            },
-          }));
         }
       }
 
@@ -290,12 +285,14 @@ export const useRoute = () => {
         value: JSON.stringify(isScanOptional),
       });
 
-      setState((prev) => ({
-        ...prev,
-        ...{
-          isScanOptional: isScanOptional,
-        },
-      }));
+      if (state.isScanOptional != isScanOptional) {
+        setState((prev) => ({
+          ...prev,
+          ...{
+            isScanOptional: isScanOptional,
+          },
+        }));
+      }
     };
 
     checkOptionalScan();
@@ -316,29 +313,31 @@ export const useRoute = () => {
     }
   };
 
-  const ReplacePolishLetters = (napis: string) => {
-    napis = napis.replace("ę", "e");
-    napis = napis.replace("ó", "o");
-    napis = napis.replace("ą", "a");
-    napis = napis.replace("ś", "s");
-    napis = napis.replace("ł", "l");
-    napis = napis.replace("ż", "z");
-    napis = napis.replace("ź", "z");
-    napis = napis.replace("ć", "c");
-    napis = napis.replace("ń", "n");
-    return napis;
+  const ReplacePolishLettersAndSpaces = (napis: string) => {
+    try {
+
+      const toReturn = napis.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\u0142/g, "l").toLowerCase().replace(/ /g,'');
+      return toReturn;
+
+    } catch (error) {
+      
+      const toReturn = napis;
+      return toReturn;
+
+    }
+    
   };
 
   const filterItems = (route: RouteProps[], searchText: string) => {
     if (searchText.length > 0) {
 
-      searchText = ReplacePolishLetters(searchText.toLowerCase().replaceAll(" ", ""));
+      searchText = ReplacePolishLettersAndSpaces(searchText);
 
       const tempItems = route.filter((e) => {
         return (
           e.packages.some((_e) => {
-            return ReplacePolishLetters(_e.name.toLowerCase().replaceAll(" ", "")).includes(searchText);
-          }) || ReplacePolishLetters(e.city.toLowerCase() + e.street.toLowerCase() + e.houseNumber.toLowerCase()).replaceAll(" ", "").includes(searchText)
+            return ReplacePolishLettersAndSpaces(_e.name).includes(searchText);
+          }) || ReplacePolishLettersAndSpaces(e.city + e.street + e.houseNumber).includes(searchText)
         );
       });
       if (tempItems) {
@@ -469,14 +468,11 @@ export const useRoute = () => {
   };
 
   const UpdateRouteImage = async (id: number, image: ImageProps) => {
-    presentPhotoLoading({
-      spinner: "crescent",
-      message: "Zapisywanie...",
-    });
 
     const _route = state.route;
 
     if (_route) {
+
       for (const n of _route) {
         if (n.id == id) {
           for (const k of n.packages) {
@@ -488,43 +484,74 @@ export const useRoute = () => {
         }
       }
 
-      if (image.base64) {
-        new Compressor(GetBlobFromBase64(image.base64), {
-          quality: 0.7,
-          maxWidth: 1080,
-          // The compression process is asynchronous,
-          // which means you have to access the `result` in the `success` hook function.
-          success(result) {
-            let reader = new FileReader();
-            reader.readAsDataURL(result);
-            reader.onloadend = function () {
-              dismissPhotoLoading();
+      Init(_route);
 
-              AddOfflineRequest("routes/addresses/" + id + "/image", "post", {
-                image: (reader.result as string).replace(
-                  "data:image/jpeg;base64,",
-                  ""
-                ),
-                date: (new Date()).toJSON()
-              });
-
-              // api
-              //   .post("routes/addresses/" + id + "/image", {
-              //     image: (reader.result as string).replace("data:image/jpeg;base64,", ""),
-              //   })
-              //   .then((response) => {
-              //     console.log(response);
-              //   })
-
-              Init(_route);
-            };
-          },
-          error(err) {
-            console.log(err.message);
-          },
-        });
-      }
     }
+
+    const eventId = uuidv4();
+
+    if(!BackgroundMode.isEnabled())
+    {
+      BackgroundMode.enable();
+    }
+    
+    BackgroundMode.on(eventId).subscribe(()=>{
+
+      const _route = state.route;
+      if (_route) {
+        
+
+        
+  
+        if (image.base64) {
+          new Compressor(GetBlobFromBase64(image.base64), {
+            quality: 0.7,
+            maxWidth: 1080,
+            // The compression process is asynchronous,
+            // which means you have to access the `result` in the `success` hook function.
+            success(result) {
+              let reader = new FileReader();
+              reader.readAsDataURL(result);
+              reader.onloadend = async function () {
+                // dismissPhotoLoading();
+  
+                await AddOfflineRequest(
+                  "routes/addresses/" + id + "/image",
+                  "post",
+                  {
+                    image: (reader.result as string).replace(
+                      "data:image/jpeg;base64,",
+                      ""
+                    ),
+                    date: new Date().toJSON(),
+                  }
+                );
+
+                await CheckOfflineRequests();
+
+                // if (BackgroundMode.isEnabled()) {
+                //   BackgroundMode.disable();
+                // }
+                
+              };
+            },
+            error(err) {
+              console.log(err.message);
+
+              // if (BackgroundMode.isEnabled()) {
+              //   BackgroundMode.disable();
+              // }
+
+            },
+          });
+        }
+      }
+
+    });
+
+    BackgroundMode.fireEvent(eventId);
+    
+
   };
 
   const UpdateRoutePackageImage = async (
@@ -539,42 +566,63 @@ export const useRoute = () => {
           if (_package.id == packageId) {
             _package.image = image.webPath;
             _package.scanned = true;
-            // n.flag = !n.flag;
           }
         }
       }
 
-      if (image.base64) {
-        new Compressor(GetBlobFromBase64(image.base64), {
-          quality: 0.7,
-          maxWidth: 1080,
-          // The compression process is asynchronous,
-          // which means you have to access the `result` in the `success` hook function.
-          success(result) {
-            let reader = new FileReader();
-            reader.readAsDataURL(result);
-            reader.onloadend = function () {
-              AddOfflineRequest(
-                "routes/addresses/packages/" + packageId + "/image",
-                "post",
-                {
-                  image: (reader.result as string).replace(
-                    "data:image/jpeg;base64,",
-                    ""
-                  ),
-                  date: (new Date()).toJSON()
-                }
-              );
+      Init(_route);
 
-              Init(_route);
-            };
-          },
-          error(err) {
-            console.log(err.message);
-          },
-        });
-      }
     }
+
+    const eventId = uuidv4();
+
+    if(!BackgroundMode.isEnabled())
+    {
+      BackgroundMode.enable();
+    }
+    
+    BackgroundMode.on(eventId).subscribe(()=>{
+
+      const _route = state.route;
+      if (_route) {
+
+        if (image.base64) {
+          new Compressor(GetBlobFromBase64(image.base64), {
+            quality: 0.7,
+            maxWidth: 1080,
+            // The compression process is asynchronous,
+            // which means you have to access the `result` in the `success` hook function.
+            success(result) {
+              let reader = new FileReader();
+              reader.readAsDataURL(result);
+              reader.onloadend = async function () {
+                await AddOfflineRequest(
+                  "routes/addresses/packages/" + packageId + "/image",
+                  "post",
+                  {
+                    image: (reader.result as string).replace(
+                      "data:image/jpeg;base64,",
+                      ""
+                    ),
+                    date: (new Date()).toJSON()
+                  }
+                );
+  
+                await CheckOfflineRequests();
+              };
+            },
+            error(err) {
+              console.log(err.message);
+            },
+          });
+        }
+
+      }
+    });
+
+    BackgroundMode.fireEvent(eventId);
+      
+    
   };
 
   const ScanRoutePackage = async (

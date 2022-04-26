@@ -6,7 +6,7 @@ import { Network } from "@capacitor/network";
 import { Storage } from "@capacitor/storage";
 
 const instance = axios.create({
-  timeout: 15000,
+  // timeout: 15000,
   timeoutErrorMessage: "Za długi czas oczekiwania",
   withCredentials: true,
   baseURL: "https://broccoliapi.ebert.link",
@@ -58,7 +58,10 @@ instance.interceptors.response.use(
           return instance(originalConfig);
         } catch (_error) {
           // await tokenService.removeUser();
-          window.location.replace("/login");
+          if(!document.location.pathname.toLowerCase().startsWith("/login"))
+          {
+            window.location.replace("/login");
+          }
 
           const { value } = await Storage.get({ key: "OfflineRequests" });
           await Storage.clear();

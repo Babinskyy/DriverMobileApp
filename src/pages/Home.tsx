@@ -104,6 +104,11 @@ import {
   GlobalStateInterface,
 } from "./../GlobalStateProvider";
 
+import { BackgroundMode } from '@ionic-native/background-mode';
+
+import { v4 as uuidv4 } from "uuid";
+
+
 const Home: React.FC = () => {
   const { navigate } = useContext(NavContext);
 
@@ -275,17 +280,7 @@ const Home: React.FC = () => {
     },
   });
 
-  useEffect(() => {
-    const getUser = async () => {
-      const user = (await auth.getCurrentUser()) as User | undefined;
-
-      if (!user) {
-        navigate("/login", "root", "replace");
-      }
-    };
-
-    getUser();
-  }, []);
+  
 
   // useIonViewDidEnter(async () => {
 
@@ -369,26 +364,29 @@ const Home: React.FC = () => {
   // }
 
   useEffect(() => {
-    const effectAsync = async () => {
-      await App.removeAllListeners();
-      // await Network.removeAllListeners();
 
-      App.addListener("appStateChange", async ({ isActive }) => {
-        if (isActive) {
-          await CheckOfflineRequests();
-        }
-        else
-        {
-          await CheckOfflineRequests();
-        }
-      });
+    const appListener = async () => {
 
-      // Network.addListener("networkStatusChange", async (status) => {
-      //   if (status.connected) {
-      //     await CheckOfflineRequests();
-      //   }
-      // });
+      App.addListener("backButton", async () => {
 
+        try {
+          const menuElement = document.querySelector("#mainMenu") as
+            | HTMLIonMenuElement
+            | undefined;
+
+          menuElement?.setOpen(false);
+
+          setShowOrderInfoModal(false);
+          setShowOrderPhoto(false);
+
+        } catch (error) {}
+
+      })
+    }
+    appListener();
+
+
+    const asyncUseEffect = async () => {
       const networkStatus = await Network.getStatus();
       if (networkStatus.connected) {
         await Init();
@@ -398,8 +396,10 @@ const Home: React.FC = () => {
         await Init();
       }
     };
+    asyncUseEffect();
+  
 
-    effectAsync();
+
   }, []);
 
   // useIonViewDidEnter(async () => {
@@ -637,8 +637,7 @@ const Home: React.FC = () => {
               className="wrap"
               style={{ fontSize: "20px", fontWeight: 300 }}
             >
-              <span style={{ fontWeight: 400 }}>{itemModalInfo?.comment}</span>
-              {itemModalInfo?.comment ? <br /> : ""}
+              <div style={{ fontWeight: 500, textAlign: "center", letterSpacing: "1px", marginTop: "5px", marginBottom: "5px" }}>{itemModalInfo?.comment}</div>
               <span>{itemModalInfo?.commentExtra}</span>
             </IonLabel>
           </IonItem>
@@ -878,35 +877,6 @@ const Home: React.FC = () => {
 
                               await UpdateRouteImage(e.id, image);
 
-                              // if (newItem) {
-                              //   newItem.image = image.webPath;
-                              //   newItem.packagesCompleted = true;
-
-                              //   console.log(image);
-
-                              //   UpdateRouteElement(
-                              //     undefined,
-                              //     newItem,
-                              //     "undelivered",
-                              //     setItems,
-                              //     setItemsStatic,
-                              //     setFooterItem,
-                              //     footerItem,
-                              //     true
-                              //   );
-
-                              //   presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
-                              //   api
-                              //     .post("routes/addresses/" + e.id + "/image", {
-                              //       image: image.base64,
-                              //     })
-                              //     .then((response) => {
-                              //       console.log(response);
-                              //     })
-                              //     .finally(() => {
-                              //       dismissPhotoLoading();
-                              //     });
-                              // }
                             } else if (e.image) {
                               presentAlert({
                                 mode: "ios",
@@ -968,29 +938,6 @@ const Home: React.FC = () => {
                                   message: _message,
                                   buttons: [
                                     "Powrót",
-                                    // {
-                                    //   text: "Zobacz",
-                                    //   handler: () => {
-                                    //     if (contentRef.current && element) {
-                                    //       const addressElement =
-                                    //         document.querySelector(
-                                    //           "[data-toscroll='" +
-                                    //             element.id +
-                                    //             "']"
-                                    //         ) as Element | undefined;
-
-                                    //       if (addressElement) {
-                                    //         // const addressElementBounds = addressElement.getBoundingClientRect();
-                                    //         // contentRef.current.scrollIntoView(0, addressElementBounds.top, 1000);
-                                    //         addressElement.scrollIntoView({
-                                    //           block: "center",
-                                    //           behavior: "smooth",
-                                    //           inline: "center",
-                                    //         });
-                                    //       }
-                                    //     }
-                                    //   },
-                                    // },
                                   ],
                                   onDidDismiss: (e) =>
                                     console.log("did dismiss"),
@@ -1017,6 +964,12 @@ const Home: React.FC = () => {
                           }}
                         />
                       </div>
+                      <IonList onClick={() => {
+                            if (items) {
+                              setShowOrderInfoModal(true);
+                              setItemModalInfo(e);
+                            }
+                          }}>
                       {e.packages.map((_e) => {
                         return (
                           <IonItem className="item-diet" lines="none">
@@ -1024,12 +977,13 @@ const Home: React.FC = () => {
                               color={_e.scanned ? "success" : "danger"}
                               src={_e.scanned ? checkmarkOutline : closeOutline}
                             />
-                            <IonLabel style={{ margin: "0" }} className="wrap">
+                            <IonLabel style={{ margin: "0", marginLeft: "5px" }} className="wrap">
                               {_e.name}
                             </IonLabel>
                           </IonItem>
                         );
                       })}
+                      </IonList>
                     </IonLabel>
                   </div>
                 );

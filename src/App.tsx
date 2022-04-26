@@ -54,6 +54,7 @@ import { Network } from "@capacitor/network";
 
 import api from "./services/api";
 import { OfflineRequestProps } from "./components/Types";
+import Startup from "./components/Startup";
 
 setupIonicReact();
 
@@ -112,6 +113,9 @@ const App: React.FC = () => {
         </IonRouterOutlet>
 
       </IonReactRouter>
+
+      <Startup/>
+
     </IonApp>
   );
 };

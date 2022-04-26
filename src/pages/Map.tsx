@@ -36,6 +36,7 @@ import {
   useIonPopover,
   useIonToast,
   useIonViewDidEnter,
+  useIonViewDidLeave,
   useIonViewWillEnter,
   useIonViewWillLeave,
 } from "@ionic/react";
@@ -120,9 +121,20 @@ const Map: React.FC = () => {
   const geojsonPoints = useRef<any>({});
   let canvas: HTMLElement;
 
+  useIonViewDidLeave(() => {
 
+    setTimeout(() => {
+      map.current?.remove();
+      map.current = null;
+      if(mapContainer.current)
+      {
+        mapContainer.current.innerHTML = "";
+      }
+    }, 500);
 
-  useEffect(() => {
+  })
+
+  useIonViewDidEnter(() => {
     setTimeout(() => {
       if (map.current == null) {
         api
@@ -163,7 +175,10 @@ const Map: React.FC = () => {
 
                     map.current?.addImage(
                       "error-marker",
-                      image as HTMLImageElement | ImageBitmap
+                      image as HTMLImageElement | ImageBitmap,
+                      {
+                        pixelRatio: 1.2
+                      }
                     );
 
                     map.current?.loadImage(
@@ -173,7 +188,10 @@ const Map: React.FC = () => {
 
                         map.current?.addImage(
                           "start-marker",
-                          image as HTMLImageElement | ImageBitmap
+                          image as HTMLImageElement | ImageBitmap,
+                          {
+                            pixelRatio: 1.2
+                          }
                         );
 
                         map.current?.loadImage(
@@ -183,7 +201,10 @@ const Map: React.FC = () => {
 
                             map.current?.addImage(
                               "end-marker",
-                              image as HTMLImageElement | ImageBitmap
+                              image as HTMLImageElement | ImageBitmap,
+                              {
+                                pixelRatio: 1.2
+                              }
                             );
 
                             map.current?.loadImage(
@@ -195,7 +216,10 @@ const Map: React.FC = () => {
 
                                 map.current?.addImage(
                                   response.data.color + "-marker",
-                                  _image as HTMLImageElement | ImageBitmap
+                                  _image as HTMLImageElement | ImageBitmap,
+                                  {
+                                    pixelRatio: 1.2
+                                  }
                                 );
 
                                 map.current?.addLayer({
@@ -370,7 +394,7 @@ const Map: React.FC = () => {
           })
           .finally(() => {});
       }
-    }, 250);
+    }, 50);
   }, []);
 
 
