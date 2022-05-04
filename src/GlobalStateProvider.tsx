@@ -6,6 +6,9 @@ export interface GlobalStateInterface {
     route: RouteProps[],
     routeEnd: RouteProps[],
 
+    routeLength: number,
+    routeEndLength: number,
+
     routeCurrent: RouteProps[],
     routeCurrentItemFooter: RouteProps,
 

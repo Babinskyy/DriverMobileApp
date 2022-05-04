@@ -203,6 +203,9 @@ export const AddOfflineRequest = async (
 };
 
 export const CheckOfflineRequests = async () => {
+  
+  console.log("CheckOfflineRequests");
+
   const value1 = await Storage.get({ key: "OfflineRequests" });
   // await Storage.remove({ key: "OfflineRequests" });
 
@@ -387,6 +390,10 @@ export const useRoute = () => {
       );
     });
 
+
+    const routeLength = route.length;
+    const routeEndLength = _routeDelivered.length;
+
     let _searchText = "";
 
     if(searchText == undefined && state.searchText != undefined)
@@ -419,11 +426,31 @@ export const useRoute = () => {
       ...{
         route: route,
         routeEnd: _routeDelivered,
+
+        routeLength: routeLength,
+        routeEndLength: routeEndLength,
+
         routeCurrent: _routeNotDelivered,
         routeCurrentItemFooter: routeCurrentItemFooter,
         searchText: _searchText
       },
     }));
+
+
+    try {
+      
+      if (BackgroundMode.isEnabled() && _routeDelivered && route) {
+
+        BackgroundMode.setDefaults({
+          title: "Ukończono " + _routeDelivered.length + " tras na " + route.length
+        });
+
+      }
+
+    } catch (error) {
+      
+    }
+
 
     console.log(_routeNotDelivered);
 

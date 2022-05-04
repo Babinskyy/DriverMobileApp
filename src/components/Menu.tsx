@@ -11,6 +11,7 @@ import {
   IonTitle,
   IonToggle,
   IonToolbar,
+  useIonLoading,
 } from "@ionic/react";
 import {
   carOutline,
@@ -30,7 +31,13 @@ import brokulImage from "../images/brokul-athlete.png";
 
 import { Storage } from "@capacitor/storage";
 
+import { Network } from "@capacitor/network";
+import { CheckOfflineRequests, useRoute } from "../services/Utility";
+
 const Menu: React.FC = () => {
+
+  const [presentLoading, dismissLoading] = useIonLoading();
+
   const history = useHistory();
 
   const menuRef = useRef<HTMLIonMenuElement>(null);
@@ -38,6 +45,11 @@ const Menu: React.FC = () => {
   const [url, setUrl] = useState("");
 
   const [checked, setChecked] = useState(false);
+
+  const {
+    Init,
+    InitWithServer,
+  } = useRoute();
 
   useEffect(() => {
     setTimeout(() => {
@@ -69,11 +81,6 @@ const Menu: React.FC = () => {
     >
       <IonHeader>
         <IonImg
-          style={{
-            animationName: "athlete-animation",
-            animationDuration: "1500ms",
-            animationIterationCount: "infinite",
-          }}
           src={brokulImage}
           className="image"
         />
@@ -140,7 +147,8 @@ const Menu: React.FC = () => {
         </IonList>
       </IonContent>
       <IonFooter style={{ padding: "10px" }}>
-        <IonItem>
+
+        <IonItem lines="none">
           <IonLabel>Ciemny motyw</IonLabel>
           <IonToggle
             checked={checked}
@@ -154,6 +162,47 @@ const Menu: React.FC = () => {
               });
             }}
           />
+        </IonItem>
+
+        <IonItem
+          button
+          className="menu-item"
+          color="secondary"
+          style={{
+            marginBottom: "10px",
+          }}
+
+          onClick={async () => {
+
+            try {
+              presentLoading({
+                message: "Synchronizowanie danych z serwerem",
+                spinner: "crescent",
+              });
+
+              const networkStatus = await Network.getStatus();
+              if (networkStatus.connected) {
+                await CheckOfflineRequests();
+                await InitWithServer();
+              } else {
+                await Init();
+              }
+            } catch (error) {}
+
+            await dismissLoading();
+          }}
+
+        >
+          <IonLabel 
+          className="wrap"
+            style={{
+              textAlign: "center",
+              fontWeight: 600,
+              letterSpacing: "1px",
+            }}
+          >
+            Synchronizowanie danych z serwerem
+          </IonLabel>
         </IonItem>
 
         <IonItem

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@awesome-cordova-plugins/android-permissions": "^5.41.0",
+    "@awesome-cordova-plugins/background-mode": "^5.41.0",
     "@awesome-cordova-plugins/vibration": "^5.40.0",
     "@capacitor-community/barcode-scanner": "^2.1.0",
     "@capacitor/android": "3.4.3",

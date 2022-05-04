@@ -746,7 +746,7 @@ const Home: React.FC = () => {
             }}
           ></IonSearchbar>
           <IonButtons slot="end">
-            <IonButton
+            {/* <IonButton
               className={rotate ? "rotated" : ""}
               onClick={async () => {
                 try {
@@ -770,7 +770,7 @@ const Home: React.FC = () => {
               }}
             >
               <IonIcon slot="icon-only" icon={refreshOutline} />
-            </IonButton>
+            </IonButton> */}
             <IonButton
               onClick={(event) => {
                 presentThreeDots({
@@ -1270,7 +1270,7 @@ const Home: React.FC = () => {
                 slot="end"
                 style={{ marginTop: "0", marginBottom: "0" }}
               >
-                {state.routeEnd?.length}/{state.route?.length}
+                {state.routeEndLength}/{state.routeLength}
               </IonLabel>
             </IonItem>
           )}
