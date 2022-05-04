@@ -493,12 +493,48 @@ const Warehouse: React.FC = () => {
       >
         <IonList className="list-order">
           {dietsWithNumber?.map((e) => {
+            console.log(e);
             return (
               <IonItem
                 style={{ "--border-color": "var(--ion-color-medium)" }}
                 lines="full"
                 onClick={() => {
                   if (e.scanCount == e.count) {
+                    presentAlert({
+                      mode: "ios",
+                      header: "Czy chcesz usunąć status?",
+                      subHeader: "Wybrany rodzaj diety:",
+                      message: e.name,
+                      buttons: [
+                        "Anuluj",
+                        {
+                          text: "Usuń",
+                          handler: async () => {
+                            let tempItems = packages;
+
+                            tempItems.map((x) => {
+                              if (x.name == e.name) {
+                                x.scanned = false;
+                                x.confirmationString = "";
+                              }
+                            });
+
+                            await generateDictionary(tempItems);
+
+                            api
+                              .patch(
+                                "routes/addresses/packages/warehouse-all",
+                                {
+                                  isScanned: false,
+                                  name: e.name,
+                                }
+                              )
+                              .finally(async () => {});
+                          },
+                        },
+                      ],
+                      onDidDismiss: (e) => console.log("did dismiss"),
+                    });
                     return;
                   }
 
