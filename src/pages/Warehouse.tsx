@@ -634,11 +634,12 @@ const Warehouse: React.FC = () => {
       ) : (
         <></>
       )}
-      {scanning ? (
-        <></>
-      ) : (
-        <IonFooter>
-          <IonToolbar>
+
+      <IonFooter>
+        <IonToolbar>
+          {scanning ? (
+            <></>
+          ) : (
             <IonIcon
               icon={barcodeOutline}
               className="icon-scan-main"
@@ -655,13 +656,13 @@ const Warehouse: React.FC = () => {
                 startScan();
               }}
             />
+          )}
 
-            <IonLabel className="all-diets-counter">
-              Ilość diet: {scanDietsCount}/{allDietsCount}
-            </IonLabel>
-          </IonToolbar>
-        </IonFooter>
-      )}
+          <IonLabel className="all-diets-counter">
+            Ilość diet: {scanDietsCount}/{allDietsCount}
+          </IonLabel>
+        </IonToolbar>
+      </IonFooter>
     </IonPage>
   );
 };
