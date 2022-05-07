@@ -330,18 +330,26 @@ const Map: React.FC = () => {
                                     // Copy coordinates array.
                                     const coordinates =
                                       e.features[0].geometry.coordinates.slice();
+                                    // const description =
+                                    //   "<div>" +
+                                    //   "<div><strong>Adres</strong></div>" +
+                                    //   "<div>" +
+                                    //   e.features[0].properties.address1 +
+                                    //   "</div><div class='mb-1'>" +
+                                    //   e.features[0].properties.address2 +
+                                    //   "</div>" +
+                                    //   "<div><strong>Telefon</strong></div>" +
+                                    //   "<div class='mb-1'>" + e.features[0].properties.phone + "</div>" +
+                                    //   "<div><strong>Diety</strong></div>" +
+                                    //   "<div>" + e.features[0].properties.diets?.split(";").join("</br>") + "</div>" +
+                                    //   "</div>";
+
                                     const description =
                                       "<div>" +
                                       "<div><strong>Adres</strong></div>" +
                                       "<div>" +
                                       e.features[0].properties.address1 +
-                                      "</div><div class='mb-1'>" +
-                                      e.features[0].properties.address2 +
                                       "</div>" +
-                                      "<div><strong>Telefon</strong></div>" +
-                                      "<div class='mb-1'>" + e.features[0].properties.phone + "</div>" +
-                                      "<div><strong>Diety</strong></div>" +
-                                      "<div>" + e.features[0].properties.diets?.split(";").join("</br>") + "</div>" +
                                       "</div>";
 
                                     // Ensure that if the map is zoomed out such that multiple
