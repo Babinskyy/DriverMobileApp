@@ -75,6 +75,18 @@ const Warehouse: React.FC = () => {
     DietsDictionary[]
   >([]);
   const [allDietsCount, setAllDietsCount] = useState<number>(0);
+  const [scanDietsCount, setScanDietsCount] = useState<number>(0);
+
+  useEffect(() => {
+    let siema = 0;
+
+    dietsWithNumber.map((e) => {
+      siema = siema + e.scanCount;
+    });
+
+    setScanDietsCount(siema);
+    console.log(scanDietsCount);
+  }, [dietsWithNumber]);
 
   type DietsDictionary = {
     name: string;
@@ -160,7 +172,6 @@ const Warehouse: React.FC = () => {
   };
 
   const getData = async () => {
-
     await assignWarehousePackagesFromStorageToState();
 
     api.get("routes/addresses/packages").then(async (response) => {
@@ -170,11 +181,9 @@ const Warehouse: React.FC = () => {
 
       await setWarehousePackages(JSON.stringify(packages));
     });
-
-  }
+  };
 
   useIonViewWillEnter(async () => {
-    
     await getData();
 
     // api.get("routes/").then(async (response) => {
@@ -243,7 +252,6 @@ const Warehouse: React.FC = () => {
       });
       setDietsWithNumber(tempItems);
     } else {
-      console.log(dietsWithNumberStatic);
       setDietsWithNumber(dietsWithNumberStatic);
     }
   }, [searchText]);
@@ -485,14 +493,48 @@ const Warehouse: React.FC = () => {
       >
         <IonList className="list-order">
           {dietsWithNumber?.map((e) => {
+            console.log(e);
             return (
               <IonItem
                 style={{ "--border-color": "var(--ion-color-medium)" }}
                 lines="full"
                 onClick={() => {
+                  if (e.scanCount == e.count) {
+                    presentAlert({
+                      mode: "ios",
+                      header: "Czy chcesz usunąć status?",
+                      subHeader: "Wybrany rodzaj diety:",
+                      message: e.name,
+                      buttons: [
+                        "Anuluj",
+                        {
+                          text: "Usuń",
+                          handler: async () => {
+                            let tempItems = packages;
 
-                  if(e.scanCount == e.count)
-                  {
+                            tempItems.map((x) => {
+                              if (x.name == e.name) {
+                                x.scanned = false;
+                                x.confirmationString = "";
+                              }
+                            });
+
+                            await generateDictionary(tempItems);
+
+                            api
+                              .patch(
+                                "routes/addresses/packages/warehouse-all",
+                                {
+                                  isScanned: false,
+                                  name: e.name,
+                                }
+                              )
+                              .finally(async () => {});
+                          },
+                        },
+                      ],
+                      onDidDismiss: (e) => console.log("did dismiss"),
+                    });
                     return;
                   }
 
@@ -507,7 +549,6 @@ const Warehouse: React.FC = () => {
                       {
                         text: "Ustaw",
                         handler: async () => {
-
                           let tempItems = packages;
 
                           tempItems.map((x) => {
@@ -518,14 +559,13 @@ const Warehouse: React.FC = () => {
                           });
 
                           await generateDictionary(tempItems);
-                          
+
                           api
                             .patch("routes/addresses/packages/warehouse-all", {
                               isScanned: true,
                               name: e.name,
                             })
                             .finally(async () => {});
-
                         },
                       },
                     ],
@@ -594,11 +634,12 @@ const Warehouse: React.FC = () => {
       ) : (
         <></>
       )}
-      {scanning ? (
-        <></>
-      ) : (
-        <IonFooter>
-          <IonToolbar>
+
+      <IonFooter>
+        <IonToolbar>
+          {scanning ? (
+            <></>
+          ) : (
             <IonIcon
               icon={barcodeOutline}
               className="icon-scan-main"
@@ -615,12 +656,13 @@ const Warehouse: React.FC = () => {
                 startScan();
               }}
             />
-            <IonLabel className="all-diets-counter">
-              Ilość diet: {allDietsCount}
-            </IonLabel>
-          </IonToolbar>
-        </IonFooter>
-      )}
+          )}
+
+          <IonLabel className="all-diets-counter">
+            Ilość diet: {scanDietsCount}/{allDietsCount}
+          </IonLabel>
+        </IonToolbar>
+      </IonFooter>
     </IonPage>
   );
 };
