@@ -24,7 +24,6 @@ import { AndroidPermissions } from "@awesome-cordova-plugins/android-permissions
 import { v4 as uuidv4 } from "uuid";
 
 const Startup: React.FC = () => {
-
   const { navigate } = useContext(NavContext);
 
   const {
@@ -36,7 +35,7 @@ const Startup: React.FC = () => {
     ScanRoutePackage,
   } = useRoute();
 
-  const [ onlyOnce, setOnlyOnce ] = useState(true);
+  const [onlyOnce, setOnlyOnce] = useState(true);
 
   useEffect(() => {
     const getUser = async () => {
@@ -51,14 +50,10 @@ const Startup: React.FC = () => {
   }, []);
 
   useEffect(() => {
-
-    if(onlyOnce)
-    {
-
+    if (onlyOnce) {
       setOnlyOnce(false);
 
       const checkPermissions = async () => {
-
         let list = [
           // AndroidPermissions.PERMISSION.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
           AndroidPermissions.PERMISSION.FOREGROUND_SERVICE,
@@ -66,27 +61,23 @@ const Startup: React.FC = () => {
           AndroidPermissions.PERMISSION.READ_EXTERNAL_STORAGE,
           AndroidPermissions.PERMISSION.WRITE_EXTERNAL_STORAGE,
           AndroidPermissions.PERMISSION.INTERNET,
+          AndroidPermissions.PERMISSION.READ_PHONE_STATE,
+          AndroidPermissions.PERMISSION.SEND_SMS,
         ];
 
         let noPermission: string[] = [];
 
-        for(const perm of list)
-        {
-
+        for (const perm of list) {
           const hasPerm = await AndroidPermissions.checkPermission(perm);
 
-          if(!hasPerm.hasPermission)
-          {
+          if (!hasPerm.hasPermission) {
             noPermission.push(perm);
           }
         }
 
         AndroidPermissions.requestPermissions(noPermission);
-
-      }
+      };
       checkPermissions();
-
-      
 
       const appListener = async () => {
         // BackgroundMode.on("activate").subscribe(async () => {
@@ -97,13 +88,11 @@ const Startup: React.FC = () => {
         //       await CheckOfflineRequests();
         //     }
         //   } catch (error) {}
-          
-          
-  
+
         // });
-  
+
         // BackgroundMode.on("enable").subscribe(async () => {
-  
+
         //   try {
         //     const appState = await App.getState();
 
@@ -117,40 +106,33 @@ const Startup: React.FC = () => {
         //   } catch (error) {}
 
         //   BackgroundMode.moveToBackground();
-  
-  
+
         // });
-  
+
         // if (!BackgroundMode.isEnabled()) {
         //   BackgroundMode.enable();
         // }
-  
+
         App.addListener("appStateChange", async ({ isActive }) => {
-  
-          if(!isActive)
-          {
+          if (!isActive) {
             const eventId = uuidv4();
-  
+
             if (!BackgroundMode.isEnabled()) {
               BackgroundMode.enable();
             }
             BackgroundMode.on(eventId).subscribe(async () => {
               await CheckOfflineRequests();
-    
+
               if (BackgroundMode.isEnabled()) {
                 BackgroundMode.disable();
               }
             });
             BackgroundMode.fireEvent(eventId);
           }
-          
-  
         });
       };
-      appListener();      
+      appListener();
     }
-
-    
   }, []);
 
   return <></>;

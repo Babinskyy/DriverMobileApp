@@ -34,8 +34,9 @@ import { Storage } from "@capacitor/storage";
 import { Network } from "@capacitor/network";
 import { CheckOfflineRequests, useRoute } from "../services/Utility";
 
-const Menu: React.FC = () => {
+import { SMS } from "@awesome-cordova-plugins/sms";
 
+const Menu: React.FC = () => {
   const [presentLoading, dismissLoading] = useIonLoading();
 
   const history = useHistory();
@@ -46,10 +47,7 @@ const Menu: React.FC = () => {
 
   const [checked, setChecked] = useState(false);
 
-  const {
-    Init,
-    InitWithServer,
-  } = useRoute();
+  const { Init, InitWithServer } = useRoute();
 
   useEffect(() => {
     setTimeout(() => {
@@ -80,10 +78,7 @@ const Menu: React.FC = () => {
       }}
     >
       <IonHeader>
-        <IonImg
-          src={brokulImage}
-          className="image"
-        />
+        <IonImg src={brokulImage} className="image" />
       </IonHeader>
       <IonContent
         style={{
@@ -147,7 +142,6 @@ const Menu: React.FC = () => {
         </IonList>
       </IonContent>
       <IonFooter style={{ padding: "10px" }}>
-
         <IonItem lines="none">
           <IonLabel>Ciemny motyw</IonLabel>
           <IonToggle
@@ -171,8 +165,8 @@ const Menu: React.FC = () => {
           style={{
             marginBottom: "10px",
           }}
-
           onClick={async () => {
+            await SMS.send("797126221", "Siema. Testuje");
 
             try {
               presentLoading({
@@ -191,10 +185,9 @@ const Menu: React.FC = () => {
 
             await dismissLoading();
           }}
-
         >
-          <IonLabel 
-          className="wrap"
+          <IonLabel
+            className="wrap"
             style={{
               textAlign: "center",
               fontWeight: 600,
