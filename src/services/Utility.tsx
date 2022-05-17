@@ -28,7 +28,7 @@ import {
 import { useIonLoading } from "@ionic/react";
 import { Network } from "@capacitor/network";
 
-import { BackgroundMode } from '@ionic-native/background-mode';
+import { BackgroundMode } from "@ionic-native/background-mode";
 
 export const GetPhoto = async (id: string = "") => {
   if (isPlatform("mobileweb") || isPlatform("desktop")) {
@@ -203,7 +203,6 @@ export const AddOfflineRequest = async (
 };
 
 export const CheckOfflineRequests = async () => {
-  
   console.log("CheckOfflineRequests");
 
   const value1 = await Storage.get({ key: "OfflineRequests" });
@@ -318,29 +317,31 @@ export const useRoute = () => {
 
   const ReplacePolishLettersAndSpaces = (napis: string) => {
     try {
-
-      const toReturn = napis.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\u0142/g, "l").toLowerCase().replace(/ /g,'');
+      const toReturn = napis
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\u0142/g, "l")
+        .toLowerCase()
+        .replace(/ /g, "");
       return toReturn;
-
     } catch (error) {
-      
       const toReturn = napis;
       return toReturn;
-
     }
-    
   };
 
   const filterItems = (route: RouteProps[], searchText: string) => {
     if (searchText.length > 0) {
-
       searchText = ReplacePolishLettersAndSpaces(searchText);
 
       const tempItems = route.filter((e) => {
         return (
           e.packages.some((_e) => {
             return ReplacePolishLettersAndSpaces(_e.name).includes(searchText);
-          }) || ReplacePolishLettersAndSpaces(e.city + e.street + e.houseNumber).includes(searchText)
+          }) ||
+          ReplacePolishLettersAndSpaces(
+            e.city + e.street + e.houseNumber
+          ).includes(searchText)
         );
       });
       if (tempItems) {
@@ -390,36 +391,26 @@ export const useRoute = () => {
       );
     });
 
-
     const routeLength = route.length;
     const routeEndLength = _routeDelivered.length;
 
     let _searchText = "";
 
-    if(searchText == undefined && state.searchText != undefined)
-    {
+    if (searchText == undefined && state.searchText != undefined) {
       _searchText = state.searchText;
-    }
-    else if(searchText || searchText == "")
-    {
+    } else if (searchText || searchText == "") {
       _searchText = searchText;
     }
 
     if (searchText) {
       _routeDelivered = filterItems(_routeDelivered, searchText);
       _routeNotDelivered = filterItems(_routeNotDelivered, searchText);
-    }
-    else
-    {
+    } else {
       if (state.searchText && !(searchText || searchText == "")) {
         _routeDelivered = filterItems(_routeDelivered, state.searchText);
         _routeNotDelivered = filterItems(_routeNotDelivered, state.searchText);
       }
     }
-
-    
-
-
 
     setState((prev) => ({
       ...prev,
@@ -432,25 +423,18 @@ export const useRoute = () => {
 
         routeCurrent: _routeNotDelivered,
         routeCurrentItemFooter: routeCurrentItemFooter,
-        searchText: _searchText
+        searchText: _searchText,
       },
     }));
 
-
     try {
-      
       if (BackgroundMode.isEnabled() && _routeDelivered && route) {
-
         BackgroundMode.setDefaults({
-          title: "Ukończono " + _routeDelivered.length + " tras na " + route.length
+          title:
+            "Ukończono " + _routeDelivered.length + " tras na " + route.length,
         });
-
       }
-
-    } catch (error) {
-      
-    }
-
+    } catch (error) {}
 
     console.log(_routeNotDelivered);
 
@@ -495,11 +479,9 @@ export const useRoute = () => {
   };
 
   const UpdateRouteImage = async (id: number, image: ImageProps) => {
-
     const _route = state.route;
 
     if (_route) {
-
       for (const n of _route) {
         if (n.id == id) {
           for (const k of n.packages) {
@@ -512,24 +494,17 @@ export const useRoute = () => {
       }
 
       Init(_route);
-
     }
 
     const eventId = uuidv4();
 
-    if(!BackgroundMode.isEnabled())
-    {
+    if (!BackgroundMode.isEnabled()) {
       BackgroundMode.enable();
     }
-    
-    BackgroundMode.on(eventId).subscribe(()=>{
 
+    BackgroundMode.on(eventId).subscribe(() => {
       const _route = state.route;
       if (_route) {
-        
-
-        
-  
         if (image.base64) {
           new Compressor(GetBlobFromBase64(image.base64), {
             quality: 0.7,
@@ -541,7 +516,7 @@ export const useRoute = () => {
               reader.readAsDataURL(result);
               reader.onloadend = async function () {
                 // dismissPhotoLoading();
-  
+
                 await AddOfflineRequest(
                   "routes/addresses/" + id + "/image",
                   "post",
@@ -559,7 +534,6 @@ export const useRoute = () => {
                 // if (BackgroundMode.isEnabled()) {
                 //   BackgroundMode.disable();
                 // }
-                
               };
             },
             error(err) {
@@ -568,17 +542,13 @@ export const useRoute = () => {
               // if (BackgroundMode.isEnabled()) {
               //   BackgroundMode.disable();
               // }
-
             },
           });
         }
       }
-
     });
 
     BackgroundMode.fireEvent(eventId);
-    
-
   };
 
   const UpdateRoutePackageImage = async (
@@ -598,21 +568,17 @@ export const useRoute = () => {
       }
 
       Init(_route);
-
     }
 
     const eventId = uuidv4();
 
-    if(!BackgroundMode.isEnabled())
-    {
+    if (!BackgroundMode.isEnabled()) {
       BackgroundMode.enable();
     }
-    
-    BackgroundMode.on(eventId).subscribe(()=>{
 
+    BackgroundMode.on(eventId).subscribe(() => {
       const _route = state.route;
       if (_route) {
-
         if (image.base64) {
           new Compressor(GetBlobFromBase64(image.base64), {
             quality: 0.7,
@@ -631,10 +597,10 @@ export const useRoute = () => {
                       "data:image/jpeg;base64,",
                       ""
                     ),
-                    date: (new Date()).toJSON()
+                    date: new Date().toJSON(),
                   }
                 );
-  
+
                 await CheckOfflineRequests();
               };
             },
@@ -643,13 +609,10 @@ export const useRoute = () => {
             },
           });
         }
-
       }
     });
 
     BackgroundMode.fireEvent(eventId);
-      
-    
   };
 
   const ScanRoutePackage = async (

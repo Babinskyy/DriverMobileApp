@@ -30,6 +30,7 @@ export type RouteProps = {
   customerId: number;
   image?: string;
   packagesCompleted: boolean;
+  sms: boolean;
 };
 export type ItemsDietProps = {
   name: string;
@@ -56,14 +57,14 @@ export type WarehousePackage = {
 export type DietItemProps = {
   e: RouteProps;
   i?: number;
-}
+};
 export type OfflineRequestProps = {
   key: string;
   url: string;
   method: Method;
   body: any;
-}
+};
 export type ImageProps = {
   webPath: string | undefined;
   base64: string | undefined;
-}
+};

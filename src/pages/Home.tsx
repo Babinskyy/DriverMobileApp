@@ -29,6 +29,7 @@ import {
   IonRippleEffect,
   IonSearchbar,
   IonTitle,
+  IonToggle,
   IonToolbar,
   NavContext,
   useIonAlert,
@@ -104,10 +105,9 @@ import {
   GlobalStateInterface,
 } from "./../GlobalStateProvider";
 
-import { BackgroundMode } from '@ionic-native/background-mode';
+import { BackgroundMode } from "@ionic-native/background-mode";
 
 import { v4 as uuidv4 } from "uuid";
-
 
 const Home: React.FC = () => {
   const { navigate } = useContext(NavContext);
@@ -160,6 +160,7 @@ const Home: React.FC = () => {
   const [presentPhotoLoading, dismissPhotoLoading] = useIonLoading();
 
   const [presentLoading, dismissLoading] = useIonLoading();
+  const [smsSend, setSmsSend] = useState(false);
 
   const {
     Init,
@@ -280,8 +281,6 @@ const Home: React.FC = () => {
     },
   });
 
-  
-
   // useIonViewDidEnter(async () => {
 
   //   await api.get("routes/").then(async (response) => {
@@ -364,11 +363,8 @@ const Home: React.FC = () => {
   // }
 
   useEffect(() => {
-
     const appListener = async () => {
-
       App.addListener("backButton", async () => {
-
         try {
           const menuElement = document.querySelector("#mainMenu") as
             | HTMLIonMenuElement
@@ -378,13 +374,10 @@ const Home: React.FC = () => {
 
           setShowOrderInfoModal(false);
           setShowOrderPhoto(false);
-
         } catch (error) {}
-
-      })
-    }
+      });
+    };
     appListener();
-
 
     const asyncUseEffect = async () => {
       const networkStatus = await Network.getStatus();
@@ -397,9 +390,6 @@ const Home: React.FC = () => {
       }
     };
     asyncUseEffect();
-  
-
-
   }, []);
 
   // useIonViewDidEnter(async () => {
@@ -637,7 +627,17 @@ const Home: React.FC = () => {
               className="wrap"
               style={{ fontSize: "20px", fontWeight: 300 }}
             >
-              <div style={{ fontWeight: 500, textAlign: "center", letterSpacing: "1px", marginTop: "5px", marginBottom: "5px" }}>{itemModalInfo?.comment}</div>
+              <div
+                style={{
+                  fontWeight: 500,
+                  textAlign: "center",
+                  letterSpacing: "1px",
+                  marginTop: "5px",
+                  marginBottom: "5px",
+                }}
+              >
+                {itemModalInfo?.comment}
+              </div>
               <span>{itemModalInfo?.commentExtra}</span>
             </IonLabel>
           </IonItem>
@@ -666,6 +666,41 @@ const Home: React.FC = () => {
               );
             })}
           </IonList>
+          <IonListHeader style={{ fontWeight: 700 }}>SMS</IonListHeader>
+          <IonItem lines="none">
+            <IonButton
+              style={{
+                width: "100%",
+                height: "45px",
+                "font-size": "16px",
+                margin: "15px 0",
+              }}
+              expand="block"
+              onClick={async (e) => {
+                presentAlert({
+                  mode: "ios",
+
+                  cssClass: "missing-qr-alert",
+                  header: "Czy wysłać sms o dostarczonej dostawie do klienta?",
+                  subHeader: "Wybrany adres:",
+                  message: `${itemModalInfo?.street} ${itemModalInfo?.houseNumber}`,
+                  buttons: [
+                    "Anuluj",
+                    {
+                      text: "Wyślij",
+                      handler: async () => {
+                        setSmsSend(true);
+                        api.post("sms").then(async (response) => {});
+                      },
+                    },
+                  ],
+                  onDidDismiss: (e) => console.log("did dismiss"),
+                });
+              }}
+            >
+              Wyślij sms do klienta
+            </IonButton>
+          </IonItem>
           <IonListHeader>
             <IonLabel style={{ fontWeight: 700 }}>
               Numer Klienta: {`${itemModalInfo?.customerId}`}
@@ -876,7 +911,6 @@ const Home: React.FC = () => {
                               const image = await GetPhoto(e.id.toString());
 
                               await UpdateRouteImage(e.id, image);
-
                             } else if (e.image) {
                               presentAlert({
                                 mode: "ios",
@@ -936,9 +970,7 @@ const Home: React.FC = () => {
                                     "Dokończ inny rozpoczęty adres przed skanowaniem",
                                   subHeader: "Adres do zakończenia:",
                                   message: _message,
-                                  buttons: [
-                                    "Powrót",
-                                  ],
+                                  buttons: ["Powrót"],
                                   onDidDismiss: (e) =>
                                     console.log("did dismiss"),
                                 });
@@ -964,25 +996,32 @@ const Home: React.FC = () => {
                           }}
                         />
                       </div>
-                      <IonList onClick={() => {
-                            if (items) {
-                              setShowOrderInfoModal(true);
-                              setItemModalInfo(e);
-                            }
-                          }}>
-                      {e.packages.map((_e) => {
-                        return (
-                          <IonItem className="item-diet" lines="none">
-                            <IonIcon
-                              color={_e.scanned ? "success" : "danger"}
-                              src={_e.scanned ? checkmarkOutline : closeOutline}
-                            />
-                            <IonLabel style={{ margin: "0", marginLeft: "5px" }} className="wrap">
-                              {_e.name}
-                            </IonLabel>
-                          </IonItem>
-                        );
-                      })}
+                      <IonList
+                        onClick={() => {
+                          if (items) {
+                            setShowOrderInfoModal(true);
+                            setItemModalInfo(e);
+                          }
+                        }}
+                      >
+                        {e.packages.map((_e) => {
+                          return (
+                            <IonItem className="item-diet" lines="none">
+                              <IonIcon
+                                color={_e.scanned ? "success" : "danger"}
+                                src={
+                                  _e.scanned ? checkmarkOutline : closeOutline
+                                }
+                              />
+                              <IonLabel
+                                style={{ margin: "0", marginLeft: "5px" }}
+                                className="wrap"
+                              >
+                                {_e.name}
+                              </IonLabel>
+                            </IonItem>
+                          );
+                        })}
                       </IonList>
                     </IonLabel>
                   </div>
