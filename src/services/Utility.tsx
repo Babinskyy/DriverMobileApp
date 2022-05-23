@@ -28,12 +28,14 @@ import {
 import { useIonLoading } from "@ionic/react";
 import { Network } from "@capacitor/network";
 
-import { BackgroundMode } from "@ionic-native/background-mode";
+
+import { BackgroundUpload } from "@ionic-native/background-upload";
+import tokenService from "./token.service";
 
 export const GetPhoto = async (id: string = "") => {
   if (isPlatform("mobileweb") || isPlatform("desktop")) {
     const image = await Camera.getPhoto({
-      quality: 75,
+      quality: 60,
       allowEditing: false,
       resultType: CameraResultType.Base64,
       source: CameraSource.Camera,
@@ -44,36 +46,46 @@ export const GetPhoto = async (id: string = "") => {
       base64: image.base64String,
     } as ImageProps;
   } else {
+
+    // let savedURI = "";
+
     const image = await Camera.getPhoto({
-      quality: 75,
+      quality: 60,
       allowEditing: false,
       resultType: CameraResultType.Uri,
       source: CameraSource.Camera,
+      height: 1280,
+      width: 720
     });
 
-    let imageBase64: ReadFileResult | undefined = undefined;
+    // let imageBase64: ReadFileResult | undefined = undefined;
 
-    if (image.path) {
-      imageBase64 = await Filesystem.readFile({
-        path: image.path,
-      });
+    // if (image.path) {
+      // imageBase64 = await Filesystem.readFile({
+      //   path: image.path,
+      // });
 
-      if (imageBase64?.data) {
-        const fileName =
-          id == ""
-            ? new Date().getTime() + ".jpg"
-            : id + "--" + new Date().getTime() + ".jpg";
-        const savedFile = await Filesystem.writeFile({
-          path: fileName,
-          data: imageBase64.data,
-          directory: Directory.Data,
-        });
-      }
-    }
+      // try {
+      //   if (imageBase64?.data) {
+      //     const fileName =
+      //       id == ""
+      //         ? new Date().getTime() + ".jpg"
+      //         : id + "--" + new Date().getTime() + ".jpg";
+      //     const savedFile = await Filesystem.writeFile({
+      //       path: fileName,
+      //       data: imageBase64.data,
+      //       directory: Directory.Data,
+      //     });
+  
+      //   }
+      // } catch (error) {}
+
+    // }
 
     return {
+      path: image.path,
       webPath: image.webPath,
-      base64: imageBase64?.data,
+      base64: undefined,
     };
   }
 };
@@ -91,14 +103,14 @@ export const RefreshRoute = async (
 
   if (routeType == "delivered") {
     _route = route.filter((e) => {
-      return e.packagesCompleted && e.image;
+      return e.packagesCompleted && e.imageProcessed;
     });
     _route.sort((a, b) => {
       return b.order - a.order;
     });
   } else if (routeType == "undelivered") {
     _route = route.filter((e) => {
-      return !(e.packagesCompleted && e.image);
+      return !(e.packagesCompleted && e.imageProcessed);
     });
   }
 
@@ -117,7 +129,7 @@ export const RefreshRoute = async (
     return (
       x.packages.some((y) => {
         return y.scanned;
-      }) && !x.image
+      }) && !x.imageProcessed
     );
   });
 
@@ -259,6 +271,9 @@ export const useRoute = () => {
   const [presentLoading, dismissLoading] = useIonLoading();
 
   useEffect(() => {
+
+    
+
     const checkOptionalScan = async () => {
       let isScanOptional = false;
 
@@ -270,6 +285,16 @@ export const useRoute = () => {
         const valueBoolean = JSON.parse(value);
         if (valueBoolean) {
           isScanOptional = true;
+
+          if (state.isScanOptional != isScanOptional) {
+            setState((prev) => ({
+              ...prev,
+              ...{
+                isScanOptional: isScanOptional,
+              },
+            }));
+          }
+
         }
       }
 
@@ -315,33 +340,41 @@ export const useRoute = () => {
     }
   };
 
-  const ReplacePolishLettersAndSpaces = (napis: string) => {
-    try {
-      const toReturn = napis
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\u0142/g, "l")
-        .toLowerCase()
-        .replace(/ /g, "");
-      return toReturn;
-    } catch (error) {
-      const toReturn = napis;
-      return toReturn;
-    }
-  };
+  // const ReplacePolishLettersAndSpaces = (napis: string) => {
+  //   try {
+  //     const toReturn = napis
+  //       .normalize("NFD")
+  //       .replace(/[\u0300-\u036f]/g, "")
+  //       .replace(/\u0142/g, "l")
+  //       .toLowerCase()
+  //       .replace(/ /g, "");
+  //     return toReturn;
+  //   } catch (error) {
+  //     const toReturn = napis;
+  //     return toReturn;
+  //   }
+  // };
+
+  const LocaleContains = function(compare: String, base: String) {
+    if(compare==="") return true;
+    if(!compare || !base.length) return false;
+    compare = ""+compare;
+    if(compare.length>base.length) return false;
+    let ascii = (s: String) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    return ascii(base).includes(ascii(compare));
+  }
 
   const filterItems = (route: RouteProps[], searchText: string) => {
     if (searchText.length > 0) {
-      searchText = ReplacePolishLettersAndSpaces(searchText);
+      // searchText = ReplacePolishLettersAndSpaces(searchText);
 
       const tempItems = route.filter((e) => {
         return (
           e.packages.some((_e) => {
-            return ReplacePolishLettersAndSpaces(_e.name).includes(searchText);
-          }) ||
-          ReplacePolishLettersAndSpaces(
-            e.city + e.street + e.houseNumber
-          ).includes(searchText)
+            return LocaleContains(searchText, _e.name)
+          })
+          ||
+          LocaleContains(searchText, e.city + e.street + e.houseNumber)
         );
       });
       if (tempItems) {
@@ -373,21 +406,21 @@ export const useRoute = () => {
     }
 
     let _routeDelivered = route.filter((e) => {
-      return (e.packagesCompleted || state.isScanOptional) && e.image;
+      return (e.packagesCompleted || state.isScanOptional) && e.imageProcessed;
     });
     _routeDelivered.sort((a, b) => {
       return b.order - a.order;
     });
 
     let _routeNotDelivered = route.filter((e) => {
-      return !((e.packagesCompleted || state.isScanOptional) && e.image);
+      return !((e.packagesCompleted || state.isScanOptional) && e.imageProcessed);
     });
 
     const routeCurrentItemFooter = _routeNotDelivered.find((x) => {
       return (
         x.packages.some((y) => {
           return y.scanned;
-        }) && !x.image
+        }) && !x.imageProcessed
       );
     });
 
@@ -426,17 +459,6 @@ export const useRoute = () => {
         searchText: _searchText,
       },
     }));
-
-    try {
-      if (BackgroundMode.isEnabled() && _routeDelivered && route) {
-        BackgroundMode.setDefaults({
-          title:
-            "Ukończono " + _routeDelivered.length + " tras na " + route.length,
-        });
-      }
-    } catch (error) {}
-
-    console.log(_routeNotDelivered);
 
     await Storage.set({
       key: "Route",
@@ -490,65 +512,101 @@ export const useRoute = () => {
           }
 
           n.image = image.webPath;
+          n.imageProcessed = true;
         }
       }
 
       Init(_route);
     }
 
+
     const eventId = uuidv4();
 
-    if (!BackgroundMode.isEnabled()) {
-      BackgroundMode.enable();
-    }
+    const imagePath = image.path;
 
-    BackgroundMode.on(eventId).subscribe(() => {
-      const _route = state.route;
-      if (_route) {
-        if (image.base64) {
-          new Compressor(GetBlobFromBase64(image.base64), {
-            quality: 0.7,
-            maxWidth: 1080,
-            // The compression process is asynchronous,
-            // which means you have to access the `result` in the `success` hook function.
-            success(result) {
-              let reader = new FileReader();
-              reader.readAsDataURL(result);
-              reader.onloadend = async function () {
-                // dismissPhotoLoading();
+    
 
-                await AddOfflineRequest(
-                  "routes/addresses/" + id + "/image",
-                  "post",
-                  {
-                    image: (reader.result as string).replace(
-                      "data:image/jpeg;base64,",
-                      ""
-                    ),
-                    date: new Date().toJSON(),
-                  }
-                );
+      api.patch("routes/addresses/" + id + "/image/process").then(async (response) => {});
 
-                await CheckOfflineRequests();
+      
+      if (imagePath) {
+        try {
+          if (state.uploader) {
+            const token = await tokenService.getLocalAccessToken();
 
-                // if (BackgroundMode.isEnabled()) {
-                //   BackgroundMode.disable();
-                // }
-              };
-            },
-            error(err) {
-              console.log(err.message);
-
-              // if (BackgroundMode.isEnabled()) {
-              //   BackgroundMode.disable();
-              // }
-            },
-          });
-        }
+            state.uploader.startUpload({
+              id: eventId,
+              filePath: imagePath,
+              fileKey: "file",
+              // serverUrl: "https://localhost:55931/" + "routes/addresses/" + id + "/image",
+              serverUrl:
+                "https://broccoliapi.ebert.link" +
+                "/routes/addresses/" +
+                id +
+                "/image",
+              headers: {
+                Authorization: "Bearer " + token,
+                ImageDate: new Date().toJSON(),
+                "content-type": "multipart/form-data",
+              },
+            });
+          }
+        } catch (error) {}
       }
-    });
+      
 
-    BackgroundMode.fireEvent(eventId);
+
+    // if (!BackgroundMode.isEnabled()) {
+    //   BackgroundMode.enable();
+    // }
+
+    // BackgroundMode.on(eventId).subscribe(() => {
+    //   const _route = state.route;
+    //   if (_route) {
+    //     if (image.base64) {
+    //       new Compressor(GetBlobFromBase64(image.base64), {
+    //         quality: 0.7,
+    //         maxWidth: 1080,
+    //         // The compression process is asynchronous,
+    //         // which means you have to access the `result` in the `success` hook function.
+    //         success(result) {
+    //           let reader = new FileReader();
+    //           reader.readAsDataURL(result);
+    //           reader.onloadend = async function () {
+    //             // dismissPhotoLoading();
+
+    //             await AddOfflineRequest(
+    //               "routes/addresses/" + id + "/image",
+    //               "post",
+    //               {
+    //                 image: (reader.result as string).replace(
+    //                   "data:image/jpeg;base64,",
+    //                   ""
+    //                 ),
+    //                 date: new Date().toJSON(),
+    //               }
+    //             );
+
+    //             await CheckOfflineRequests();
+
+    //             // if (BackgroundMode.isEnabled()) {
+    //             //   BackgroundMode.disable();
+    //             // }
+    //           };
+    //         },
+    //         error(err) {
+    //           console.log(err.message);
+
+    //           // if (BackgroundMode.isEnabled()) {
+    //           //   BackgroundMode.disable();
+    //           // }
+    //         },
+    //       });
+    //     }
+    //   }
+    // });
+
+    // BackgroundMode.fireEvent(eventId);
   };
 
   const UpdateRoutePackageImage = async (
@@ -570,49 +628,50 @@ export const useRoute = () => {
       Init(_route);
     }
 
+
     const eventId = uuidv4();
 
-    if (!BackgroundMode.isEnabled()) {
-      BackgroundMode.enable();
-    }
+    // if (!BackgroundMode.isEnabled()) {
+    //   BackgroundMode.enable();
+    // }
 
-    BackgroundMode.on(eventId).subscribe(() => {
-      const _route = state.route;
-      if (_route) {
-        if (image.base64) {
-          new Compressor(GetBlobFromBase64(image.base64), {
-            quality: 0.7,
-            maxWidth: 1080,
-            // The compression process is asynchronous,
-            // which means you have to access the `result` in the `success` hook function.
-            success(result) {
-              let reader = new FileReader();
-              reader.readAsDataURL(result);
-              reader.onloadend = async function () {
-                await AddOfflineRequest(
-                  "routes/addresses/packages/" + packageId + "/image",
-                  "post",
-                  {
-                    image: (reader.result as string).replace(
-                      "data:image/jpeg;base64,",
-                      ""
-                    ),
-                    date: new Date().toJSON(),
-                  }
-                );
+    // BackgroundMode.on(eventId).subscribe(() => {
+    //   const _route = state.route;
+    //   if (_route) {
+    //     if (image.base64) {
+    //       new Compressor(GetBlobFromBase64(image.base64), {
+    //         quality: 0.7,
+    //         maxWidth: 1080,
+    //         // The compression process is asynchronous,
+    //         // which means you have to access the `result` in the `success` hook function.
+    //         success(result) {
+    //           let reader = new FileReader();
+    //           reader.readAsDataURL(result);
+    //           reader.onloadend = async function () {
+    //             await AddOfflineRequest(
+    //               "routes/addresses/packages/" + packageId + "/image",
+    //               "post",
+    //               {
+    //                 image: (reader.result as string).replace(
+    //                   "data:image/jpeg;base64,",
+    //                   ""
+    //                 ),
+    //                 date: new Date().toJSON(),
+    //               }
+    //             );
 
-                await CheckOfflineRequests();
-              };
-            },
-            error(err) {
-              console.log(err.message);
-            },
-          });
-        }
-      }
-    });
+    //             await CheckOfflineRequests();
+    //           };
+    //         },
+    //         error(err) {
+    //           console.log(err.message);
+    //         },
+    //       });
+    //     }
+    //   }
+    // });
 
-    BackgroundMode.fireEvent(eventId);
+    // BackgroundMode.fireEvent(eventId);
   };
 
   const ScanRoutePackage = async (
@@ -651,6 +710,7 @@ export const useRoute = () => {
         if (n.id == id) {
           n.packagesCompleted = false;
           n.image = undefined;
+          n.imageProcessed = false;
           n.packages.map((_e) => {
             _e.scanned = false;
           });

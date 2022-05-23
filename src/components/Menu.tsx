@@ -166,7 +166,6 @@ const Menu: React.FC = () => {
             marginBottom: "10px",
           }}
           onClick={async () => {
-            await SMS.send("797126221", "Siema. Testuje");
 
             try {
               presentLoading({

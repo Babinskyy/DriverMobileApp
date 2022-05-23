@@ -31,6 +31,7 @@ export type RouteProps = {
   image?: string;
   packagesCompleted: boolean;
   sms: boolean;
+  imageProcessed: boolean;
 };
 export type ItemsDietProps = {
   name: string;
@@ -65,6 +66,7 @@ export type OfflineRequestProps = {
   body: any;
 };
 export type ImageProps = {
+  path: string | undefined;
   webPath: string | undefined;
   base64: string | undefined;
 };

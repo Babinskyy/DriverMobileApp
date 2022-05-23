@@ -1,3 +1,4 @@
+import { FileTransferManager } from "@ionic-native/background-upload";
 import React, { createContext, useState, useContext, Dispatch, SetStateAction } from "react";
 import { RouteProps } from "./components/Types";
 
@@ -14,7 +15,9 @@ export interface GlobalStateInterface {
 
     searchText: string,
 
-    isScanOptional: boolean
+    isScanOptional: boolean,
+
+    uploader: FileTransferManager,
 
 }
 

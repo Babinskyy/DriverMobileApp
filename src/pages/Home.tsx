@@ -162,6 +162,28 @@ const Home: React.FC = () => {
   const [presentLoading, dismissLoading] = useIonLoading();
   const [smsSend, setSmsSend] = useState(false);
 
+  const [onlyOnce, setOnlyOnce] = useState(true);
+
+  const DietsCounterString = (dietsCount: number) => {
+
+    if(dietsCount >= 10)
+    {
+      return "diet";
+    }
+    else if(dietsCount >= 2)
+    {
+      return "diety";
+    }
+    else if(dietsCount <= 1)
+    {
+      return "dietę";
+    }
+    else
+    {
+      return "diety"
+    }
+  }
+
   const {
     Init,
     UpdateRouteImage,
@@ -237,13 +259,15 @@ const Home: React.FC = () => {
         contentRef.current.scrollToTop();
       }
 
-      const networkStatus = await Network.getStatus();
-      if (networkStatus.connected) {
-        await CheckOfflineRequests();
-        await InitWithServer();
-      } else {
-        await Init();
-      }
+      // const networkStatus = await Network.getStatus();
+      // if (networkStatus.connected) {
+      //   await CheckOfflineRequests();
+      //   await InitWithServer();
+      // } else {
+      //   await Init();
+      // }
+
+      await Init();
 
       // await assignRouteDeliveredFromStorageToState();
 
@@ -263,13 +287,15 @@ const Home: React.FC = () => {
         contentRef.current.scrollToTop();
       }
 
-      const networkStatus = await Network.getStatus();
-      if (networkStatus.connected) {
-        await CheckOfflineRequests();
-        await InitWithServer();
-      } else {
-        await Init();
-      }
+      // const networkStatus = await Network.getStatus();
+      // if (networkStatus.connected) {
+      //   await CheckOfflineRequests();
+      //   await InitWithServer();
+      // } else {
+      //   await Init();
+      // }
+
+      await Init();
 
       // await assignRouteFromStorageToState();
 
@@ -363,33 +389,45 @@ const Home: React.FC = () => {
   // }
 
   useEffect(() => {
-    const appListener = async () => {
-      App.addListener("backButton", async () => {
-        try {
-          const menuElement = document.querySelector("#mainMenu") as
-            | HTMLIonMenuElement
-            | undefined;
 
-          menuElement?.setOpen(false);
+    if(onlyOnce)
+    {
+      setOnlyOnce(false);
 
-          setShowOrderInfoModal(false);
-          setShowOrderPhoto(false);
-        } catch (error) {}
-      });
-    };
-    appListener();
+      const appListener = async () => {
+        App.addListener("backButton", async () => {
+          try {
+            const menuElement = document.querySelector("#mainMenu") as
+              | HTMLIonMenuElement
+              | undefined;
+  
+            menuElement?.setOpen(false);
+  
+            setShowOrderInfoModal(false);
+            setShowOrderPhoto(false);
+          } catch (error) {}
+        });
+      };
+      appListener();
+  
+      const asyncUseEffect = async () => {
+        if(!state.routeCurrent || !state.routeEnd)
+        {
+          const networkStatus = await Network.getStatus();
+          if (networkStatus.connected) {
+            await Init();
+            await CheckOfflineRequests();
+            await InitWithServer();
+          } else {
+            await Init();
+          }
+        }
+      };
+      asyncUseEffect();
 
-    const asyncUseEffect = async () => {
-      const networkStatus = await Network.getStatus();
-      if (networkStatus.connected) {
-        await Init();
-        await CheckOfflineRequests();
-        await InitWithServer();
-      } else {
-        await Init();
-      }
-    };
-    asyncUseEffect();
+    }
+
+    
   }, []);
 
   // useIonViewDidEnter(async () => {
@@ -666,7 +704,7 @@ const Home: React.FC = () => {
               );
             })}
           </IonList>
-          <IonListHeader style={{ fontWeight: 700 }}>SMS</IonListHeader>
+          {/* <IonListHeader style={{ fontWeight: 700 }}>SMS</IonListHeader>
           <IonItem lines="none">
             <IonButton
               style={{
@@ -700,7 +738,7 @@ const Home: React.FC = () => {
             >
               Wyślij sms do klienta
             </IonButton>
-          </IonItem>
+          </IonItem> */}
           <IonListHeader>
             <IonLabel style={{ fontWeight: 700 }}>
               Numer Klienta: {`${itemModalInfo?.customerId}`}
@@ -853,7 +891,7 @@ const Home: React.FC = () => {
               .map((e, i) => {
                 return (
                   <div key={e.id} className="item-container">
-                    {i >= 0 ? <div className="counter">{i + 1}</div> : <></>}
+                    {i >= 0 ? <div className="counter">{"Przygotuj "}<span style={{ fontWeight: 800 }} >{e.packages.length}</span>{" "}{DietsCounterString(e.packages.length)}</div> : <></>}
                     <IonLabel>
                       <div style={{ display: "flex", marginBottom: "5px" }}>
                         <IonIcon
@@ -887,7 +925,7 @@ const Home: React.FC = () => {
                         <IonIcon
                           className="icon-scan"
                           color={
-                            e.image
+                            e.imageProcessed
                               ? "secondary"
                               : e.packagesCompleted || state.isScanOptional
                               ? "tertiary"
@@ -897,7 +935,7 @@ const Home: React.FC = () => {
                           }
                           slot="end"
                           icon={
-                            e.image
+                            e.imageProcessed
                               ? syncOutline
                               : e.packagesCompleted || state.isScanOptional
                               ? cameraOutline
@@ -906,12 +944,12 @@ const Home: React.FC = () => {
                           onClick={async (event) => {
                             if (
                               (e.packagesCompleted || state.isScanOptional) &&
-                              !e.image
+                              !e.imageProcessed
                             ) {
                               const image = await GetPhoto(e.id.toString());
 
                               await UpdateRouteImage(e.id, image);
-                            } else if (e.image) {
+                            } else if (e.imageProcessed) {
                               presentAlert({
                                 mode: "ios",
                                 cssClass: "missing-qr-alert",
@@ -935,7 +973,7 @@ const Home: React.FC = () => {
                                 return (
                                   x.packages.some((y) => {
                                     return y.scanned;
-                                  }) && !x.image
+                                  }) && !x.imageProcessed
                                 );
                               }) &&
                               e.id !=
@@ -943,7 +981,7 @@ const Home: React.FC = () => {
                                   return (
                                     x.packages.some((y) => {
                                       return y.scanned;
-                                    }) && !x.image
+                                    }) && !x.imageProcessed
                                   );
                                 })?.id
                             ) {
@@ -955,7 +993,7 @@ const Home: React.FC = () => {
                                 return (
                                   x.packages.some((y) => {
                                     return y.scanned;
-                                  }) && !x.image
+                                  }) && !x.imageProcessed
                                 );
                               });
 
@@ -978,7 +1016,7 @@ const Home: React.FC = () => {
                             } else {
                               const tempItems = state.routeCurrent;
                               const isCameraWaiting = tempItems?.some((x) => {
-                                return x.packagesCompleted && !x.image;
+                                return x.packagesCompleted && !x.imageProcessed;
                               });
 
                               if (isCameraWaiting) {

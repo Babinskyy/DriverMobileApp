@@ -149,7 +149,7 @@ const Map: React.FC = () => {
             geojsonPoints.current = JSON.parse(response.data.geoJSONStops);
 
             const accessTokenRequest = await axios.get(
-              "https://broccoli.z16.web.core.windows.net/MAPBOX_TOKEN.txt?stamp=" +
+              "https://broccolihot.z16.web.core.windows.net/MAPBOX_TOKEN.txt?stamp=" +
                 new Date().getTime()
             );
             const accessToken = await accessTokenRequest.data;
@@ -169,7 +169,7 @@ const Map: React.FC = () => {
 
               map.current.on("load", () => {
                 map.current?.loadImage(
-                  "https://broccoli.z16.web.core.windows.net/markers/error.png",
+                  "https://broccolihot.z16.web.core.windows.net/markers/error.png",
                   (error, image) => {
                     if (error) throw error;
 
@@ -182,7 +182,7 @@ const Map: React.FC = () => {
                     );
 
                     map.current?.loadImage(
-                      "https://broccoli.z16.web.core.windows.net/markers/start.png",
+                      "https://broccolihot.z16.web.core.windows.net/markers/start.png",
                       (error, image) => {
                         if (error) throw error;
 
@@ -195,7 +195,7 @@ const Map: React.FC = () => {
                         );
 
                         map.current?.loadImage(
-                          "https://broccoli.z16.web.core.windows.net/markers/end.png",
+                          "https://broccolihot.z16.web.core.windows.net/markers/end.png",
                           (error, image) => {
                             if (error) throw error;
 
@@ -208,7 +208,7 @@ const Map: React.FC = () => {
                             );
 
                             map.current?.loadImage(
-                              "https://broccoli.z16.web.core.windows.net/markers/" +
+                              "https://broccolihot.z16.web.core.windows.net/markers/" +
                                 response.data.color +
                                 ".png",
                               (_error, _image) => {
@@ -218,7 +218,7 @@ const Map: React.FC = () => {
                                   response.data.color + "-marker",
                                   _image as HTMLImageElement | ImageBitmap,
                                   {
-                                    pixelRatio: 1.2
+                                    pixelRatio: 2
                                   }
                                 );
 
@@ -232,7 +232,7 @@ const Map: React.FC = () => {
                                   },
                                   paint: {
                                     "line-color": "#" + response.data.color,
-                                    "line-width": 5,
+                                    "line-width": 1,
                                   },
                                   filter: ["==", "$type", "LineString"],
                                 });
@@ -245,14 +245,15 @@ const Map: React.FC = () => {
                                   layout: {
                                     "icon-allow-overlap": true,
                                     "icon-ignore-placement": true,
-                                    "icon-offset": [0, -20],
+                                    "icon-offset": [0, -11],
                                     "icon-image":
                                       response.data.color + "-marker",
                                     // get the title name from the source's "title" property
                                     "text-field": ["get", "order"],
                                     "text-font": ["Open Sans Bold"],
-                                    "text-offset": [0, -2],
+                                    "text-offset": [0, -1.8],
                                     "text-anchor": "top",
+                                    "text-size": 10
                                   },
                                   filter: ["==", "t", "N"],
                                   paint: {
@@ -267,11 +268,11 @@ const Map: React.FC = () => {
                                   layout: {
                                     "icon-allow-overlap": true,
                                     "icon-ignore-placement": true,
-                                    "icon-offset": [0, -20],
+                                    "icon-offset": [0, -11],
                                     "icon-image": "error-marker",
                                     // get the title name from the source's "title" property
                                     "text-font": ["Open Sans Bold"],
-                                    "text-offset": [0, -2],
+                                    "text-offset": [0, -1.8],
                                     "text-anchor": "top",
                                   },
                                   filter: ["==", "t", "E"],
@@ -287,11 +288,11 @@ const Map: React.FC = () => {
                                   layout: {
                                     "icon-allow-overlap": true,
                                     "icon-ignore-placement": true,
-                                    "icon-offset": [0, -20],
+                                    "icon-offset": [0, -11],
                                     "icon-image": "start-marker",
                                     // get the title name from the source's "title" property
                                     "text-font": ["Open Sans Bold"],
-                                    "text-offset": [0, -2],
+                                    "text-offset": [0, -1.8],
                                     "text-anchor": "top",
                                   },
                                   filter: ["==", "t", "S"],
@@ -367,7 +368,7 @@ const Map: React.FC = () => {
 
                                     if (map.current) {
                                       new mapboxgl.Popup()
-                                        .setOffset([0, -33])
+                                        .setOffset([0, -16])
                                         .setLngLat(coordinates)
                                         .setHTML(description)
                                         .addTo(map.current);
