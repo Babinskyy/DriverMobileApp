@@ -54,8 +54,8 @@ export const GetPhoto = async (id: string = "") => {
       allowEditing: false,
       resultType: CameraResultType.Uri,
       source: CameraSource.Camera,
-      height: 1280,
-      width: 720
+      height: 1920,
+      width: 1080
     });
 
     // let imageBase64: ReadFileResult | undefined = undefined;
