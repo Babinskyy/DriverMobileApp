@@ -1,4 +1,5 @@
 import {
+  IonButton,
   IonContent,
   IonFooter,
   IonHeader,
@@ -8,6 +9,7 @@ import {
   IonLabel,
   IonList,
   IonMenu,
+  IonRange,
   IonTitle,
   IonToggle,
   IonToolbar,
@@ -16,6 +18,7 @@ import {
 import {
   carOutline,
   homeOutline,
+  locateOutline,
   mapOutline,
   newspaperOutline,
   readerOutline,
@@ -139,6 +142,19 @@ const Menu: React.FC = () => {
             <IonLabel>Mapa</IonLabel>
             <IonIcon slot="start" icon={mapOutline} />
           </IonItem>
+          <IonItem lines="none" button className="menu-item">
+            <IonIcon
+              style={{
+                fontSize: "25px",
+              }}
+              slot="start"
+              icon={locateOutline}
+            />
+
+            <IonItem>
+              {/* <IonRange min={1000} max={2000} step={100}></IonRange> */}
+            </IonItem>
+          </IonItem>
         </IonList>
       </IonContent>
       <IonFooter style={{ padding: "10px" }}>
@@ -166,7 +182,6 @@ const Menu: React.FC = () => {
             marginBottom: "10px",
           }}
           onClick={async () => {
-
             try {
               presentLoading({
                 message: "Synchronizowanie danych z serwerem",
