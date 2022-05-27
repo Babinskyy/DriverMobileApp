@@ -28,6 +28,7 @@ import { BackgroundUpload } from "@ionic-native/background-upload";
 import {
   useGlobalState
 } from "./../GlobalStateProvider";
+import { isPlatform } from "@ionic/core";
 
 const Startup: React.FC = () => {
 
@@ -60,7 +61,7 @@ const Startup: React.FC = () => {
   useEffect(() => {
     if (onlyOnce) {
 
-      if(!state.uploader)
+      if(!state.uploader && isPlatform("mobile"))
       {
         setState((prev) => ({
           ...prev,
