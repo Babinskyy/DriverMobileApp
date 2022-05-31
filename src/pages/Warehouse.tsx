@@ -53,6 +53,10 @@ import { Storage } from "@capacitor/storage";
 import api from "./../services/api";
 import { WarehousePackage } from "../components/Types";
 
+import {
+  CheckOfflineRequests
+} from "../services/Utility";
+
 const Warehouse: React.FC = () => {
   const [presentToast, dismissToast] = useIonToast();
 
@@ -76,6 +80,8 @@ const Warehouse: React.FC = () => {
   >([]);
   const [allDietsCount, setAllDietsCount] = useState<number>(0);
   const [scanDietsCount, setScanDietsCount] = useState<number>(0);
+
+  const [updateDate, setUpdateDate] = useState("");
 
   useEffect(() => {
     let siema = 0;
@@ -126,6 +132,23 @@ const Warehouse: React.FC = () => {
     });
   };
 
+  const setWarehouseDate = async (value: string) => {
+    await Storage.set({
+      key: "WarehouseDate",
+      value: value,
+    });
+  };
+
+  const assignWarehouseDateFromStorageToState = async () => {
+    const { value } = await Storage.get({ key: "WarehouseDate" });
+
+    if (value) {
+      const warehouseDate = JSON.parse(value) as string;
+
+      setUpdateDate(warehouseDate);
+    }
+  };
+
   const assignWarehousePackagesFromStorageToState = async () => {
     const { value } = await Storage.get({ key: "WarehousePackages" });
 
@@ -173,13 +196,21 @@ const Warehouse: React.FC = () => {
 
   const getData = async () => {
     await assignWarehousePackagesFromStorageToState();
+    await assignWarehouseDateFromStorageToState();
 
+    await CheckOfflineRequests();
     api.get("routes/addresses/packages").then(async (response) => {
       const packages = response.data as WarehousePackage[];
 
       await generateDictionary(packages);
 
       await setWarehousePackages(JSON.stringify(packages));
+
+      let options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' } as any;
+      let today  = new Date();
+
+      await setWarehouseDate(JSON.stringify(today.toLocaleTimeString("pl-PL", options)));
+      setUpdateDate(today.toLocaleTimeString("pl-PL", options));
     });
   };
 
@@ -460,6 +491,15 @@ const Warehouse: React.FC = () => {
             }}
             onIonChange={(e) => setSearchText(e.detail.value!)}
           ></IonSearchbar>
+        </IonToolbar>
+        <IonToolbar style={{
+          textAlign: "center"
+        }} >
+          <IonToolbar>
+            Stan magazynowy z:
+            <br/>
+            {updateDate}
+          </IonToolbar>
         </IonToolbar>
       </IonHeader>
 

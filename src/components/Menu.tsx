@@ -17,6 +17,7 @@ import {
 } from "@ionic/react";
 import {
   carOutline,
+  gridOutline,
   homeOutline,
   locateOutline,
   mapOutline,
@@ -142,7 +143,7 @@ const Menu: React.FC = () => {
             <IonLabel>Mapa</IonLabel>
             <IonIcon slot="start" icon={mapOutline} />
           </IonItem>
-          <IonItem lines="none" button className="menu-item">
+          {/* <IonItem lines="none" button className="menu-item">
             <IonIcon
               style={{
                 fontSize: "25px",
@@ -152,9 +153,28 @@ const Menu: React.FC = () => {
             />
 
             <IonItem>
-              {/* <IonRange min={1000} max={2000} step={100}></IonRange> */}
+              <IonRange min={1000} max={2000} step={100}></IonRange>
             </IonItem>
+          </IonItem> */}
+
+          <IonItem
+            lines="none"
+            color={"/Reorder" == url ? "primary" : undefined}
+            button
+            className="menu-item"
+            onClick={async () => {
+              setTimeout(() => {
+                history.push("/Reorder");
+              }, 1);
+              if (menuRef.current) {
+                menuRef.current.setOpen(false);
+              }
+            }}
+          >
+            <IonLabel>Kafelki adresów</IonLabel>
+            <IonIcon slot="start" icon={gridOutline} />
           </IonItem>
+
         </IonList>
       </IonContent>
       <IonFooter style={{ padding: "10px" }}>

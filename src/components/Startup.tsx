@@ -61,7 +61,7 @@ const Startup: React.FC = () => {
   useEffect(() => {
     if (onlyOnce) {
 
-      if(!state.uploader && isPlatform("mobile"))
+      if(!state.uploader && isPlatform("mobile") && !isPlatform("mobileweb"))
       {
         setState((prev) => ({
           ...prev,

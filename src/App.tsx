@@ -55,6 +55,7 @@ import { Network } from "@capacitor/network";
 import api from "./services/api";
 import { OfflineRequestProps } from "./components/Types";
 import Startup from "./components/Startup";
+import Kafelki from "./pages/Kafelki";
 
 setupIonicReact();
 
@@ -110,6 +111,7 @@ const App: React.FC = () => {
           <Route path="/Warehouse" exact={true} component={Warehouse} />
           <Route path="/" exact={true} component={Home} />
           <Route path="/Map" exact={true} component={Map} />
+          <Route path="/Reorder" exact={true} component={Kafelki} />
         </IonRouterOutlet>
 
       </IonReactRouter>
