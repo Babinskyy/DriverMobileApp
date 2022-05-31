@@ -53,9 +53,13 @@ import { Storage } from "@capacitor/storage";
 import api from "./../services/api";
 import { WarehousePackage } from "../components/Types";
 
+import { CheckOfflineRequests } from "../services/Utility";
+
 import {
-  CheckOfflineRequests
-} from "../services/Utility";
+  GlobalStateProvider,
+  useGlobalState,
+  GlobalStateInterface,
+} from "./../GlobalStateProvider";
 
 const Warehouse: React.FC = () => {
   const [presentToast, dismissToast] = useIonToast();
@@ -82,6 +86,7 @@ const Warehouse: React.FC = () => {
   const [scanDietsCount, setScanDietsCount] = useState<number>(0);
 
   const [updateDate, setUpdateDate] = useState("");
+  const { state, setState } = useGlobalState();
 
   useEffect(() => {
     let siema = 0;
@@ -206,10 +211,17 @@ const Warehouse: React.FC = () => {
 
       await setWarehousePackages(JSON.stringify(packages));
 
-      let options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' } as any;
-      let today  = new Date();
+      let options = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      } as any;
+      let today = new Date();
 
-      await setWarehouseDate(JSON.stringify(today.toLocaleTimeString("pl-PL", options)));
+      await setWarehouseDate(
+        JSON.stringify(today.toLocaleTimeString("pl-PL", options))
+      );
       setUpdateDate(today.toLocaleTimeString("pl-PL", options));
     });
   };
@@ -492,12 +504,14 @@ const Warehouse: React.FC = () => {
             onIonChange={(e) => setSearchText(e.detail.value!)}
           ></IonSearchbar>
         </IonToolbar>
-        <IonToolbar style={{
-          textAlign: "center"
-        }} >
+        <IonToolbar
+          style={{
+            textAlign: "center",
+          }}
+        >
           <IonToolbar>
             Stan magazynowy z:
-            <br/>
+            <br />
             {updateDate}
           </IonToolbar>
         </IonToolbar>
@@ -528,6 +542,7 @@ const Warehouse: React.FC = () => {
       )}
 
       <IonContent
+        id="page-warehouse"
         fullscreen={true}
         className={"background-lightgrey " + (scanning ? "hide-bg" : "")}
       >
@@ -536,7 +551,10 @@ const Warehouse: React.FC = () => {
             console.log(e);
             return (
               <IonItem
-                style={{ "--border-color": "var(--ion-color-medium)" }}
+                style={{
+                  "--border-color": "var(--ion-color-medium)",
+                  "--min-height": 0,
+                }}
                 lines="full"
                 onClick={() => {
                   if (e.scanCount == e.count) {
@@ -614,7 +632,7 @@ const Warehouse: React.FC = () => {
                 }}
               >
                 <IonLabel
-                  className="wrap"
+                  className={"wrap font-" + state.menuFontSize}
                   style={{
                     fontWeight: e.scanCount == e.count ? 600 : 400,
                     textDecoration:
@@ -625,7 +643,7 @@ const Warehouse: React.FC = () => {
                   {e.name}
                 </IonLabel>
                 <IonLabel
-                  className="wrap"
+                  className={"wrap font-" + state.menuFontSize}
                   slot="end"
                   color={e.scanCount == e.count ? "success" : ""}
                 >

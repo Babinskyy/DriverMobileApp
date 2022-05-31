@@ -52,6 +52,8 @@ import Menu from "./components/Menu";
 import { Storage } from "@capacitor/storage";
 import { Network } from "@capacitor/network";
 
+import "./theme/Global.scss";
+
 import api from "./services/api";
 import { OfflineRequestProps } from "./components/Types";
 import Startup from "./components/Startup";
@@ -63,16 +65,11 @@ export const themeCheck = async () => {
   const { value } = await Storage.get({ key: "theme" });
 
   if (value) {
-
-    if(value == "dark")
-    {
+    if (value == "dark") {
       document.body.classList.add("dark");
-    }
-    else
-    {
+    } else {
       document.body.classList.remove("dark");
     }
-
   } else {
     // Use matchMedia to check the user preference
     // const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
@@ -81,25 +78,17 @@ export const themeCheck = async () => {
     // {
     //   document.body.classList.add("dark");
     // }
-    
-    document.body.classList.add("dark");
 
+    document.body.classList.add("dark");
   }
 };
 
-
-
 const App: React.FC = () => {
-
   const [presentLoading, dismissLoading] = useIonLoading();
 
   useEffect(() => {
-    
     themeCheck();
-
   }, []);
-
-  
 
   return (
     <IonApp>
@@ -113,11 +102,9 @@ const App: React.FC = () => {
           <Route path="/Map" exact={true} component={Map} />
           <Route path="/Reorder" exact={true} component={Kafelki} />
         </IonRouterOutlet>
-
       </IonReactRouter>
 
-      <Startup/>
-
+      <Startup />
     </IonApp>
   );
 };

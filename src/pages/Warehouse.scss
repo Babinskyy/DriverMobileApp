@@ -5,13 +5,30 @@
 }
 
 
-.warehouse-scanner-toast 
-{
-    // transform: translateY(-80px);
-}
+
 
 .all-diets-counter {
     float: right;
     margin-right: 10px;
     margin-bottom: 3px;
 }
+
+#page-warehouse {
+    .font-1{
+        font-size: 14px !important;
+        margin-bottom: 7px;
+        margin-top: 7px;
+        
+    }
+    .font-2{
+        font-size: 15px !important;
+        margin-bottom: 10px;
+        margin-top: 10px;
+    }
+    .font-4{
+        font-size: 19px !important;
+        margin-bottom: 15px;
+        margin-top: 15px;
+    }
+}
+

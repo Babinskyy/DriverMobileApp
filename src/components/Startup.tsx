@@ -25,13 +25,10 @@ import { v4 as uuidv4 } from "uuid";
 
 import { BackgroundUpload } from "@ionic-native/background-upload";
 
-import {
-  useGlobalState
-} from "./../GlobalStateProvider";
+import { useGlobalState } from "./../GlobalStateProvider";
 import { isPlatform } from "@ionic/core";
 
 const Startup: React.FC = () => {
-
   const { setState, state } = useGlobalState();
   const { navigate } = useContext(NavContext);
 
@@ -60,16 +57,21 @@ const Startup: React.FC = () => {
 
   useEffect(() => {
     if (onlyOnce) {
+      setState((prev) => ({
+        ...prev,
+        ...{
+          menuFontSize: 3,
+        },
+      }));
 
-      if(!state.uploader && isPlatform("mobile") && !isPlatform("mobileweb"))
-      {
+      if (!state.uploader && isPlatform("mobile") && !isPlatform("mobileweb")) {
         setState((prev) => ({
           ...prev,
           ...{
             uploader: BackgroundUpload.init({
               callBack: (e) => {
                 console.log(e);
-              }
+              },
             }),
           },
         }));
@@ -104,56 +106,56 @@ const Startup: React.FC = () => {
       checkPermissions();
 
       // const appListener = async () => {
-        // BackgroundMode.on("activate").subscribe(async () => {
+      // BackgroundMode.on("activate").subscribe(async () => {
 
-        //   try {
-        //     const networkStatus = await Network.getStatus();
-        //     if (networkStatus.connected) {
-        //       await CheckOfflineRequests();
-        //     }
-        //   } catch (error) {}
+      //   try {
+      //     const networkStatus = await Network.getStatus();
+      //     if (networkStatus.connected) {
+      //       await CheckOfflineRequests();
+      //     }
+      //   } catch (error) {}
 
-        // });
+      // });
 
-        // BackgroundMode.on("enable").subscribe(async () => {
+      // BackgroundMode.on("enable").subscribe(async () => {
 
-        //   try {
-        //     const appState = await App.getState();
+      //   try {
+      //     const appState = await App.getState();
 
-        //     if (!appState.isActive) {
-        //       const networkStatus = await Network.getStatus();
-        //       if (networkStatus.connected) {
-        //         await CheckOfflineRequests();
-        //         // await InitWithServer();
-        //       }
-        //     }
-        //   } catch (error) {}
+      //     if (!appState.isActive) {
+      //       const networkStatus = await Network.getStatus();
+      //       if (networkStatus.connected) {
+      //         await CheckOfflineRequests();
+      //         // await InitWithServer();
+      //       }
+      //     }
+      //   } catch (error) {}
 
-        //   BackgroundMode.moveToBackground();
+      //   BackgroundMode.moveToBackground();
 
-        // });
+      // });
 
-        // if (!BackgroundMode.isEnabled()) {
-        //   BackgroundMode.enable();
-        // }
+      // if (!BackgroundMode.isEnabled()) {
+      //   BackgroundMode.enable();
+      // }
 
-        // App.addListener("appStateChange", async ({ isActive }) => {
-        //   if (!isActive) {
-        //     const eventId = uuidv4();
+      // App.addListener("appStateChange", async ({ isActive }) => {
+      //   if (!isActive) {
+      //     const eventId = uuidv4();
 
-        //     if (!BackgroundMode.isEnabled()) {
-        //       BackgroundMode.enable();
-        //     }
-        //     BackgroundMode.on(eventId).subscribe(async () => {
-        //       await CheckOfflineRequests();
+      //     if (!BackgroundMode.isEnabled()) {
+      //       BackgroundMode.enable();
+      //     }
+      //     BackgroundMode.on(eventId).subscribe(async () => {
+      //       await CheckOfflineRequests();
 
-        //       if (BackgroundMode.isEnabled()) {
-        //         BackgroundMode.disable();
-        //       }
-        //     });
-        //     BackgroundMode.fireEvent(eventId);
-        //   }
-        // });
+      //       if (BackgroundMode.isEnabled()) {
+      //         BackgroundMode.disable();
+      //       }
+      //     });
+      //     BackgroundMode.fireEvent(eventId);
+      //   }
+      // });
       // };
       // appListener();
 
@@ -168,7 +170,6 @@ const Startup: React.FC = () => {
         }
       };
       asyncUseEffect();
-
     }
   }, []);
 

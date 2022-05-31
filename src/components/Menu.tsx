@@ -16,6 +16,7 @@ import {
   useIonLoading,
 } from "@ionic/react";
 import {
+  addCircleOutline,
   carOutline,
   gridOutline,
   homeOutline,
@@ -40,7 +41,15 @@ import { CheckOfflineRequests, useRoute } from "../services/Utility";
 
 import { SMS } from "@awesome-cordova-plugins/sms";
 
+import {
+  GlobalStateProvider,
+  useGlobalState,
+  GlobalStateInterface,
+} from "./../GlobalStateProvider";
+
 const Menu: React.FC = () => {
+  const { setState, state } = useGlobalState();
+
   const [presentLoading, dismissLoading] = useIonLoading();
 
   const history = useHistory();
@@ -143,19 +152,6 @@ const Menu: React.FC = () => {
             <IonLabel>Mapa</IonLabel>
             <IonIcon slot="start" icon={mapOutline} />
           </IonItem>
-          {/* <IonItem lines="none" button className="menu-item">
-            <IonIcon
-              style={{
-                fontSize: "25px",
-              }}
-              slot="start"
-              icon={locateOutline}
-            />
-
-            <IonItem>
-              <IonRange min={1000} max={2000} step={100}></IonRange>
-            </IonItem>
-          </IonItem> */}
 
           <IonItem
             lines="none"
@@ -171,10 +167,40 @@ const Menu: React.FC = () => {
               }
             }}
           >
-            <IonLabel>Kafelki adresów</IonLabel>
+            <IonLabel>Edycja kolejności</IonLabel>
             <IonIcon slot="start" icon={gridOutline} />
           </IonItem>
+          <IonItem lines="none" button className="menu-item">
+            {state.menuFontSize ? (
+              <IonRange
+                onIonChange={(e) => {
+                  if (!isNaN(parseInt(e.detail.value.toString()))) {
+                    setState((prev) => ({
+                      ...prev,
+                      ...{
+                        menuFontSize: e.detail.value as number,
+                      },
+                    }));
 
+                    console.log(e.detail.value as number);
+                  }
+                }}
+                min={1}
+                max={4}
+                step={1}
+                value={state.menuFontSize}
+                snaps
+                color="primary"
+              ></IonRange>
+            ) : (
+              <></>
+            )}
+
+            <IonIcon slot="start" icon={addCircleOutline} />
+          </IonItem>
+          <IonItem className="menu-item">
+            font-size: {state.menuFontSize}
+          </IonItem>
         </IonList>
       </IonContent>
       <IonFooter style={{ padding: "10px" }}>

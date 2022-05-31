@@ -165,24 +165,16 @@ const Home: React.FC = () => {
   const [onlyOnce, setOnlyOnce] = useState(true);
 
   const DietsCounterString = (dietsCount: number) => {
-
-    if(dietsCount >= 10)
-    {
+    if (dietsCount >= 5) {
       return "diet";
-    }
-    else if(dietsCount >= 2)
-    {
+    } else if (dietsCount >= 2) {
+      return "diety";
+    } else if (dietsCount <= 1) {
+      return "dieta";
+    } else {
       return "diety";
     }
-    else if(dietsCount <= 1)
-    {
-      return "dietę";
-    }
-    else
-    {
-      return "diety"
-    }
-  }
+  };
 
   const {
     Init,
@@ -389,9 +381,7 @@ const Home: React.FC = () => {
   // }
 
   useEffect(() => {
-
-    if(onlyOnce)
-    {
+    if (onlyOnce) {
       setOnlyOnce(false);
 
       const appListener = async () => {
@@ -400,19 +390,18 @@ const Home: React.FC = () => {
             const menuElement = document.querySelector("#mainMenu") as
               | HTMLIonMenuElement
               | undefined;
-  
+
             menuElement?.setOpen(false);
-  
+
             setShowOrderInfoModal(false);
             setShowOrderPhoto(false);
           } catch (error) {}
         });
       };
       appListener();
-  
+
       const asyncUseEffect = async () => {
-        if(!state.routeCurrent || !state.routeEnd)
-        {
+        if (!state.routeCurrent || !state.routeEnd) {
           const networkStatus = await Network.getStatus();
           if (networkStatus.connected) {
             await Init();
@@ -424,10 +413,7 @@ const Home: React.FC = () => {
         }
       };
       asyncUseEffect();
-
     }
-
-    
   }, []);
 
   // useIonViewDidEnter(async () => {
@@ -581,7 +567,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <IonPage className="container">
+    <IonPage className={"container"}>
       <IonModal
         className="order-info-modal"
         isOpen={showOrderInfoModal}
@@ -589,6 +575,12 @@ const Home: React.FC = () => {
       >
         <IonHeader>
           <IonToolbar style={{ padding: "0 15px" }}>
+            <IonLabel>
+              Nr Klienta:{" "}
+              <span
+                style={{ fontWeight: 700 }}
+              >{`${itemModalInfo?.customerId}`}</span>
+            </IonLabel>
             <IonButtons slot="end">
               <IonButton
                 style={{
@@ -739,11 +731,7 @@ const Home: React.FC = () => {
               Wyślij sms do klienta
             </IonButton>
           </IonItem> */}
-          <IonListHeader>
-            <IonLabel style={{ fontWeight: 700 }}>
-              Numer Klienta: {`${itemModalInfo?.customerId}`}
-            </IonLabel>
-          </IonListHeader>
+
           {itemModalInfo?.image ? (
             <IonButton
               expand="full"
@@ -890,8 +878,20 @@ const Home: React.FC = () => {
               ?.slice(0, infinityCounter)
               .map((e, i) => {
                 return (
-                  <div key={e.id} className="item-container">
-                    {i >= 0 ? <div className="counter">{"Przygotuj "}<span style={{ fontWeight: 800 }} >{e.packages.length}</span>{" "}{DietsCounterString(e.packages.length)}</div> : <></>}
+                  <div
+                    key={e.id}
+                    className={"item-container padding-" + state.menuFontSize}
+                  >
+                    {i >= 0 ? (
+                      <div className="counter">
+                        <span style={{ fontWeight: 800 }}>
+                          {e.packages.length}
+                        </span>{" "}
+                        {DietsCounterString(e.packages.length)}
+                      </div>
+                    ) : (
+                      <></>
+                    )}
                     <IonLabel>
                       <div style={{ display: "flex", marginBottom: "5px" }}>
                         <IonIcon
@@ -918,7 +918,11 @@ const Home: React.FC = () => {
                             }
                           }}
                         >
-                          <h4 className="address capitalize">{`${e.street} ${e.houseNumber}`}</h4>
+                          <h4
+                            className={
+                              "address capitalize font-" + state.menuFontSize
+                            }
+                          >{`${e.street} ${e.houseNumber}`}</h4>
                           <p className="capitalize">{`${e.postCode} ${e.city}`}</p>
                         </IonLabel>
 
@@ -1044,7 +1048,10 @@ const Home: React.FC = () => {
                       >
                         {e.packages.map((_e) => {
                           return (
-                            <IonItem className="item-diet" lines="none">
+                            <IonItem
+                              className={"item-diet font-" + state.menuFontSize}
+                              lines="none"
+                            >
                               <IonIcon
                                 color={_e.scanned ? "success" : "danger"}
                                 src={

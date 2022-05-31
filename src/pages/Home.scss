@@ -12,6 +12,8 @@
 
 
 .container {
+	
+
 
 	.list-order.border {
 		border: 4px solid var(--ion-color-tertiary);
@@ -22,6 +24,16 @@
 
 	.list-order {
 
+		.item-container.padding-1{
+			padding-bottom: 5px;
+		}
+		.item-container.padding-2{
+			padding-bottom: 15px;
+		}
+		.item-container.padding-4{
+			padding-bottom: 25px;
+		}
+		
 		.item-container {
 
 			--padding-start: 0;
@@ -29,6 +41,9 @@
 			position: relative;
 			padding: 20px 0 14px 0;
 
+			
+
+			
 			.counter {
 				position: absolute;
 				z-index: 3;
@@ -46,12 +61,26 @@
 				min-width: 50px;
 				min-height: 50px;
 				padding-left: 10px;
+				margin-top: auto;
+    margin-bottom: auto;
 
 			}
 
 			.address {
 				font-size: 20px;
 				font-weight: 700;
+			}
+
+			.address.font-1 {
+				font-size: 15px !important;
+			}
+
+			.address.font-2 {
+				font-size: 18px !important;
+			}
+
+			.address.font-4 {
+				font-size: 23px !important;
 			}
 
 			.icon-navigation {
@@ -70,6 +99,21 @@
 				font-weight: 500;
 				letter-spacing: 0.5px;
 			}
+
+			.item-diet.font-1{
+				font-size: 16px !important;
+				
+			}
+			.item-diet.font-2{
+				font-size: 18px !important;
+				
+			}
+			.item-diet.font-4{
+				font-size: 23px !important;
+				
+			}
+			
+
 		}
 
 	}
