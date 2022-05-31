@@ -198,9 +198,6 @@ const Menu: React.FC = () => {
 
             <IonIcon slot="start" icon={addCircleOutline} />
           </IonItem>
-          <IonItem className="menu-item">
-            font-size: {state.menuFontSize}
-          </IonItem>
         </IonList>
       </IonContent>
       <IonFooter style={{ padding: "10px" }}>
