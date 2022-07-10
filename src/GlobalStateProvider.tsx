@@ -25,6 +25,9 @@ export interface GlobalStateInterface {
   uploader: FileTransferManager;
 
   menuFontSize: number;
+
+  isRouteBadId: boolean;
+
 }
 
 const GlobalStateContext = createContext({

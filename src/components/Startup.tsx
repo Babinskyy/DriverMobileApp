@@ -81,7 +81,7 @@ const Startup: React.FC = () => {
 
       const checkPermissions = async () => {
         let list = [
-          // AndroidPermissions.PERMISSION.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+          //AndroidPermissions.PERMISSION.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
           AndroidPermissions.PERMISSION.FOREGROUND_SERVICE,
           AndroidPermissions.PERMISSION.CAMERA,
           AndroidPermissions.PERMISSION.READ_EXTERNAL_STORAGE,

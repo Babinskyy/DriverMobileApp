@@ -170,7 +170,11 @@ const Menu: React.FC = () => {
             <IonLabel>Edycja kolejności</IonLabel>
             <IonIcon slot="start" icon={gridOutline} />
           </IonItem>
-          <IonItem lines="none" button className="menu-item">
+          
+        </IonList>
+      </IonContent>
+      <IonFooter style={{ padding: "10px" }}>
+      <IonItem lines="none" className="menu-item">
             {state.menuFontSize ? (
               <IonRange
                 onIonChange={(e) => {
@@ -196,12 +200,8 @@ const Menu: React.FC = () => {
               <></>
             )}
 
-            <IonIcon slot="start" icon={addCircleOutline} />
           </IonItem>
-        </IonList>
-      </IonContent>
-      <IonFooter style={{ padding: "10px" }}>
-        <IonItem lines="none">
+        <IonItem lines="none" className="menu-item">
           <IonLabel>Ciemny motyw</IonLabel>
           <IonToggle
             checked={checked}

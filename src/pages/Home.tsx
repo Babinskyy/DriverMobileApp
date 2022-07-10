@@ -87,6 +87,7 @@ import {
   InnerItemProps,
   DietItemProps,
   OfflineRequestProps,
+  RoutesIsActive,
 } from "../components/Types";
 import ThreeDotsPopover from "../components/ThreeDotsPopover";
 import { RouterProps } from "react-router";
@@ -397,6 +398,35 @@ const Home: React.FC = () => {
             setShowOrderPhoto(false);
           } catch (error) {}
         });
+
+        App.addListener("appStateChange", async (e) => {
+          if (e.isActive) {
+            try {
+              const { value } = await Storage.get({ key: "RouteID" });
+              if (value) {
+                const valueParsed = JSON.parse(value) as string | undefined;
+
+                if (valueParsed) {
+                  api
+                    .get("routes/is-active/" + valueParsed)
+                    .then((response) => {
+                      const data = response.data as RoutesIsActive;
+
+                      if (!data.active) {
+                        setState((prev) => ({
+                          ...prev,
+                          ...{
+                            isRouteBadId: true,
+                          },
+                        }));
+                      }
+                    });
+                }
+              }
+            } catch (error) {}
+          }
+        });
+
       };
       appListener();
 
@@ -843,6 +873,65 @@ const Home: React.FC = () => {
             </IonButton>
           </IonButtons>
         </IonToolbar>
+
+              {
+                state.isRouteBadId
+                ?
+<IonToolbar>
+          <div style={{
+            padding: "0 15px 9px"
+          }}>
+            Twoje trasa może być przestarzała. Synchronizuj trasę naciskając przycisk obok.
+          </div>
+          <IonButtons slot="end">
+            <IonButton
+              style={{
+                width: "auto",
+                padding: "0 10px"
+              }}
+              color="tertiary"
+              fill="solid"
+              onClick={async () =>
+                {
+                  try {
+                    presentLoading({
+                      message: "Synchronizowanie danych z serwerem",
+                      spinner: "crescent",
+                    });
+      
+                    const networkStatus = await Network.getStatus();
+                    if (networkStatus.connected) {
+                      await CheckOfflineRequests();
+                      await InitWithServer();
+                    } else {
+                      await Init();
+                    }
+                  } catch (error) {}
+      
+                  await dismissLoading();
+
+                  setState((prev) => ({
+                    ...prev,
+                    ...{
+                      isRouteBadId: false
+                    },
+                  }));
+
+                }
+              }
+            >
+              Synchronizuj
+            </IonButton>
+          </IonButtons>
+         
+        </IonToolbar>
+        :
+        <></>
+              }
+
+        
+
+
       </IonHeader>
       {scanning ? (
         <>

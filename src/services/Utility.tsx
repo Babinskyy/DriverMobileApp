@@ -485,6 +485,21 @@ export const useRoute = () => {
 
   const AssignRouteFromServer = async () => {
     const result = await GetRouteFromServer();
+
+    if(result)
+    {
+      if(result[0])
+      {
+        if(result[0].routeId)
+        {
+          await Storage.set({
+            key: "RouteID",
+            value: JSON.stringify(result[0].routeId),
+          });
+        }
+      }
+    }
+
     await SaveRouteToStorage(result);
   };
 
@@ -523,8 +538,6 @@ export const useRoute = () => {
     const eventId = uuidv4();
 
     const imagePath = image.path;
-
-    
 
       api.patch("routes/addresses/" + id + "/image/process").then(async (response) => {});
 

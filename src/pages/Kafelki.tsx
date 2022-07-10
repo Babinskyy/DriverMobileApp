@@ -38,6 +38,7 @@ import {
   useIonPopover,
   useIonToast,
   useIonViewDidEnter,
+  useIonViewDidLeave,
   useIonViewWillEnter,
   useIonViewWillLeave,
 } from "@ionic/react";
@@ -120,6 +121,15 @@ import { v4 as uuidv4 } from "uuid";
 //   input.splice(to, numberOfDeletedElm, elm);
 // };
 
+type ImportList = {
+  addressesCount: number;
+  created: string;
+  deliveryDate: string;
+  deliveryDay: string;
+  driverId: string;
+  routeId: string;
+};
+
 type ReorderAddressRequest = {
   id: number;
   order: number;
@@ -146,6 +156,9 @@ const Kafelki: React.FC = () => {
 
   const [presentLoading, dismissLoading] = useIonLoading();
 
+  const [isRoutesListShown, setIsRoutesListShown] = useState(false);
+
+  const [routesImportList, setRoutesImportList] = useState<ImportList[]>();
 
   const DownloadData = () => {
     api.get("routes/reorder").then(async (response) => {
@@ -154,15 +167,127 @@ const Kafelki: React.FC = () => {
       setAddresses(undefined);
       setAddresses(data.addresses);
     });
+  };
+
+  const DownloadRoutesList = () => {
+
+    if (isRoutesListShown) {
+      
+      presentLoading();
+
+      api.get("routes/reorder/import/routes-list").then(async (response) => {
+        const data = response.data as ImportList[];
+
+        setRoutesImportList(data);
+
+        console.log(data);
+      }).finally(() => {
+
+        dismissLoading();
+
+      });
+    }
+
   }
 
+  // useEffect(() => {
+  //   DownloadData();
+  // }, []);
 
   useEffect(() => {
+    DownloadRoutesList();
+  }, [isRoutesListShown]);
+
+
+  useIonViewDidEnter(() => {
     DownloadData();
   }, []);
 
+  useIonViewDidLeave(() => {
+    setAddresses(undefined);
+    setRoutesImportList(undefined);
+
+    setReorderDisabled(true);
+
+  })
+
+
+
+
   return (
     <IonPage className="container">
+      <IonModal
+        style={{
+          padding: "50px 25px",
+        }}
+        isOpen={isRoutesListShown}
+        onIonModalDidDismiss={() => setIsRoutesListShown(false)}
+      >
+        <IonHeader>
+          <IonToolbar style={{ padding: "0 15px" }}>
+            <IonButtons slot="end">
+              <IonButton
+                style={{
+                  fontWeight: 700,
+                }}
+                onClick={() => setIsRoutesListShown(false)}
+              >
+                Wróć
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent>
+          <IonList>
+            {routesImportList?.map((e) => {
+              return (
+                <IonItem
+                  button
+                  onClick={() => {
+                    presentLoading();
+
+                    api
+                      .get("routes/reorder/import/" + e.routeId)
+                      .then(async (response) => {
+                        const data = response.data as ReorderResponse;
+
+                        setAddresses(undefined);
+                        setAddresses(data.addresses);
+                      })
+                      .finally(() => {
+                        dismissLoading();
+                        setIsRoutesListShown(false);
+
+                        setReorderDisabled(false);
+                      });
+                  }}
+                >
+                  <IonLabel>
+                    {new Date(e.deliveryDate).toLocaleDateString("pl-PL")}{" "}
+                    <span
+                      style={{
+                        color: "var(--ion-color-medium)",
+                      }}
+                    >
+                      {e.deliveryDay}
+                    </span>
+                  </IonLabel>
+                  <IonLabel
+                    style={{
+                      maxWidth: "50px",
+                      textAlign: "right",
+                    }}
+                    color="success"
+                  >
+                    {e.addressesCount}
+                  </IonLabel>
+                </IonItem>
+              );
+            })}
+          </IonList>
+        </IonContent>
+      </IonModal>
+
       <IonHeader collapse="fade" translucent={isPlatform("mobile")} mode={"md"}>
         <IonToolbar>
           <IonButtons slot="start">
@@ -187,6 +312,33 @@ const Kafelki: React.FC = () => {
           >
             {reorderDisabled ? (
               <IonButton
+                onClick={() => setIsRoutesListShown(true)}
+                color="warning"
+                fill="outline"
+                style={{
+                  marginRight: "5px",
+                }}
+              >
+                Importuj
+              </IonButton>
+            ) : (
+              <IonButton
+                onClick={() => {
+                  DownloadData();
+                  setReorderDisabled(true);
+                }}
+                color="danger"
+                fill="outline"
+                style={{
+                  marginRight: "5px",
+                }}
+              >
+                Odrzuć
+              </IonButton>
+            )}
+
+            {reorderDisabled ? (
+              <IonButton
                 onClick={() => setReorderDisabled(false)}
                 color="secondary"
                 fill="outline"
@@ -196,8 +348,10 @@ const Kafelki: React.FC = () => {
             ) : (
               <IonButton
                 onClick={() => {
-
-                  presentLoading({spinner: "crescent", message: "Wysyłanie danych..."});
+                  presentLoading({
+                    spinner: "crescent",
+                    message: "Wysyłanie danych...",
+                  });
 
                   if (addresses) {
                     let addressesRequest: ReorderAddressRequest[] = [];
@@ -215,14 +369,13 @@ const Kafelki: React.FC = () => {
                       })
                       .then(async (response) => {
                         console.log(response);
-                      }).finally(() => {
+                      })
+                      .finally(() => {
                         setReorderDisabled(true);
                         DownloadData();
                         dismissLoading();
                       });
-                  }
-                  else
-                  {
+                  } else {
                     dismissLoading();
                   }
                 }}
@@ -253,8 +406,8 @@ const Kafelki: React.FC = () => {
 
               // move(tempAddresses, e.detail.from, e.detail.to);
 
-              console.log(tempAddresses)
-              
+              console.log(tempAddresses);
+
               setAddresses(tempAddresses);
             }
           }}
@@ -263,6 +416,7 @@ const Kafelki: React.FC = () => {
             return (
               <IonItem>
                 <IonLabel
+                  color={e.order < 0 ? "danger" : ""}
                   style={{
                     textTransform: "capitalize",
                   }}
@@ -273,7 +427,7 @@ const Kafelki: React.FC = () => {
                       display: "inline-block",
                     }}
                   >
-                    {i + 1}
+                    {e.order < 0 ? 0 : i + 1}
                     {". "}
                   </strong>
                   {e.street} {e.houseNumber}

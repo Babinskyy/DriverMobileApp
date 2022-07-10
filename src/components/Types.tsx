@@ -70,3 +70,7 @@ export type ImageProps = {
   webPath: string | undefined;
   base64: string | undefined;
 };
+
+export type RoutesIsActive = {
+  active: boolean;
+}
