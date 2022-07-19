@@ -32,6 +32,7 @@ export type RouteProps = {
   packagesCompleted: boolean;
   sms: boolean;
   imageProcessed: boolean;
+  smsReceiptRequested: boolean;
 };
 export type ItemsDietProps = {
   name: string;
@@ -73,4 +74,8 @@ export type ImageProps = {
 
 export type RoutesIsActive = {
   active: boolean;
+}
+
+export type ImageProcessResponse = {
+  sendSms: boolean;
 }

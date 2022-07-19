@@ -62,6 +62,8 @@ import auth from "./../services/auth.service";
 
 import { User } from "./../services/userProps";
 
+import { PushNotifications } from '@capacitor/push-notifications';
+
 const Login: React.FC = () => {
 
   const { navigate } = useContext(NavContext);
@@ -129,7 +131,7 @@ const Login: React.FC = () => {
 
               await auth
                 .login(username, password)
-                .then((response) => {
+                .then(async (response) => {
                   console.log(auth);
 
                   const data = response as User;
@@ -137,6 +139,15 @@ const Login: React.FC = () => {
                   dismissLoading();
 
                   if (data.jwtToken) {
+
+                    try {
+                      
+                      await PushNotifications.register();
+
+                    } catch (error) {
+                      
+                    }
+
                     navigate("/", "forward", "replace");
                   } else {
                     present("Niepoprawne dane logowanie", [

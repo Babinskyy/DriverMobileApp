@@ -2,6 +2,8 @@ import api from "./api";
 import TokenService from "./token.service";
 import { User } from "./userProps"
 
+import { PushNotifications } from '@capacitor/push-notifications';
+
 class AuthService {
   login(username: string, password: string) {
     return api
@@ -19,6 +21,15 @@ class AuthService {
   }
   logout() {
     return api.post("/accounts/revoke-token", { token: null }).finally(async () => {
+
+      try {
+                      
+        await PushNotifications.register();
+
+      } catch (error) {
+        
+      }
+
       await TokenService.removeUser();
     })
   }

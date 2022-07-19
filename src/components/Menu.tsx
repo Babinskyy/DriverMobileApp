@@ -10,6 +10,7 @@ import {
   IonList,
   IonMenu,
   IonRange,
+  IonText,
   IonTitle,
   IonToggle,
   IonToolbar,
@@ -41,6 +42,8 @@ import { CheckOfflineRequests, useRoute } from "../services/Utility";
 
 import { SMS } from "@awesome-cordova-plugins/sms";
 
+import api from "./../services/api";
+
 import {
   GlobalStateProvider,
   useGlobalState,
@@ -62,6 +65,8 @@ const Menu: React.FC = () => {
 
   const { Init, InitWithServer } = useRoute();
 
+  const [username, setUsername] = useState("");
+
   useEffect(() => {
     setTimeout(() => {
       if (document.body.classList.contains("dark")) {
@@ -82,6 +87,18 @@ const Menu: React.FC = () => {
       // contentId="main"
       type="overlay"
       onIonWillOpen={() => {
+
+        api.get("drivers/name").then((response) => {
+
+          const responseData = response.data as string;
+  
+          if(username != responseData)
+          {
+            setUsername(responseData);
+          }
+  
+        })
+
         setUrl(history.location.pathname);
       }}
       onIonWillClose={() => {
@@ -90,8 +107,27 @@ const Menu: React.FC = () => {
         }, 500);
       }}
     >
-      <IonHeader>
+      {/* <IonHeader>
         <IonImg src={brokulImage} className="image" />
+      </IonHeader> */}
+      <IonHeader>
+        <IonItem lines={"none"}>
+        <IonTitle style={{
+          marginTop: "15px",
+        }}>Pojazd <strong>{username}</strong></IonTitle>
+        </IonItem>
+        <IonItem lines={"none"}>
+
+        <IonTitle style={{
+          fontSize: "11px",
+          fontWeight: 300,
+          marginLeft: "auto",
+          textAlign: "right",
+          "--min-height": "30px",
+          letterSpacing: "1px"
+        }}>v17072022</IonTitle>
+          </IonItem>
+        
       </IonHeader>
       <IonContent
         style={{

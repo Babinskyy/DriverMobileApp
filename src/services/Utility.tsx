@@ -1,5 +1,6 @@
 import { SetStateAction, useEffect } from "react";
 import {
+  ImageProcessResponse,
   ImageProps,
   OfflineRequestProps,
   RouteProps,
@@ -31,6 +32,8 @@ import { Network } from "@capacitor/network";
 
 import { BackgroundUpload } from "@ionic-native/background-upload";
 import tokenService from "./token.service";
+
+import { SMS } from "@awesome-cordova-plugins/sms";
 
 export const GetPhoto = async (id: string = "") => {
   if (isPlatform("mobileweb") || isPlatform("desktop")) {
@@ -518,9 +521,19 @@ export const useRoute = () => {
   const UpdateRouteImage = async (id: number, image: ImageProps) => {
     const _route = state.route;
 
+    let sendSms = false;
+    let addressPhone = "";
+
     if (_route) {
       for (const n of _route) {
         if (n.id == id) {
+
+          if(n.smsReceiptRequested)
+          {
+            sendSms = true;
+            addressPhone = n.phone;
+          }
+
           for (const k of n.packages) {
             k.scanned = true;
             k.confirmationString = "-" + uuidv4();
@@ -540,6 +553,13 @@ export const useRoute = () => {
     const imagePath = image.path;
 
       api.patch("routes/addresses/" + id + "/image/process").then(async (response) => {});
+
+      if(sendSms && addressPhone)
+      {
+        SMS.send(addressPhone, "Twoja dieta została dostarczona.\n\nŻyczymy smacznego,\nDiety od Brokuła").then(() => {
+          api.patch("sms/route-address/" + id).then(async (response) => {});
+        });
+      }
 
       
       if (imagePath) {

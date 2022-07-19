@@ -8,6 +8,7 @@ import { isPlatform } from "@ionic/core";
 import {
   IonButton,
   IonButtons,
+  IonCol,
   IonContent,
   IonFab,
   IonFabButton,
@@ -27,6 +28,7 @@ import {
   IonPage,
   IonReorder,
   IonRippleEffect,
+  IonRow,
   IonSearchbar,
   IonTitle,
   IonToggle,
@@ -47,6 +49,7 @@ import {
   call,
   cameraOutline,
   checkmarkOutline,
+  chevronDownOutline,
   closeOutline,
   ellipsisVerticalOutline,
   flashlightOutline,
@@ -109,6 +112,7 @@ import {
 import { BackgroundMode } from "@ionic-native/background-mode";
 
 import { v4 as uuidv4 } from "uuid";
+import { SMS } from "@awesome-cordova-plugins/sms";
 
 const Home: React.FC = () => {
   const { navigate } = useContext(NavContext);
@@ -161,7 +165,6 @@ const Home: React.FC = () => {
   const [presentPhotoLoading, dismissPhotoLoading] = useIonLoading();
 
   const [presentLoading, dismissLoading] = useIonLoading();
-  const [smsSend, setSmsSend] = useState(false);
 
   const [onlyOnce, setOnlyOnce] = useState(true);
 
@@ -176,6 +179,8 @@ const Home: React.FC = () => {
       return "diety";
     }
   };
+
+  const [archivedImages, setArchivedImages] = useState<string[]>([]);
 
   const {
     Init,
@@ -601,7 +606,13 @@ const Home: React.FC = () => {
       <IonModal
         className="order-info-modal"
         isOpen={showOrderInfoModal}
-        onIonModalDidDismiss={() => setShowOrderInfoModal(false)}
+        onIonModalDidDismiss={() => {
+          setShowOrderInfoModal(false);
+          setArchivedImages([]);
+        }}
+        onIonModalWillPresent={() => {
+          setArchivedImages([]);
+        }}
       >
         <IonHeader>
           <IonToolbar style={{ padding: "0 15px" }}>
@@ -726,6 +737,7 @@ const Home: React.FC = () => {
               );
             })}
           </IonList>
+
           {/* <IonListHeader style={{ fontWeight: 700 }}>SMS</IonListHeader>
           <IonItem lines="none">
             <IonButton
@@ -742,15 +754,32 @@ const Home: React.FC = () => {
 
                   cssClass: "missing-qr-alert",
                   header: "Czy wysłać sms o dostarczonej dostawie do klienta?",
-                  subHeader: "Wybrany adres:",
-                  message: `${itemModalInfo?.street} ${itemModalInfo?.houseNumber}`,
+                  message: `Adres: ${itemModalInfo?.street} ${itemModalInfo?.houseNumber}\nNumer: ${itemModalInfo?.phone}`,
                   buttons: [
                     "Anuluj",
                     {
                       text: "Wyślij",
                       handler: async () => {
-                        setSmsSend(true);
-                        api.post("sms").then(async (response) => {});
+
+                        if(itemModalInfo?.phone)
+                        {
+                          
+                          try {
+                          
+                            
+  
+                            
+  
+                          } catch (error) {
+                            
+                          }
+
+                        }
+
+                        
+
+                        
+
                       },
                     },
                   ],
@@ -765,7 +794,7 @@ const Home: React.FC = () => {
           {itemModalInfo?.image ? (
             <IonButton
               expand="full"
-              style={{ margin: "0 10px", marginBottom: "40px" }}
+              style={{ margin: "15px 10px 10px" }}
               onClick={() => {
                 setAssignedImage(itemModalInfo?.image);
                 setShowOrderPhoto(true);
@@ -776,6 +805,48 @@ const Home: React.FC = () => {
           ) : (
             <></>
           )}
+
+          <IonButton
+            fill="clear"
+            expand="full"
+            style={{ margin: "15px 10px 10px" }}
+            onClick={() => {
+
+              presentLoading("Pobieranie zdjęć");
+
+              api
+                .get("routes/" + itemModalInfo?.id + "/archived-images")
+                .then((response) => {
+                  const data = response.data as string[];
+
+                  if (data.length > 0) {
+                    setArchivedImages(data);
+                  }
+                }).finally(() => {
+
+                  dismissLoading();
+
+                });
+            }}
+          >
+            archiwum zdjęć
+            <IonIcon slot="end" icon={chevronDownOutline} />
+          </IonButton>
+          <IonRow>
+            {archivedImages.map((_image) => {
+              return (
+                <IonCol size="6">
+                  <IonImg
+                    src={_image}
+                    onClick={() => {
+                      setAssignedImage(_image);
+                      setShowOrderPhoto(true);
+                    }}
+                  />
+                </IonCol>
+              );
+            })}
+          </IonRow>
         </IonContent>
       </IonModal>
       <IonModal
@@ -874,31 +945,31 @@ const Home: React.FC = () => {
           </IonButtons>
         </IonToolbar>
 
-              {
-                state.isRouteBadId
-                ?
-<IonToolbar>
-          <div style={{
-            padding: "0 15px 9px"
-          }}>
-            Twoje trasa może być przestarzała. Synchronizuj trasę naciskając przycisk obok.
-          </div>
-          <IonButtons slot="end">
-            <IonButton
+        {state.isRouteBadId ? (
+          <IonToolbar>
+            <div
               style={{
-                width: "auto",
-                padding: "0 10px"
+                padding: "0 15px 9px",
               }}
-              color="tertiary"
-              fill="solid"
-              onClick={async () =>
-                {
+            >
+              Twoje trasa może być przestarzała. Synchronizuj trasę naciskając
+              przycisk obok.
+            </div>
+            <IonButtons slot="end">
+              <IonButton
+                style={{
+                  width: "auto",
+                  padding: "0 10px",
+                }}
+                color="tertiary"
+                fill="solid"
+                onClick={async () => {
                   try {
                     presentLoading({
                       message: "Synchronizowanie danych z serwerem",
                       spinner: "crescent",
                     });
-      
+
                     const networkStatus = await Network.getStatus();
                     if (networkStatus.connected) {
                       await CheckOfflineRequests();
@@ -907,31 +978,24 @@ const Home: React.FC = () => {
                       await Init();
                     }
                   } catch (error) {}
-      
+
                   await dismissLoading();
 
                   setState((prev) => ({
                     ...prev,
                     ...{
-                      isRouteBadId: false
+                      isRouteBadId: false,
                     },
                   }));
-
-                }
-              }
-            >
-              Synchronizuj
-            </IonButton>
-          </IonButtons>
-         
-        </IonToolbar>
-        :
-        <></>
-              }
-
-        
-
-
+                }}
+              >
+                Synchronizuj
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        ) : (
+          <></>
+        )}
       </IonHeader>
       {scanning ? (
         <>

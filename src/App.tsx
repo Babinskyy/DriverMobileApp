@@ -61,38 +61,14 @@ import { OfflineRequestProps } from "./components/Types";
 import Startup from "./components/Startup";
 import Kafelki from "./pages/Kafelki";
 
-import OneSignal from 'onesignal-cordova-plugin';
+import { PushNotifications } from '@capacitor/push-notifications';
+
 // import LogRocket from 'logrocket';
 // import setupLogRocketReact from 'logrocket-react';
 
 // import { App as _App } from "@capacitor/app";
 
-import * as Sentry from '@sentry/capacitor';
-// The example is using Angular, Import '@sentry/vue' or '@sentry/react' when using a Sibling different than Angular.
-import * as SentrySibling from '@sentry/react';
-// For automatic instrumentation (highly recommended)
-import { BrowserTracing } from '@sentry/tracing';
-
 setupIonicReact();
-
-Sentry.init(
-  {
-    dsn: 'https://423e900640a14e33be03bfd94e98f2c9@o1303144.ingest.sentry.io/6541732',
-    // To set your release and dist versions
-    release: 'my-project-name@' + process.env.npm_package_version,
-    dist: '1',
-    // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-    // We recommend adjusting this value in production.
-    tracesSampleRate: 1.0,
-    integrations: [
-      new BrowserTracing({
-        tracingOrigins: ['localhost', 'https://yourserver.io/api'],
-      }),
-    ]
-  },
-  // Forward the init method to the sibling Framework.
-  SentrySibling.init
-);
 
 export const themeCheck = async () => {
   const { value } = await Storage.get({ key: "theme" });
@@ -115,6 +91,59 @@ export const themeCheck = async () => {
     document.body.classList.add("dark");
   }
 };
+
+const addListeners = async () => {
+  await PushNotifications.addListener('registration', async token => {
+
+    if(token.value)
+    {
+      api.patch("fcm", {
+        token: token.value
+      }).then((response) => {
+
+        
+
+      })
+    }
+
+    console.info('Registration token: ', token.value);
+  });
+
+  await PushNotifications.addListener('registrationError', err => {
+    console.error('Registration error: ', err.error);
+  });
+
+  await PushNotifications.addListener('pushNotificationReceived', notification => {
+    console.log('Push notification received: ', notification);
+  });
+
+  await PushNotifications.addListener('pushNotificationActionPerformed', notification => {
+    console.log('Push notification action performed', notification.actionId, notification.inputValue);
+  });
+}
+
+const registerNotifications = async () => {
+  let permStatus = await PushNotifications.checkPermissions();
+
+  if (permStatus.receive === 'prompt') {
+    permStatus = await PushNotifications.requestPermissions();
+  }
+
+  if (permStatus.receive !== 'granted') {
+    throw new Error('User denied permissions!');
+  }
+
+  await PushNotifications.register();
+}
+
+
+const initPushNotifiactions = async () => {
+
+  await addListeners();
+
+  await registerNotifications();
+
+}
 
 
 const App: React.FC = () => {
@@ -161,8 +190,14 @@ const App: React.FC = () => {
 
   // }, [])
 
-  
 
+
+  
+  useEffect(() => {
+    
+    initPushNotifiactions();
+
+  }, []);
 
   useEffect(() => {
     themeCheck();
