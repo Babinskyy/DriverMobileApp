@@ -202,13 +202,13 @@ ion-label.wrap {
 	white-space: break-spaces !important;
 }
 
-ion-modal::part(backdrop) {
-	--backdrop-opacity: 1;
-}
+// ion-modal::part(backdrop) {
+// 	--backdrop-opacity: 1;
+// }
 
-ion-modal::part(backdrop) {
-	background-color: rgba(0, 0, 0, 0.3);
-}
+// ion-modal::part(backdrop) {
+// 	background-color: rgba(0, 0, 0, 0.3);
+// }
 
 ion-modal.order-info-modal {
 	padding-top: 110px;

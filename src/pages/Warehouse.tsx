@@ -8,6 +8,8 @@ import { isPlatform } from "@ionic/core";
 import {
   IonButton,
   IonButtons,
+  IonChip,
+  IonCol,
   IonContent,
   IonFab,
   IonFabButton,
@@ -23,10 +25,13 @@ import {
   IonPage,
   IonReorder,
   IonRippleEffect,
+  IonRow,
   IonSearchbar,
+  IonSpinner,
   IonTitle,
   IonToolbar,
   useIonAlert,
+  useIonLoading,
   useIonPopover,
   useIonToast,
   useIonViewWillEnter,
@@ -54,6 +59,8 @@ import api from "./../services/api";
 import { WarehousePackage } from "../components/Types";
 
 import { CheckOfflineRequests } from "../services/Utility";
+
+import { Network } from "@capacitor/network";
 
 import {
   GlobalStateProvider,
@@ -88,6 +95,13 @@ const Warehouse: React.FC = () => {
   const [updateDate, setUpdateDate] = useState("");
   const { state, setState } = useGlobalState();
 
+
+  const [scannedDiets, setScannedDiets] = useState<string[]>([]);
+
+
+  const [lastScanStringCount, setLastScanStringCount] = useState<string>("");
+
+
   useEffect(() => {
     let siema = 0;
 
@@ -101,6 +115,7 @@ const Warehouse: React.FC = () => {
 
   type DietsDictionary = {
     name: string;
+    owner: string;
     count: number;
     scanCount: number;
   };
@@ -154,6 +169,64 @@ const Warehouse: React.FC = () => {
     }
   };
 
+  type WarehousePackagesToSendType = {
+    Id: number;
+    ConfirmationString: string;
+    isScanned: boolean;
+    All: boolean;
+    Name: string;
+    CountString: string;
+  }
+
+  const removeWarehousePackagesToSend = async () => {
+    await Storage.remove({
+      key: "WarehousePackagesToSend"
+    });
+  };
+
+  const addWarehousePackagesToSend = async (item: WarehousePackagesToSendType) => {
+
+    setLastScanStringCount(item.CountString);
+
+    const { value } = await Storage.get({ key: "WarehousePackagesToSend" });
+
+    if(value)
+    {
+
+      let tempValue = JSON.parse(value) as WarehousePackagesToSendType[];
+
+      tempValue.push(item);
+
+      await Storage.set({
+        key: "WarehousePackagesToSend",
+        value: JSON.stringify(tempValue),
+      });
+    }
+    else
+    {
+      await Storage.set({
+        key: "WarehousePackagesToSend",
+        value: JSON.stringify([ item ]),
+      });
+    }
+  };
+
+  const getWarehousePackagesToSend = async () => {
+    const { value } = await Storage.get({ key: "WarehousePackagesToSend" });
+
+    
+
+    if(value)
+    {
+      console.log(value)
+      return JSON.parse(value) as WarehousePackagesToSendType[];
+    }
+    else
+    {
+      return [];
+    }
+  };
+
   const assignWarehousePackagesFromStorageToState = async () => {
     const { value } = await Storage.get({ key: "WarehousePackages" });
 
@@ -184,6 +257,7 @@ const Warehouse: React.FC = () => {
       } else {
         dietsDictionary.push({
           name: y.name,
+          owner: y.owner,
           count: 1,
           scanCount: y.scanned ? 1 : 0,
         });
@@ -199,11 +273,76 @@ const Warehouse: React.FC = () => {
     }
   };
 
-  const getData = async () => {
-    await assignWarehousePackagesFromStorageToState();
-    await assignWarehouseDateFromStorageToState();
+  const [presentLoading, dismissLoading] = useIonLoading();
+  
+  const [isLoaderOpen, setIsLoaderOpen] = useState(false);
+  const [loadingText, setLoadingText] = useState<string>("");
+  
 
-    await CheckOfflineRequests();
+  const getData = async () => {
+
+    const networkStatus = await Network.getStatus();
+    if (!networkStatus.connected) {
+      return;
+    }
+
+
+    const packagesToSend = await getWarehousePackagesToSend();
+
+    const packagesToSendLength = packagesToSend.length;
+
+    let counter = 1;
+    
+
+    setIsLoaderOpen(true);
+
+    // await assignWarehousePackagesFromStorageToState();
+    // await assignWarehouseDateFromStorageToState();
+
+    if(packagesToSend)
+    {
+      for(const n of packagesToSend.filter(e => !e.All))
+      {
+        setLoadingText("Wysyłanie " + counter + "/" + packagesToSendLength);
+  
+        const scanRequest = await api
+          .patch(
+            "routes/addresses/packages/" + n.Id + "/warehouse",
+            {
+              isScanned: n.isScanned,
+              confirmationString: n.ConfirmationString,
+            }
+          )
+        const scanRequestResult = await scanRequest.data;
+        console.log("scanned = " + n.Id)
+
+        counter++;
+  
+      }
+      for(const n of packagesToSend.filter(e => e.All))
+      {
+        setLoadingText("Wysyłanie " + counter + "/" + packagesToSendLength);
+  
+        const scanAllRequest = await api
+          .patch(
+            "routes/addresses/packages/warehouse-all",
+            {
+              isScanned: n.isScanned,
+              name: n.Name,
+            }
+          )
+        const scanAllRequestResult = await scanAllRequest.data;
+        console.log("scanned all = " + n.Name)
+
+        counter++;
+
+      }
+    }
+
+
+    setLoadingText("Synchronizacja danych");
+
+    //await CheckOfflineRequests();
     api.get("routes/addresses/packages").then(async (response) => {
       const packages = response.data as WarehousePackage[];
 
@@ -223,11 +362,21 @@ const Warehouse: React.FC = () => {
         JSON.stringify(today.toLocaleTimeString("pl-PL", options))
       );
       setUpdateDate(today.toLocaleTimeString("pl-PL", options));
+    }).finally(async () => {
+
+
+      await removeWarehousePackagesToSend();
+      setIsLoaderOpen(false);
+
     });
   };
 
   useIonViewWillEnter(async () => {
-    await getData();
+
+    await assignWarehousePackagesFromStorageToState();
+    await assignWarehouseDateFromStorageToState();
+
+    //await getData();
 
     // api.get("routes/").then(async (response) => {
     //   const route = response.data as RouteProps[];
@@ -432,17 +581,66 @@ const Warehouse: React.FC = () => {
 
               await generateDictionary(tempItems);
 
-              api
-                .patch(
-                  "routes/addresses/packages/" +
-                    scannedPackage.id +
-                    "/warehouse",
-                  {
+              // api
+              //   .patch(
+              //     "routes/addresses/packages/" +
+              //       scannedPackage.id +
+              //       "/warehouse",
+              //     {
+              //       isScanned: true,
+              //       confirmationString: result.content,
+              //     }
+              //   )
+              //   .then(async (response) => {});
+
+                if(result.content)
+                {
+                  await addWarehousePackagesToSend({
+                    Id: scannedPackage.id,
+                    ConfirmationString: result.content,
                     isScanned: true,
-                    confirmationString: result.content,
+                    All: false,
+                    Name: "",
+                    CountString: scannedPackage.name + " " + tempItems.filter(function(item){
+                      if (item.name == scannedPackage?.name && item.scanned) {
+                        return true;
+                      } else {
+                        return false;
+                      }
+                    }).length + "/" + tempItems.filter(function(item){
+                      if (item.name == scannedPackage?.name) {
+                        return true;
+                      } else {
+                        return false;
+                      }
+                    }).length
+                  });
+
+                  if (
+                    tempItems.filter(function (item) {
+                      if (item.name == scannedPackage?.name && item.scanned) {
+                        return true;
+                      } else {
+                        return false;
+                      }
+                    }).length ==
+                    tempItems.filter(function (item) {
+                      if (item.name == scannedPackage?.name) {
+                        return true;
+                      } else {
+                        return false;
+                      }
+                    }).length
+                  ) {
+                    stopScan();
+                    setScanning(false);
+                    setLastScanStringCount("");
                   }
-                )
-                .then(async (response) => {});
+
+                }
+
+                
+
             } else {
               Vibration.vibrate(500);
 
@@ -478,6 +676,17 @@ const Warehouse: React.FC = () => {
 
   return (
     <IonPage className="container">
+
+      <IonModal style={{
+        "--height": "auto",
+        "--width": "auto"
+      }} isOpen={isLoaderOpen}>
+      <IonItem>
+        <IonLabel style={{ marginRight: "20px" }} >{loadingText}</IonLabel>
+        <IonSpinner name="crescent"></IonSpinner>
+      </IonItem>
+      </IonModal>
+
       <IonHeader
         className={scanning ? "invisible" : ""}
         ref={headerRef}
@@ -510,9 +719,42 @@ const Warehouse: React.FC = () => {
           }}
         >
           <IonToolbar>
-            Stan magazynowy z:
-            <br />
-            {updateDate}
+            {/* Stan magazynowy z:
+            <br /> */}
+            <IonRow>
+              <IonCol size="6">
+                <IonButton
+                  onClick={async () => {
+                    presentAlert({
+                      mode: "ios",
+                      header:
+                        "Upewnij się, że masz dostęp do szybkiego internetu!",
+                      buttons: [
+                        "Anuluj",
+                        {
+                          text: "Kontynuuj",
+                          handler: async () => {
+                            await getData();
+                          },
+                        },
+                      ],
+                      onDidDismiss: (e) => console.log("did dismiss"),
+                    });
+                  }}
+                >
+                  Synchronizacja
+                </IonButton>
+              </IonCol>
+              <IonCol size="6">
+                <span>{updateDate}</span>
+              </IonCol>
+            </IonRow>
+
+            {/* <IonRow>
+              <IonCol size="12">
+              <span>Pamiętaj o synchronizacji po zakończeniu skanowania</span>
+              </IonCol>
+              </IonRow> */}
           </IonToolbar>
         </IonToolbar>
       </IonHeader>
@@ -524,6 +766,7 @@ const Warehouse: React.FC = () => {
               onClick={() => {
                 stopScan();
                 setScanning(false);
+                setLastScanStringCount("");
               }}
               color="danger"
             >
@@ -532,7 +775,7 @@ const Warehouse: React.FC = () => {
           </IonFab>
 
           <IonFab vertical="top" horizontal="end" slot="fixed">
-            <IonFabButton onClick={() => BarcodeScanner.toggleTorch()}>
+            <IonFabButton onClick={async() => await BarcodeScanner.toggleTorch()}>
               <IonIcon icon={flashlightOutline} />
             </IonFabButton>
           </IonFab>
@@ -579,15 +822,41 @@ const Warehouse: React.FC = () => {
 
                             await generateDictionary(tempItems);
 
-                            api
-                              .patch(
-                                "routes/addresses/packages/warehouse-all",
-                                {
-                                  isScanned: false,
-                                  name: e.name,
-                                }
-                              )
-                              .finally(async () => {});
+                            // api
+                            //   .patch(
+                            //     "routes/addresses/packages/warehouse-all",
+                            //     {
+                            //       isScanned: false,
+                            //       name: e.name,
+                            //     }
+                            //   )
+                            //   .finally(async () => {});
+
+                            await addWarehousePackagesToSend({
+                              Id: -1,
+                              ConfirmationString: "",
+                              isScanned: false,
+                              All: true,
+                              Name: e.name,
+                              CountString:
+                                e.name +
+                                " " +
+                                tempItems.filter(function (item) {
+                                  if (item.name == e.name && item.scanned) {
+                                    return true;
+                                  } else {
+                                    return false;
+                                  }
+                                }).length +
+                                "/" +
+                                tempItems.filter(function (item) {
+                                  if (item.name == e.name) {
+                                    return true;
+                                  } else {
+                                    return false;
+                                  }
+                                }).length,
+                            });
                           },
                         },
                       ],
@@ -618,12 +887,38 @@ const Warehouse: React.FC = () => {
 
                           await generateDictionary(tempItems);
 
-                          api
-                            .patch("routes/addresses/packages/warehouse-all", {
-                              isScanned: true,
-                              name: e.name,
-                            })
-                            .finally(async () => {});
+                          // api
+                          //   .patch("routes/addresses/packages/warehouse-all", {
+                          //     isScanned: true,
+                          //     name: e.name,
+                          //   })
+                          //   .finally(async () => {});
+
+                          await addWarehousePackagesToSend({
+                            Id: -1,
+                            ConfirmationString: "",
+                            isScanned: true,
+                            All: true,
+                            Name: e.name,
+                            CountString:
+                              e.name +
+                              " " +
+                              tempItems.filter(function (item) {
+                                if (item.name == e.name && item.scanned) {
+                                  return true;
+                                } else {
+                                  return false;
+                                }
+                              }).length +
+                              "/" +
+                              tempItems.filter(function (item) {
+                                if (item.name == e.name) {
+                                  return true;
+                                } else {
+                                  return false;
+                                }
+                              }).length,
+                          });
                         },
                       },
                     ],
@@ -635,12 +930,27 @@ const Warehouse: React.FC = () => {
                   className={"wrap font-" + state.menuFontSize}
                   style={{
                     fontWeight: e.scanCount == e.count ? 600 : 400,
-                    textDecoration:
-                      e.scanCount == e.count ? "line-through" : "",
+                    margin: "5px 0"
                   }}
                   color={e.scanCount == e.count ? "success" : ""}
                 >
-                  {e.name}
+                  <span
+                  style={{
+                    textDecoration:
+                    e.scanCount == e.count ? "line-through" : "",
+                  }}
+                  >{e.name}</span>
+                  <br/>
+                  <IonChip style={{
+                    "--min-height": "0px",
+                    padding: "0",
+                    height: "22px",
+                    margin: 0,
+                    marginTop: "-3px",
+                    opacity: "0.65",
+                    marginLeft: "0px",
+                    background: "none"
+                  }} color="success">{e.owner}</IonChip>
                 </IonLabel>
                 <IonLabel
                   className={"wrap font-" + state.menuFontSize}
@@ -712,13 +1022,30 @@ const Warehouse: React.FC = () => {
 
                 setScanning(true);
                 startScan();
+                setLastScanStringCount("");
               }}
             />
           )}
 
-          <IonLabel className="all-diets-counter">
-            Ilość diet: {scanDietsCount}/{allDietsCount}
-          </IonLabel>
+          {scanning ? (
+            <IonRow>
+              <IonCol size="12">
+                <IonLabel className="all-diets-counter">
+                  {lastScanStringCount}
+                </IonLabel>
+              </IonCol>
+            </IonRow>
+          ) : (
+            <></>
+          )}
+
+          <IonRow>
+            <IonCol size="12">
+              <IonLabel className="all-diets-counter">
+                Ilość diet: {scanDietsCount}/{allDietsCount}
+              </IonLabel>
+            </IonCol>
+          </IonRow>
         </IonToolbar>
       </IonFooter>
     </IonPage>

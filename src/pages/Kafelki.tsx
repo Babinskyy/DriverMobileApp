@@ -8,6 +8,7 @@ import { isPlatform } from "@ionic/core";
 import {
   IonButton,
   IonButtons,
+  IonCol,
   IonContent,
   IonFab,
   IonFabButton,
@@ -28,6 +29,7 @@ import {
   IonReorder,
   IonReorderGroup,
   IonRippleEffect,
+  IonRow,
   IonSearchbar,
   IonTitle,
   IonToggle,
@@ -138,7 +140,7 @@ type ReorderAddressRequest = {
 type ReorderAddress = {
   id: number;
   order: number;
-  postcode: string;
+  postCode: string;
   city: string;
   street: string;
   houseNumber: string;
@@ -419,18 +421,36 @@ const Kafelki: React.FC = () => {
                   color={e.order < 0 ? "danger" : ""}
                   style={{
                     textTransform: "capitalize",
+                    margin: "5px 0"
                   }}
                 >
-                  <strong
+                  
+                  <IonRow>
+                    <IonCol size="2" style={{ padding: 0, marginTop: "auto", marginBottom: "auto" }} >
+                    <strong
                     style={{
-                      width: "40px",
+                      // width: "100%",
                       display: "inline-block",
+                      fontSize: "22px",
+                      // textAlign: "center"
                     }}
                   >
                     {e.order < 0 ? 0 : i + 1}
-                    {". "}
+                    {/* {". "} */}
                   </strong>
-                  {e.street} {e.houseNumber}
+                    </IonCol>
+                    <IonCol size="10" style={{ padding: 0 }} >
+                      <IonRow>
+                        <IonCol size="12" style={{ padding: 0 }}>
+                        {e.street} {e.houseNumber}
+                        </IonCol>
+                        <IonCol size="12" style={{ padding: 0, color: "var(--ion-color-medium)" }}>
+                          {e.city}
+                        </IonCol>
+                      </IonRow>
+                    </IonCol>
+                  </IonRow>
+                  
                 </IonLabel>
 
                 <IonReorder slot="end" />

@@ -55,6 +55,7 @@ export type WarehousePackage = {
   scanned: boolean;
   code: string;
   confirmationString: string;
+  owner: string;
 };
 export type DietItemProps = {
   e: RouteProps;

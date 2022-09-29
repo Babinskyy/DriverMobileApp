@@ -5,3 +5,14 @@
 .mapboxgl-control-container {
 	opacity: 0;
 }
+
+.alert-width-95 {
+    --width: 95%;
+    --max-width: 95%;
+}
+
+.map-modal::part(handle){
+    background: none;
+    height: 115px;
+    width: 100%;
+}

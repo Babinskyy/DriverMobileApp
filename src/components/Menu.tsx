@@ -125,7 +125,7 @@ const Menu: React.FC = () => {
           textAlign: "right",
           "--min-height": "30px",
           letterSpacing: "1px"
-        }}>v17072022</IonTitle>
+        }}>v27092022</IonTitle>
           </IonItem>
         
       </IonHeader>
