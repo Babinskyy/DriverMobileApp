@@ -51,6 +51,7 @@ export type InnerItemProps = {
 };
 export type WarehousePackage = {
   id: number;
+  routeId: string;
   name: string;
   scanned: boolean;
   code: string;
@@ -79,4 +80,8 @@ export type RoutesIsActive = {
 
 export type ImageProcessResponse = {
   sendSms: boolean;
+}
+
+export type IsDriverScannedResponse = {
+  status: boolean
 }

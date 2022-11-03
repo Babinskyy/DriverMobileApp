@@ -77,7 +77,7 @@ import PhonePopover from "../components/PhonePopover";
 import "./Map.scss";
 
 import axios from "axios";
-import { Storage } from "@capacitor/storage";
+import { Preferences } from '@capacitor/preferences';
 import { Virtuoso } from "react-virtuoso";
 
 import api from "./../services/api";
@@ -162,7 +162,7 @@ const Map: React.FC = () => {
         api
           .get("routes/0/geojson")
           .then(async (response) => {
-            await Storage.set({
+            await Preferences.set({
               key: "geojsonPointsStatic",
               value: response.data.geoJSONStops,
             });

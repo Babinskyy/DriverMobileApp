@@ -53,7 +53,7 @@ import PhonePopover from "../components/PhonePopover";
 import "./Login.scss";
 
 import axios from "axios";
-import { Storage } from "@capacitor/storage";
+import { Preferences } from '@capacitor/preferences';
 
 import brokulImage from "../images/brokul-athlete.png";
 

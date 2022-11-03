@@ -28,6 +28,8 @@ export interface GlobalStateInterface {
 
   isRouteBadId: boolean;
 
+  autoFlash: boolean;
+
 }
 
 const GlobalStateContext = createContext({

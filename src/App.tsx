@@ -51,7 +51,7 @@ import auth from "./services/auth.service";
 import { User } from "./services/userProps";
 import Menu from "./components/Menu";
 
-import { Storage } from "@capacitor/storage";
+import { Preferences } from '@capacitor/preferences';
 import { Network } from "@capacitor/network";
 
 import "./theme/Global.scss";
@@ -71,7 +71,7 @@ import { PushNotifications } from '@capacitor/push-notifications';
 setupIonicReact();
 
 export const themeCheck = async () => {
-  const { value } = await Storage.get({ key: "theme" });
+  const { value } = await Preferences.get({ key: "theme" });
 
   if (value) {
     if (value == "dark") {

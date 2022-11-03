@@ -5,7 +5,7 @@ import {
   OfflineRequestProps,
   RouteProps,
 } from "../components/Types";
-import { Storage } from "@capacitor/storage";
+import { Preferences } from '@capacitor/preferences';
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 import {
   Filesystem,
@@ -118,11 +118,11 @@ export const RefreshRoute = async (
   }
 
   if (saveToStorage) {
-    await Storage.set({
+    await Preferences.set({
       key: "Route",
       value: JSON.stringify(route),
     });
-    // await Storage.set({
+    // await Preferences.set({
     //     key: "RouteDelivered",
     //     value: JSON.stringify(routeDelivered),
     // });
@@ -164,7 +164,7 @@ export const UpdateRouteElement = async (
   footerItem: RouteProps | undefined,
   saveToStorage: boolean = false
 ) => {
-  const { value } = await Storage.get({ key: "Route" });
+  const { value } = await Preferences.get({ key: "Route" });
 
   if (!value) {
     return;
@@ -194,7 +194,7 @@ export const AddOfflineRequest = async (
   method: Method,
   body: any
 ) => {
-  const { value } = await Storage.get({ key: "OfflineRequests" });
+  const { value } = await Preferences.get({ key: "OfflineRequests" });
 
   let offlineRequests: OfflineRequestProps[] = [];
 
@@ -211,7 +211,7 @@ export const AddOfflineRequest = async (
     method: method,
   });
 
-  await Storage.set({
+  await Preferences.set({
     key: "OfflineRequests",
     value: JSON.stringify(offlineRequests),
   });
@@ -220,8 +220,8 @@ export const AddOfflineRequest = async (
 export const CheckOfflineRequests = async () => {
   console.log("CheckOfflineRequests");
 
-  const value1 = await Storage.get({ key: "OfflineRequests" });
-  // await Storage.remove({ key: "OfflineRequests" });
+  const value1 = await Preferences.get({ key: "OfflineRequests" });
+  // await Preferences.remove({ key: "OfflineRequests" });
 
   if (value1.value) {
     const offlineRequests = JSON.parse(value1.value) as OfflineRequestProps[];
@@ -241,14 +241,14 @@ export const CheckOfflineRequests = async () => {
           });
           const rqData = await rq;
 
-          const value2 = await Storage.get({ key: "OfflineRequests" });
+          const value2 = await Preferences.get({ key: "OfflineRequests" });
           if (value2.value) {
             const offlineRequests2 = JSON.parse(
               value2.value
             ) as OfflineRequestProps[];
             const valueToSave = offlineRequests2.filter((s) => s.key != e.key);
 
-            await Storage.set({
+            await Preferences.set({
               key: "OfflineRequests",
               value: JSON.stringify(valueToSave),
             });
@@ -280,7 +280,7 @@ export const useRoute = () => {
     const checkOptionalScan = async () => {
       let isScanOptional = false;
 
-      const { value } = await Storage.get({
+      const { value } = await Preferences.get({
         key: "isScanOptional",
       });
 
@@ -310,7 +310,7 @@ export const useRoute = () => {
         }
       } catch (error) {}
 
-      await Storage.set({
+      await Preferences.set({
         key: "isScanOptional",
         value: JSON.stringify(isScanOptional),
       });
@@ -336,7 +336,7 @@ export const useRoute = () => {
     console.log("Ściąganie trasy z serwera");
     await AssignRouteFromServer();
 
-    const { value } = await Storage.get({ key: "Route" });
+    const { value } = await Preferences.get({ key: "Route" });
     if (JSON.stringify(state.route) !== value) {
       console.log("AKTUALIZACJA trasy w pamięci aplikacji");
       await Init();
@@ -393,7 +393,7 @@ export const useRoute = () => {
     if (routeParam) {
       route = routeParam;
     } else {
-      const { value } = await Storage.get({ key: "Route" });
+      const { value } = await Preferences.get({ key: "Route" });
 
       if (!value) {
         return;
@@ -463,7 +463,7 @@ export const useRoute = () => {
       },
     }));
 
-    await Storage.set({
+    await Preferences.set({
       key: "Route",
       value: JSON.stringify(route),
     });
@@ -480,7 +480,7 @@ export const useRoute = () => {
   };
 
   const SaveRouteToStorage = async (route: RouteProps[]) => {
-    await Storage.set({
+    await Preferences.set({
       key: "Route",
       value: JSON.stringify(route),
     });
@@ -495,7 +495,7 @@ export const useRoute = () => {
       {
         if(result[0].routeId)
         {
-          await Storage.set({
+          await Preferences.set({
             key: "RouteID",
             value: JSON.stringify(result[0].routeId),
           });

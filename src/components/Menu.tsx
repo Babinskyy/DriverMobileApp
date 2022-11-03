@@ -35,7 +35,7 @@ import "./Menu.scss";
 
 import brokulImage from "../images/brokul-athlete.png";
 
-import { Storage } from "@capacitor/storage";
+import { Preferences } from '@capacitor/preferences';
 
 import { Network } from "@capacitor/network";
 import { CheckOfflineRequests, useRoute } from "../services/Utility";
@@ -125,7 +125,7 @@ const Menu: React.FC = () => {
           textAlign: "right",
           "--min-height": "30px",
           letterSpacing: "1px"
-        }}>v27092022</IonTitle>
+        }}>v20102022 ALPHA</IonTitle>
           </IonItem>
         
       </IonHeader>
@@ -245,7 +245,7 @@ const Menu: React.FC = () => {
               setChecked(e.detail.checked);
               document.body.classList.toggle("dark", e.detail.checked);
 
-              await Storage.set({
+              await Preferences.set({
                 key: "theme",
                 value: e.detail.checked ? "dark" : "light",
               });
@@ -296,10 +296,10 @@ const Menu: React.FC = () => {
           className="menu-item"
           color="danger"
           onClick={async () => {
-            const { value } = await Storage.get({ key: "OfflineRequests" });
-            await Storage.clear();
+            const { value } = await Preferences.get({ key: "OfflineRequests" });
+            await Preferences.clear();
             if (value) {
-              await Storage.set({
+              await Preferences.set({
                 key: "OfflineRequests",
                 value: value,
               });

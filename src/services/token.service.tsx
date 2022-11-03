@@ -1,15 +1,15 @@
-import { Storage } from "@capacitor/storage";
+import { Preferences } from '@capacitor/preferences';
 import { User } from "./userProps";
 
 class TokenService {
   async getLocalRefreshToken() {
-    const { value } = await Storage.get({ key: "user" });
+    const { value } = await Preferences.get({ key: "user" });
     const user = JSON.parse(value ? value : "") as User | undefined;
     return user?.jwtToken;
   }
   async getLocalAccessToken() {
     try {
-      const { value } = await Storage.get({ key: "user" });
+      const { value } = await Preferences.get({ key: "user" });
       const user = JSON.parse(value ? value : "") as User | undefined;
 
       return user?.jwtToken;
@@ -19,12 +19,12 @@ class TokenService {
   }
   async updateLocalAccessToken(token: string) {
     try {
-      const { value } = await Storage.get({ key: "user" });
+      const { value } = await Preferences.get({ key: "user" });
       const user = JSON.parse(value ? value : "") as User | undefined;
       if (user) {
         user.jwtToken = token;
       }
-      await Storage.set({
+      await Preferences.set({
         key: "user",
         value: JSON.stringify(user),
       });
@@ -32,7 +32,7 @@ class TokenService {
   }
   async getUser() {
     try {
-      const { value } = await Storage.get({ key: "user" });
+      const { value } = await Preferences.get({ key: "user" });
       const user = JSON.parse(value ? value : "") as User | undefined;
       if (user) {
         return user;
@@ -47,13 +47,13 @@ class TokenService {
     console.log("user");
     console.log(user);
     console.log(JSON.stringify(user));
-    await Storage.set({
+    await Preferences.set({
       key: "user",
       value: JSON.stringify(user),
     });
   }
   async removeUser() {
-    await Storage.remove({ key: "user" });
+    await Preferences.remove({ key: "user" });
   }
 }
 export default new TokenService();

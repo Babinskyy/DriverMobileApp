@@ -61,6 +61,7 @@ const Startup: React.FC = () => {
         ...prev,
         ...{
           menuFontSize: 3,
+          autoFlash: false
         },
       }));
 
@@ -89,6 +90,7 @@ const Startup: React.FC = () => {
           AndroidPermissions.PERMISSION.INTERNET,
           AndroidPermissions.PERMISSION.READ_PHONE_STATE,
           AndroidPermissions.PERMISSION.SEND_SMS,
+          AndroidPermissions.PERMISSION.FLASHLIGHT
         ];
 
         let noPermission: string[] = [];

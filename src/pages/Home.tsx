@@ -75,7 +75,7 @@ import PhonePopover from "../components/PhonePopover";
 import "./Home.scss";
 
 import axios from "axios";
-import { Storage } from "@capacitor/storage";
+import { Preferences } from '@capacitor/preferences';
 import { Virtuoso } from "react-virtuoso";
 
 import api from "./../services/api";
@@ -91,6 +91,7 @@ import {
   DietItemProps,
   OfflineRequestProps,
   RoutesIsActive,
+  IsDriverScannedResponse,
 } from "../components/Types";
 import ThreeDotsPopover from "../components/ThreeDotsPopover";
 import { RouterProps } from "react-router";
@@ -191,11 +192,23 @@ const Home: React.FC = () => {
     ScanRoutePackage,
   } = useRoute();
 
+  const [unscannedWarningPopup, setUnscannedWarningPopup] = useState(false);
+
+  useIonViewDidEnter(() => {
+    api.get("report/is-driver-scanned").then((response) => {
+      const data = response.data as IsDriverScannedResponse;
+
+      try {
+        setUnscannedWarningPopup(!data.status);
+      } catch (error) {}
+    });
+  });
+
   // useEffect(() => {
 
   //   const AssignItemsCounter = async () => {
 
-  //     const { value } = await Storage.get({ key: "Route" });
+  //     const { value } = await Preferences.get({ key: "Route" });
 
   //     if(value)
   //     {
@@ -336,8 +349,8 @@ const Home: React.FC = () => {
   //   {
   //     try {
 
-  //       const { value } = await Storage.get({ key: "OfflineRequests" });
-  //       await Storage.remove({ key: "OfflineRequests" });
+  //       const { value } = await Preferences.get({ key: "OfflineRequests" });
+  //       await Preferences.remove({ key: "OfflineRequests" });
 
   //       if(value)
   //       {
@@ -407,7 +420,7 @@ const Home: React.FC = () => {
         App.addListener("appStateChange", async (e) => {
           if (e.isActive) {
             try {
-              const { value } = await Storage.get({ key: "RouteID" });
+              const { value } = await Preferences.get({ key: "RouteID" });
               if (value) {
                 const valueParsed = JSON.parse(value) as string | undefined;
 
@@ -431,7 +444,6 @@ const Home: React.FC = () => {
             } catch (error) {}
           }
         });
-
       };
       appListener();
 
@@ -811,7 +823,6 @@ const Home: React.FC = () => {
             expand="full"
             style={{ margin: "15px 10px 10px" }}
             onClick={() => {
-
               presentLoading("Pobieranie zdjęć");
 
               api
@@ -822,10 +833,9 @@ const Home: React.FC = () => {
                   if (data.length > 0) {
                     setArchivedImages(data);
                   }
-                }).finally(() => {
-
+                })
+                .finally(() => {
                   dismissLoading();
-
                 });
             }}
           >
@@ -992,6 +1002,25 @@ const Home: React.FC = () => {
                 Synchronizuj
               </IonButton>
             </IonButtons>
+          </IonToolbar>
+        ) : (
+          <></>
+        )}
+
+        {unscannedWarningPopup ? (
+          <IonToolbar>
+            <div
+              style={{
+                padding: "0px 15px 9px",
+                fontSize: 21,
+                textAlign: "center",
+                color: "red",
+                fontWeight: "800",
+                letterSpacing: "0.5px",
+              }}
+            >
+              Zsynchronizuj lub uzupełnij magazyn przed rozpoczęciem trasy!
+            </div>
           </IonToolbar>
         ) : (
           <></>

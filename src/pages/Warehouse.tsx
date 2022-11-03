@@ -54,7 +54,7 @@ import PhonePopover from "../components/PhonePopover";
 import "./Warehouse.scss";
 
 import axios from "axios";
-import { Storage } from "@capacitor/storage";
+import { Preferences } from '@capacitor/preferences';
 import api from "./../services/api";
 import { WarehousePackage } from "../components/Types";
 
@@ -115,6 +115,7 @@ const Warehouse: React.FC = () => {
 
   type DietsDictionary = {
     name: string;
+    routeId: string;
     owner: string;
     count: number;
     scanCount: number;
@@ -146,21 +147,21 @@ const Warehouse: React.FC = () => {
   };
 
   const setWarehousePackages = async (value: string) => {
-    await Storage.set({
+    await Preferences.set({
       key: "WarehousePackages",
       value: value,
     });
   };
 
   const setWarehouseDate = async (value: string) => {
-    await Storage.set({
+    await Preferences.set({
       key: "WarehouseDate",
       value: value,
     });
   };
 
   const assignWarehouseDateFromStorageToState = async () => {
-    const { value } = await Storage.get({ key: "WarehouseDate" });
+    const { value } = await Preferences.get({ key: "WarehouseDate" });
 
     if (value) {
       const warehouseDate = JSON.parse(value) as string;
@@ -175,11 +176,12 @@ const Warehouse: React.FC = () => {
     isScanned: boolean;
     All: boolean;
     Name: string;
+    RouteId: string;
     CountString: string;
   }
 
   const removeWarehousePackagesToSend = async () => {
-    await Storage.remove({
+    await Preferences.remove({
       key: "WarehousePackagesToSend"
     });
   };
@@ -188,7 +190,7 @@ const Warehouse: React.FC = () => {
 
     setLastScanStringCount(item.CountString);
 
-    const { value } = await Storage.get({ key: "WarehousePackagesToSend" });
+    const { value } = await Preferences.get({ key: "WarehousePackagesToSend" });
 
     if(value)
     {
@@ -197,14 +199,14 @@ const Warehouse: React.FC = () => {
 
       tempValue.push(item);
 
-      await Storage.set({
+      await Preferences.set({
         key: "WarehousePackagesToSend",
         value: JSON.stringify(tempValue),
       });
     }
     else
     {
-      await Storage.set({
+      await Preferences.set({
         key: "WarehousePackagesToSend",
         value: JSON.stringify([ item ]),
       });
@@ -212,7 +214,7 @@ const Warehouse: React.FC = () => {
   };
 
   const getWarehousePackagesToSend = async () => {
-    const { value } = await Storage.get({ key: "WarehousePackagesToSend" });
+    const { value } = await Preferences.get({ key: "WarehousePackagesToSend" });
 
     
 
@@ -228,7 +230,7 @@ const Warehouse: React.FC = () => {
   };
 
   const assignWarehousePackagesFromStorageToState = async () => {
-    const { value } = await Storage.get({ key: "WarehousePackages" });
+    const { value } = await Preferences.get({ key: "WarehousePackages" });
 
     if (value) {
       let warehousePackages = JSON.parse(value) as WarehousePackage[];
@@ -241,7 +243,7 @@ const Warehouse: React.FC = () => {
     setPackages(packages);
 
     await setWarehousePackages(JSON.stringify(packages));
-    //const { value } = await Storage.get({ key: "WarehousePackages" });
+    //const { value } = await Preferences.get({ key: "WarehousePackages" });
 
     let dietsDictionary: DietsDictionary[] = [];
 
@@ -257,6 +259,7 @@ const Warehouse: React.FC = () => {
       } else {
         dietsDictionary.push({
           name: y.name,
+          routeId: y.routeId,
           owner: y.owner,
           count: 1,
           scanCount: y.scanned ? 1 : 0,
@@ -303,7 +306,7 @@ const Warehouse: React.FC = () => {
     {
       for(const n of packagesToSend.filter(e => !e.All))
       {
-        setLoadingText("Wysyłanie " + counter + "/" + packagesToSendLength);
+        setLoadingText("Wysyłanie " + Math.round((counter/packagesToSendLength)*100) + "%" );
   
         const scanRequest = await api
           .patch(
@@ -321,7 +324,7 @@ const Warehouse: React.FC = () => {
       }
       for(const n of packagesToSend.filter(e => e.All))
       {
-        setLoadingText("Wysyłanie " + counter + "/" + packagesToSendLength);
+        setLoadingText("Wysyłanie " + Math.round((counter/packagesToSendLength)*100) + "%");
   
         const scanAllRequest = await api
           .patch(
@@ -329,6 +332,7 @@ const Warehouse: React.FC = () => {
             {
               isScanned: n.isScanned,
               name: n.Name,
+              routeId: n.RouteId
             }
           )
         const scanAllRequestResult = await scanAllRequest.data;
@@ -382,7 +386,7 @@ const Warehouse: React.FC = () => {
     //   const route = response.data as RouteProps[];
 
     //   await setRoute(JSON.stringify(route));
-    //   const { value } = await Storage.get({ key: "Route" });
+    //   const { value } = await Preferences.get({ key: "Route" });
 
     //   if (value) {
     //     const routeCollection = JSON.parse(value) as RouteProps[];
@@ -422,14 +426,14 @@ const Warehouse: React.FC = () => {
   });
 
   const setRoute = async (value: string) => {
-    await Storage.set({
+    await Preferences.set({
       key: "Route",
       value: value,
     });
   };
 
   // const assignRouteFromStorageToState = async () => {
-  //   const { value } = await Storage.get({ key: "Route" });
+  //   const { value } = await Preferences.get({ key: "Route" });
 
   //   if (value) {
   //     const routeCollection = JSON.parse(value) as RouteProps[];
@@ -477,9 +481,10 @@ const Warehouse: React.FC = () => {
   };
 
   const startScan = async () => {
-    await BarcodeScanner.startScanning(
+    BarcodeScanner.startScanning(
       { targetedFormats: [SupportedFormat.QR_CODE] },
       async (result) => {
+
         if (result.hasContent) {
           try {
             const code = result.content?.split("|")[1];
@@ -601,6 +606,7 @@ const Warehouse: React.FC = () => {
                     isScanned: true,
                     All: false,
                     Name: "",
+                    RouteId: "",
                     CountString: scannedPackage.name + " " + tempItems.filter(function(item){
                       if (item.name == scannedPackage?.name && item.scanned) {
                         return true;
@@ -661,6 +667,12 @@ const Warehouse: React.FC = () => {
         }
       }
     );
+
+    if(state.autoFlash)
+    {
+      await BarcodeScanner.enableTorch();
+    }
+
   };
 
   const stopScan = () => {
@@ -676,15 +688,17 @@ const Warehouse: React.FC = () => {
 
   return (
     <IonPage className="container">
-
-      <IonModal style={{
-        "--height": "auto",
-        "--width": "auto"
-      }} isOpen={isLoaderOpen}>
-      <IonItem>
-        <IonLabel style={{ marginRight: "20px" }} >{loadingText}</IonLabel>
-        <IonSpinner name="crescent"></IonSpinner>
-      </IonItem>
+      <IonModal
+        style={{
+          "--height": "auto",
+          "--width": "auto",
+        }}
+        isOpen={isLoaderOpen}
+      >
+        <IonItem>
+          <IonLabel style={{ marginRight: "20px" }}>{loadingText}</IonLabel>
+          <IonSpinner name="crescent"></IonSpinner>
+        </IonItem>
       </IonModal>
 
       <IonHeader
@@ -775,7 +789,21 @@ const Warehouse: React.FC = () => {
           </IonFab>
 
           <IonFab vertical="top" horizontal="end" slot="fixed">
-            <IonFabButton onClick={async() => await BarcodeScanner.toggleTorch()}>
+            <IonFabButton
+              onClick={async () => {
+                await BarcodeScanner.toggleTorch();
+
+                const torchState = await BarcodeScanner.getTorchState();
+
+                setState((prev) => ({
+                  ...prev,
+                  ...{
+                    autoFlash: torchState.isEnabled,
+                  },
+                }));
+
+              }}
+            >
               <IonIcon icon={flashlightOutline} />
             </IonFabButton>
           </IonFab>
@@ -838,6 +866,7 @@ const Warehouse: React.FC = () => {
                               isScanned: false,
                               All: true,
                               Name: e.name,
+                              RouteId: e.routeId,
                               CountString:
                                 e.name +
                                 " " +
@@ -900,6 +929,7 @@ const Warehouse: React.FC = () => {
                             isScanned: true,
                             All: true,
                             Name: e.name,
+                            RouteId: e.routeId,
                             CountString:
                               e.name +
                               " " +
@@ -930,27 +960,34 @@ const Warehouse: React.FC = () => {
                   className={"wrap font-" + state.menuFontSize}
                   style={{
                     fontWeight: e.scanCount == e.count ? 600 : 400,
-                    margin: "5px 0"
+                    margin: "5px 0",
                   }}
                   color={e.scanCount == e.count ? "success" : ""}
                 >
                   <span
-                  style={{
-                    textDecoration:
-                    e.scanCount == e.count ? "line-through" : "",
-                  }}
-                  >{e.name}</span>
-                  <br/>
-                  <IonChip style={{
-                    "--min-height": "0px",
-                    padding: "0",
-                    height: "22px",
-                    margin: 0,
-                    marginTop: "-3px",
-                    opacity: "0.65",
-                    marginLeft: "0px",
-                    background: "none"
-                  }} color="success">{e.owner}</IonChip>
+                    style={{
+                      textDecoration:
+                        e.scanCount == e.count ? "line-through" : "",
+                    }}
+                  >
+                    {e.name}
+                  </span>
+                  <br />
+                  <IonChip
+                    style={{
+                      "--min-height": "0px",
+                      padding: "0",
+                      height: "22px",
+                      margin: 0,
+                      marginTop: "-3px",
+                      opacity: "0.65",
+                      marginLeft: "0px",
+                      background: "none",
+                    }}
+                    color="success"
+                  >
+                    {e.owner}
+                  </IonChip>
                 </IonLabel>
                 <IonLabel
                   className={"wrap font-" + state.menuFontSize}

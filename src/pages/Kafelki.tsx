@@ -76,7 +76,7 @@ import PhonePopover from "../components/PhonePopover";
 import "./Kafelki.scss";
 
 import axios from "axios";
-import { Storage } from "@capacitor/storage";
+import { Preferences } from '@capacitor/preferences';
 import { Virtuoso } from "react-virtuoso";
 
 import api from "./../services/api";
