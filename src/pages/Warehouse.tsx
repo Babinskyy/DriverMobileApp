@@ -54,7 +54,7 @@ import PhonePopover from "../components/PhonePopover";
 import "./Warehouse.scss";
 
 import axios from "axios";
-import { Preferences } from '@capacitor/preferences';
+import { Preferences } from "@capacitor/preferences";
 import api from "./../services/api";
 import { WarehousePackage } from "../components/Types";
 
@@ -95,12 +95,9 @@ const Warehouse: React.FC = () => {
   const [updateDate, setUpdateDate] = useState("");
   const { state, setState } = useGlobalState();
 
-
   const [scannedDiets, setScannedDiets] = useState<string[]>([]);
 
-
   const [lastScanStringCount, setLastScanStringCount] = useState<string>("");
-
 
   useEffect(() => {
     let siema = 0;
@@ -178,23 +175,22 @@ const Warehouse: React.FC = () => {
     Name: string;
     RouteId: string;
     CountString: string;
-  }
+  };
 
   const removeWarehousePackagesToSend = async () => {
     await Preferences.remove({
-      key: "WarehousePackagesToSend"
+      key: "WarehousePackagesToSend",
     });
   };
 
-  const addWarehousePackagesToSend = async (item: WarehousePackagesToSendType) => {
-
+  const addWarehousePackagesToSend = async (
+    item: WarehousePackagesToSendType
+  ) => {
     setLastScanStringCount(item.CountString);
 
     const { value } = await Preferences.get({ key: "WarehousePackagesToSend" });
 
-    if(value)
-    {
-
+    if (value) {
       let tempValue = JSON.parse(value) as WarehousePackagesToSendType[];
 
       tempValue.push(item);
@@ -203,12 +199,10 @@ const Warehouse: React.FC = () => {
         key: "WarehousePackagesToSend",
         value: JSON.stringify(tempValue),
       });
-    }
-    else
-    {
+    } else {
       await Preferences.set({
         key: "WarehousePackagesToSend",
-        value: JSON.stringify([ item ]),
+        value: JSON.stringify([item]),
       });
     }
   };
@@ -216,15 +210,10 @@ const Warehouse: React.FC = () => {
   const getWarehousePackagesToSend = async () => {
     const { value } = await Preferences.get({ key: "WarehousePackagesToSend" });
 
-    
-
-    if(value)
-    {
-      console.log(value)
+    if (value) {
+      console.log(value);
       return JSON.parse(value) as WarehousePackagesToSendType[];
-    }
-    else
-    {
+    } else {
       return [];
     }
   };
@@ -277,106 +266,101 @@ const Warehouse: React.FC = () => {
   };
 
   const [presentLoading, dismissLoading] = useIonLoading();
-  
+
   const [isLoaderOpen, setIsLoaderOpen] = useState(false);
   const [loadingText, setLoadingText] = useState<string>("");
-  
 
   const getData = async () => {
-
     const networkStatus = await Network.getStatus();
     if (!networkStatus.connected) {
       return;
     }
-
 
     const packagesToSend = await getWarehousePackagesToSend();
 
     const packagesToSendLength = packagesToSend.length;
 
     let counter = 1;
-    
 
     setIsLoaderOpen(true);
 
     // await assignWarehousePackagesFromStorageToState();
     // await assignWarehouseDateFromStorageToState();
 
-    if(packagesToSend)
-    {
-      for(const n of packagesToSend.filter(e => !e.All))
-      {
-        setLoadingText("Wysyłanie " + Math.round((counter/packagesToSendLength)*100) + "%" );
-  
-        const scanRequest = await api
-          .patch(
-            "routes/addresses/packages/" + n.Id + "/warehouse",
-            {
-              isScanned: n.isScanned,
-              confirmationString: n.ConfirmationString,
-            }
-          )
+    if (packagesToSend) {
+      for (const n of packagesToSend.filter((e) => !e.All)) {
+        setLoadingText(
+          "Wysyłanie " +
+            Math.round((counter / packagesToSendLength) * 100) +
+            "%"
+        );
+
+        const scanRequest = await api.patch(
+          "routes/addresses/packages/" + n.Id + "/warehouse",
+          {
+            isScanned: n.isScanned,
+            confirmationString: n.ConfirmationString,
+          }
+        );
         const scanRequestResult = await scanRequest.data;
-        console.log("scanned = " + n.Id)
+        console.log("scanned = " + n.Id);
 
         counter++;
-  
       }
-      for(const n of packagesToSend.filter(e => e.All))
-      {
-        setLoadingText("Wysyłanie " + Math.round((counter/packagesToSendLength)*100) + "%");
-  
-        const scanAllRequest = await api
-          .patch(
-            "routes/addresses/packages/warehouse-all",
-            {
-              isScanned: n.isScanned,
-              name: n.Name,
-              routeId: n.RouteId
-            }
-          )
+      for (const n of packagesToSend.filter((e) => e.All)) {
+        setLoadingText(
+          "Wysyłanie " +
+            Math.round((counter / packagesToSendLength) * 100) +
+            "%"
+        );
+
+        const scanAllRequest = await api.patch(
+          "routes/addresses/packages/warehouse-all",
+          {
+            isScanned: n.isScanned,
+            name: n.Name,
+            routeId: n.RouteId,
+          }
+        );
         const scanAllRequestResult = await scanAllRequest.data;
-        console.log("scanned all = " + n.Name)
+        console.log("scanned all = " + n.Name);
 
         counter++;
-
       }
     }
-
 
     setLoadingText("Synchronizacja danych");
 
     //await CheckOfflineRequests();
-    api.get("routes/addresses/packages").then(async (response) => {
-      const packages = response.data as WarehousePackage[];
+    api
+      .get("routes/addresses/packages")
+      .then(async (response) => {
+        const packages = response.data as WarehousePackage[];
 
-      await generateDictionary(packages);
+        await generateDictionary(packages);
 
-      await setWarehousePackages(JSON.stringify(packages));
+        await setWarehousePackages(JSON.stringify(packages));
 
-      let options = {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      } as any;
-      let today = new Date();
+        let options = {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        } as any;
+        let today = new Date();
 
-      await setWarehouseDate(
-        JSON.stringify(today.toLocaleTimeString("pl-PL", options))
-      );
-      setUpdateDate(today.toLocaleTimeString("pl-PL", options));
-    }).finally(async () => {
-
-
-      await removeWarehousePackagesToSend();
-      setIsLoaderOpen(false);
-
-    });
+        await setWarehouseDate(
+          JSON.stringify(today.toLocaleTimeString("pl-PL", options))
+        );
+        setUpdateDate(today.toLocaleTimeString("pl-PL", options));
+      })
+      .finally(async () => {
+        await removeWarehousePackagesToSend();
+        setIsLoaderOpen(false);
+      });
   };
 
   useIonViewWillEnter(async () => {
-
     await assignWarehousePackagesFromStorageToState();
     await assignWarehouseDateFromStorageToState();
 
@@ -484,7 +468,6 @@ const Warehouse: React.FC = () => {
     BarcodeScanner.startScanning(
       { targetedFormats: [SupportedFormat.QR_CODE] },
       async (result) => {
-
         if (result.hasContent) {
           try {
             const code = result.content?.split("|")[1];
@@ -514,7 +497,7 @@ const Warehouse: React.FC = () => {
                   header: "Dieta została wcześniej zeskanowana",
                   color: "warning",
                   cssClass: "warehouse-scanner-toast",
-                  duration: 5000,
+                  duration: 500,
                 });
               }, 500);
             } else if (scannedPackage) {
@@ -531,7 +514,7 @@ const Warehouse: React.FC = () => {
                     header: scannedPackage.name,
                     color: "success",
                     cssClass: "warehouse-scanner-toast",
-                    duration: 5000,
+                    duration: 500,
                   });
                 }
               }, 500);
@@ -598,55 +581,55 @@ const Warehouse: React.FC = () => {
               //   )
               //   .then(async (response) => {});
 
-                if(result.content)
-                {
-                  await addWarehousePackagesToSend({
-                    Id: scannedPackage.id,
-                    ConfirmationString: result.content,
-                    isScanned: true,
-                    All: false,
-                    Name: "",
-                    RouteId: "",
-                    CountString: scannedPackage.name + " " + tempItems.filter(function(item){
-                      if (item.name == scannedPackage?.name && item.scanned) {
-                        return true;
-                      } else {
-                        return false;
-                      }
-                    }).length + "/" + tempItems.filter(function(item){
-                      if (item.name == scannedPackage?.name) {
-                        return true;
-                      } else {
-                        return false;
-                      }
-                    }).length
-                  });
-
-                  if (
+              if (result.content) {
+                await addWarehousePackagesToSend({
+                  Id: scannedPackage.id,
+                  ConfirmationString: result.content,
+                  isScanned: true,
+                  All: false,
+                  Name: "",
+                  RouteId: "",
+                  CountString:
+                    scannedPackage.name +
+                    " " +
                     tempItems.filter(function (item) {
                       if (item.name == scannedPackage?.name && item.scanned) {
                         return true;
                       } else {
                         return false;
                       }
-                    }).length ==
+                    }).length +
+                    "/" +
                     tempItems.filter(function (item) {
                       if (item.name == scannedPackage?.name) {
                         return true;
                       } else {
                         return false;
                       }
-                    }).length
-                  ) {
-                    stopScan();
-                    setScanning(false);
-                    setLastScanStringCount("");
-                  }
+                    }).length,
+                });
 
+                if (
+                  tempItems.filter(function (item) {
+                    if (item.name == scannedPackage?.name && item.scanned) {
+                      return true;
+                    } else {
+                      return false;
+                    }
+                  }).length ==
+                  tempItems.filter(function (item) {
+                    if (item.name == scannedPackage?.name) {
+                      return true;
+                    } else {
+                      return false;
+                    }
+                  }).length
+                ) {
+                  stopScan();
+                  setScanning(false);
+                  setLastScanStringCount("");
                 }
-
-                
-
+              }
             } else {
               Vibration.vibrate(500);
 
@@ -657,7 +640,7 @@ const Warehouse: React.FC = () => {
                   header: "Nie znaleziono diety na liście",
                   color: "danger",
                   cssClass: "warehouse-scanner-toast",
-                  duration: 5000,
+                  duration: 500,
                 });
               }, 500);
             }
@@ -668,11 +651,9 @@ const Warehouse: React.FC = () => {
       }
     );
 
-    if(state.autoFlash)
-    {
+    if (state.autoFlash) {
       await BarcodeScanner.enableTorch();
     }
-
   };
 
   const stopScan = () => {
@@ -801,7 +782,6 @@ const Warehouse: React.FC = () => {
                     autoFlash: torchState.isEnabled,
                   },
                 }));
-
               }}
             >
               <IonIcon icon={flashlightOutline} />
