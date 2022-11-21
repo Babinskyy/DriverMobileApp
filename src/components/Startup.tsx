@@ -11,6 +11,7 @@ import {
   IonLabel,
   IonList,
   IonMenu,
+  IonModal,
   IonTitle,
   IonToggle,
   IonToolbar,
@@ -28,6 +29,8 @@ import { BackgroundUpload } from "@ionic-native/background-upload";
 import { useGlobalState } from "./../GlobalStateProvider";
 import { isPlatform } from "@ionic/core";
 
+import api from "./../services/api";
+
 const Startup: React.FC = () => {
   const { setState, state } = useGlobalState();
   const { navigate } = useContext(NavContext);
@@ -43,6 +46,8 @@ const Startup: React.FC = () => {
 
   const [onlyOnce, setOnlyOnce] = useState(true);
 
+  const [showVersionModal, setShowVersionModal] = useState(false);
+
   useEffect(() => {
     const getUser = async () => {
       const user = (await auth.getCurrentUser()) as User | undefined;
@@ -57,6 +62,22 @@ const Startup: React.FC = () => {
 
   useEffect(() => {
     if (onlyOnce) {
+
+      api.get("version", {
+        params: {
+          Version: "v20112022"
+        }
+      }).then((e) => {
+
+        const data = e.data;
+
+        if(!data)
+        {
+          setShowVersionModal(true);
+        }
+
+      })
+
       setState((prev) => ({
         ...prev,
         ...{
@@ -175,7 +196,17 @@ const Startup: React.FC = () => {
     }
   }, []);
 
-  return <></>;
+  return(
+    <IonModal isOpen={showVersionModal} canDismiss={false} style={{
+      "--height": "100px",
+      "--width": "200px",
+      textAlign: "center"
+    }}>
+      <div style={{ margin: "auto 20px", fontSize: "20px" }}>
+        Posiadasz starą wersję aplikacji
+      </div>
+    </IonModal>
+  ) ;
 };
 
 export default Startup;

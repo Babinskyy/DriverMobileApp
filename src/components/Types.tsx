@@ -83,5 +83,6 @@ export type ImageProcessResponse = {
 }
 
 export type IsDriverScannedResponse = {
-  status: boolean
+  status: boolean;
+  messages?: string[];
 }

@@ -67,6 +67,8 @@ const Menu: React.FC = () => {
 
   const [username, setUsername] = useState("");
 
+  const [accountName, setAccountName] = useState("");
+
   useEffect(() => {
     setTimeout(() => {
       if (document.body.classList.contains("dark")) {
@@ -87,6 +89,17 @@ const Menu: React.FC = () => {
       // contentId="main"
       type="overlay"
       onIonWillOpen={() => {
+
+        api.get("accounts/name").then((response) => {
+
+          const responseData = response.data as string;
+  
+          if(accountName != responseData)
+          {
+            setAccountName(responseData);
+          }
+  
+        })
 
         api.get("drivers/name").then((response) => {
 
@@ -111,10 +124,13 @@ const Menu: React.FC = () => {
         <IonImg src={brokulImage} className="image" />
       </IonHeader> */}
       <IonHeader>
-        <IonItem lines={"none"}>
+      <IonItem lines={"none"}>
         <IonTitle style={{
           marginTop: "15px",
-        }}>Pojazd <strong>{username}</strong></IonTitle>
+        }}><strong>{accountName}</strong></IonTitle>
+        </IonItem>
+        <IonItem lines={"none"}>
+        <IonTitle>Pojazd <strong>{username}</strong></IonTitle>
         </IonItem>
         <IonItem lines={"none"}>
 
@@ -125,7 +141,7 @@ const Menu: React.FC = () => {
           textAlign: "right",
           "--min-height": "30px",
           letterSpacing: "1px"
-        }}>v20102022 ALPHA</IonTitle>
+        }}>v20112022</IonTitle>
           </IonItem>
         
       </IonHeader>

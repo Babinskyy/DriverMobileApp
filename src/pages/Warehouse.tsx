@@ -177,6 +177,24 @@ const Warehouse: React.FC = () => {
     CountString: string;
   };
 
+
+  type PackageScanBulkRequest = {
+    scanned: _PackageScanRequest[];
+    unscanned: _PackageScanAllRequest[];
+  }
+
+  type _PackageScanAllRequest = {
+    isScanned: boolean;
+    name: string;
+    routeId: string;
+  }
+
+  type _PackageScanRequest = {
+    id: number;
+    isScanned: boolean;
+    confirmationString: string;
+  }
+
   const removeWarehousePackagesToSend = async () => {
     await Preferences.remove({
       key: "WarehousePackagesToSend",
@@ -287,47 +305,88 @@ const Warehouse: React.FC = () => {
     // await assignWarehousePackagesFromStorageToState();
     // await assignWarehouseDateFromStorageToState();
 
+    let toSend: PackageScanBulkRequest = {
+      scanned: [],
+      unscanned: []
+    }
+
+    // if (packagesToSend) {
+    //   for (const n of packagesToSend.filter((e) => !e.All)) {
+    //     setLoadingText(
+    //       "Wysyłanie " +
+    //         Math.round((counter / packagesToSendLength) * 100) +
+    //         "%"
+    //     );
+
+    //     const scanRequest = await api.patch(
+    //       "routes/addresses/packages/" + n.Id + "/warehouse",
+    //       {
+    //         isScanned: n.isScanned,
+    //         confirmationString: n.ConfirmationString,
+    //       }
+    //     );
+    //     const scanRequestResult = await scanRequest.data;
+    //     console.log("scanned = " + n.Id);
+
+    //     counter++;
+    //   }
+    //   for (const n of packagesToSend.filter((e) => e.All)) {
+    //     setLoadingText(
+    //       "Wysyłanie " +
+    //         Math.round((counter / packagesToSendLength) * 100) +
+    //         "%"
+    //     );
+
+    //     const scanAllRequest = await api.patch(
+    //       "routes/addresses/packages/warehouse-all",
+    //       {
+    //         isScanned: n.isScanned,
+    //         name: n.Name,
+    //         routeId: n.RouteId,
+    //       }
+    //     );
+    //     const scanAllRequestResult = await scanAllRequest.data;
+    //     console.log("scanned all = " + n.Name);
+
+    //     counter++;
+    //   }
+    // }
+
+
     if (packagesToSend) {
+
+      setLoadingText("Wysyłanie magazynu na serwer");
+
       for (const n of packagesToSend.filter((e) => !e.All)) {
-        setLoadingText(
-          "Wysyłanie " +
-            Math.round((counter / packagesToSendLength) * 100) +
-            "%"
-        );
 
-        const scanRequest = await api.patch(
-          "routes/addresses/packages/" + n.Id + "/warehouse",
-          {
-            isScanned: n.isScanned,
-            confirmationString: n.ConfirmationString,
-          }
-        );
-        const scanRequestResult = await scanRequest.data;
-        console.log("scanned = " + n.Id);
+        toSend.scanned.push({
+          isScanned: n.isScanned,
+          confirmationString: n.ConfirmationString,
+          id: n.Id
+        });
 
-        counter++;
       }
       for (const n of packagesToSend.filter((e) => e.All)) {
-        setLoadingText(
-          "Wysyłanie " +
-            Math.round((counter / packagesToSendLength) * 100) +
-            "%"
-        );
+        
+        toSend.unscanned.push({
+          isScanned: n.isScanned,
+          name: n.Name,
+          routeId: n.RouteId,
+        });
 
-        const scanAllRequest = await api.patch(
-          "routes/addresses/packages/warehouse-all",
+      }
+
+
+          const scanAllRequest = await api.patch("routes/addresses/packages/warehouse-bulk",
           {
-            isScanned: n.isScanned,
-            name: n.Name,
-            routeId: n.RouteId,
+            scanned: toSend.scanned,
+            unscanned: toSend.unscanned
           }
         );
         const scanAllRequestResult = await scanAllRequest.data;
-        console.log("scanned all = " + n.Name);
 
-        counter++;
-      }
     }
+
 
     setLoadingText("Synchronizacja danych");
 

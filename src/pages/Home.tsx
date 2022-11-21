@@ -30,6 +30,7 @@ import {
   IonRippleEffect,
   IonRow,
   IonSearchbar,
+  IonTextarea,
   IonTitle,
   IonToggle,
   IonToolbar,
@@ -194,15 +195,50 @@ const Home: React.FC = () => {
 
   const [unscannedWarningPopup, setUnscannedWarningPopup] = useState(false);
 
+  const [unscannedWarningMessage, setUnscannedWarningMessage] = useState<string[]>([]);
+
+  const [unscannedWarningModal, setUnscannedWarningModal] = useState(false);
+
+  const [unscannedWarningTextAreaText, setUnscannedWarningTextAreaText] = useState("");
+  const [unscannedWarningTextAreaCount, setUnscannedWarningTextAreaCount] = useState(0);
+
   useIonViewDidEnter(() => {
     api.get("report/is-driver-scanned").then((response) => {
       const data = response.data as IsDriverScannedResponse;
 
       try {
         setUnscannedWarningPopup(!data.status);
+
+        if(!data.status)
+        {
+          if(data.messages)
+          {
+            setUnscannedWarningMessage(data.messages);
+          }
+        }
+
       } catch (error) {}
     });
   });
+
+  useEffect(() => {
+    api.get("report/is-driver-scanned").then((response) => {
+      const data = response.data as IsDriverScannedResponse;
+
+      try {
+        setUnscannedWarningPopup(!data.status);
+
+        if(!data.status)
+        {
+          if(data.messages)
+          {
+            setUnscannedWarningMessage(data.messages);
+          }
+        }
+
+      } catch (error) {}
+    });
+  }, [state.routeCurrent]);
 
   // useEffect(() => {
 
@@ -616,6 +652,173 @@ const Home: React.FC = () => {
   return (
     <IonPage className={"container"}>
       <IonModal
+        className="unscanned-warning-modal"
+        isOpen={unscannedWarningModal}
+        onIonModalDidDismiss={() => {
+          setUnscannedWarningModal(false);
+        }}
+        onIonModalWillPresent={() => {}}
+      >
+        <IonHeader>
+          <IonToolbar style={{ padding: "0 15px" }}>
+            <IonButtons slot="end">
+              <IonButton
+                style={{
+                  fontWeight: 700,
+                }}
+                onClick={() => setUnscannedWarningModal(false)}
+              >
+                Wróć
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent style={{
+          "--padding-bottom": "20px"
+        }}>
+          <IonListHeader>
+            <IonLabel style={{ fontWeight: 700 }}>
+              Dlaczego musisz odblokować robienie zdjęć?
+            </IonLabel>
+          </IonListHeader>
+          <IonListHeader>
+            <IonLabel style={{ fontWeight: 400, minHeight: "0" }}>
+              Blokada zdjęć zostaje nałożona, jeżeli nie spełniłeś poniższych
+              warunków:
+            </IonLabel>
+          </IonListHeader>
+
+          {unscannedWarningMessage.map((e) => {
+            return (
+              <IonListHeader>
+                <IonLabel
+                  style={{ fontWeight: 400, minHeight: "0" }}
+                  dangerouslySetInnerHTML={{ __html: "- " + e }}
+                ></IonLabel>
+              </IonListHeader>
+            );
+          })}
+
+          <IonListHeader>
+            <IonLabel style={{ fontWeight: 700 }}>
+              Jak odblokować robienie zdjęć?
+            </IonLabel>
+          </IonListHeader>
+          <IonListHeader>
+            <IonLabel style={{ fontWeight: 400, minHeight: "0" }}>
+              Poniżej wytłumacz, dlaczego nie zeskanowałeś wymaganej ilości diet.
+              Przykładowo, jeżeli powodem będą:
+            </IonLabel>
+          </IonListHeader>
+
+          <IonListHeader>
+            <IonLabel
+              style={{ fontWeight: 400, minHeight: "0" }}
+            >
+              - złe warunki pogodowe, opóźnienie dostawy lub inne problemy spowodowane przez odgórne sytuacje, to biuro skontaktuje się bezpośrednio z <strong style={{ color: "var(--ion-color-tertiary, #5260ff)" }}>Kierownikiem Regionu</strong>.
+            </IonLabel>
+          </IonListHeader>
+          <IonListHeader>
+            <IonLabel
+              style={{ fontWeight: 400, minHeight: "0" }}
+            >
+              - jednostkowy problem, który napotkał Ciebie np. problem z telefonem, to biuro skontaktuje się bezpośrednio z <strong style={{ color: "var(--ion-color-tertiary, #5260ff)" }}>Tobą</strong>, żeby wytłumaczyć daną sytuację.
+            </IonLabel>
+          </IonListHeader>
+          <IonListHeader>
+            <IonLabel
+              style={{ fontWeight: 400, minHeight: "0" }}
+            >
+              - jednostkowy problem w działaniu aplikacji poważnie utrudniający skanowanie diet, to biuro wraz z pomocą techniczną skontaktuje się bezpośrednio z <strong style={{ color: "var(--ion-color-tertiary, #5260ff)" }}>Tobą</strong>, żeby jak najszybciej rozwiązać problem.
+            </IonLabel>
+          </IonListHeader>
+
+          <IonTextarea
+          onIonChange={(e) => {
+            const text = e.detail.value;
+            if(text)
+            {
+              setUnscannedWarningTextAreaText(text);
+              setUnscannedWarningTextAreaCount(text.length);
+            }
+            else
+            {
+              setUnscannedWarningTextAreaText("");
+              setUnscannedWarningTextAreaCount(0);
+            }
+            
+
+          }}
+          rows={6}
+          autoGrow={true}
+          maxlength={400}
+      placeholder="Wpisz powód (w przypadku jednostkowych problemów postaraj się szczegółowo rozpisać daną sytuację)"
+    ></IonTextarea>
+
+    <IonListHeader>
+            <IonLabel
+              style={{ fontWeight: 400, minHeight: "0", textAlign: "end" }}
+            >
+              Wpisałeś {unscannedWarningTextAreaCount} z minimalnych 6 znaków
+            </IonLabel>
+          </IonListHeader>
+
+          <IonButton disabled={unscannedWarningTextAreaCount < 6} color="primary" expand="full" style={{
+            margin: "0 16px"
+          }}
+          
+          onClick={() => {
+
+            presentLoading("Przesyłanie prośby");
+            
+            api.patch("report/unscanned-reason", {
+              Reason: unscannedWarningTextAreaText
+            }).then(async (response) => {
+
+              await dismissLoading();
+              
+              const data = response.data as boolean;
+
+              if(data)
+              {
+                setUnscannedWarningPopup(false);
+                setUnscannedWarningModal(false);
+              }
+              else
+              {
+                presentAlert({
+                  message: "Nie udało się przesłać zapytania. Spróbuj ponownie.",
+                  buttons: [
+                    {
+                      text: "Powrót"
+                    }
+                  ]
+                })
+              }
+
+            }).catch(() => {
+
+              presentAlert({
+                message: "Nie udało się przesłać zapytania. Spróbuj ponownie.",
+                buttons: [
+                  {
+                    text: "Powrót"
+                  }
+                ]
+              })
+
+            });
+
+          }}
+          >
+            Odblokuj robienie zdjęć
+          </IonButton>
+
+
+        </IonContent>
+      </IonModal>
+
+      <IonModal
         className="order-info-modal"
         isOpen={showOrderInfoModal}
         onIonModalDidDismiss={() => {
@@ -1008,20 +1211,35 @@ const Home: React.FC = () => {
         )}
 
         {unscannedWarningPopup ? (
-          <IonToolbar>
-            <div
-              style={{
-                padding: "0px 15px 9px",
-                fontSize: 21,
-                textAlign: "center",
-                color: "red",
-                fontWeight: "800",
-                letterSpacing: "0.5px",
-              }}
-            >
-              Zsynchronizuj lub uzupełnij magazyn przed rozpoczęciem trasy!
-            </div>
-          </IonToolbar>
+          <>
+            <IonToolbar>
+              <div className="warning-popup">
+                {/* Zsynchronizuj lub uzupełnij magazyn przed rozpoczęciem trasy! */}
+                {unscannedWarningMessage.map((e) => {
+                  return <div dangerouslySetInnerHTML={{ __html: e }}></div>;
+                })}
+              </div>
+            </IonToolbar>
+            <IonToolbar>
+              <IonButtons>
+                <IonButton
+                  expand="full"
+                  style={{
+                    width: "90%",
+                    padding: "0 0",
+                    margin: "0 auto",
+                  }}
+                  color="tertiary"
+                  fill="solid"
+                  onClick={async () => {
+                    setUnscannedWarningModal(true);
+                  }}
+                >
+                  Odblokuj robienie zdjęć
+                </IonButton>
+              </IonButtons>
+            </IonToolbar>
+          </>
         ) : (
           <></>
         )}
@@ -1055,7 +1273,7 @@ const Home: React.FC = () => {
         className={"background-lightgrey " + (scanning ? "hide-bg" : "")}
       >
         <>
-          <IonList className="list-order">
+          <IonList className={"list-order " + (unscannedWarningPopup ? "hide-scan-icons" : "")}>
             {(itemsMode == "undelivered" ? state.routeCurrent : state.routeEnd)
               ?.slice(0, infinityCounter)
               .map((e, i) => {

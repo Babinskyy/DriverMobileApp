@@ -13,7 +13,9 @@
 
 .container {
 	
-
+	.list-order.hide-scan-icons .icon-scan {
+		display: none;
+	}
 
 	.list-order.border {
 		border: 4px solid var(--ion-color-tertiary);
@@ -242,3 +244,40 @@ ion-modal.modal-image ion-img {
 	transform: rotate(720deg);
 	transition: ease-in-out 1s;
 }
+
+.warning-popup {
+	padding: 0px 15px 0px;
+    font-size: 17px;
+    text-align: center;
+    color: rgb(255, 0, 0);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    line-height: 19px;
+}
+
+.warning-popup strong {
+	font-weight: 800;
+}
+
+
+ion-modal.unscanned-warning-modal {
+	padding-top: 110px;
+}
+
+ion-modal.unscanned-warning-modal ion-list-header {
+	padding-inline-end: 16px;
+}
+
+ion-modal.unscanned-warning-modal::part(content) {
+	border-top-left-radius: 13px;
+	border-top-right-radius: 13px;
+}
+
+ion-modal.unscanned-warning-modal ion-textarea {
+	margin: 14px 16px 0;
+	border: 1px solid;
+	width: auto;
+	border-radius: 5px;
+}
+
+

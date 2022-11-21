@@ -5,11 +5,13 @@ import { User } from "./userProps"
 import { PushNotifications } from '@capacitor/push-notifications';
 
 class AuthService {
-  login(username: string, password: string) {
+  login(username: string, password: string, driverUsername: string, driverPassword: string) {
     return api
       .post("/accounts/authenticate", {
         username,
-        password
+        password,
+        driverUsername,
+        driverPassword
       },)
       .then(response => {
           const data = response.data as User;

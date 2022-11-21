@@ -122,6 +122,9 @@ type PopupAddressType = {
 
 const Map: React.FC = () => {
 
+  const [distanceString, setDistanceString] = useState("");
+  const [timeString, setTimeString] = useState("");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modal = useRef<HTMLIonModalElement>(null);
   const [popupAddress, setPopupAddress] = useState<PopupAddressType>();
@@ -166,6 +169,16 @@ const Map: React.FC = () => {
               key: "geojsonPointsStatic",
               value: response.data.geoJSONStops,
             });
+
+            if(response.data.distance)
+            {
+              setDistanceString(response.data.distance);
+            }
+           
+            if(response.data.time)
+            {
+              setTimeString(response.data.time);
+            }
 
             geojsonLines.current = JSON.parse(response.data.geoJSONMain);
             geojsonPoints.current = JSON.parse(response.data.geoJSONStops);
@@ -565,6 +578,14 @@ const Map: React.FC = () => {
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton>
           </IonButtons>
+        </IonToolbar>
+        <IonToolbar style={{ padding: "0 15px 10px", "--min-height": "0px" }}>
+          <IonLabel>
+              {timeString}
+          </IonLabel>
+          <IonLabel slot="end">
+            {distanceString}
+          </IonLabel>
         </IonToolbar>
       </IonHeader>
 
