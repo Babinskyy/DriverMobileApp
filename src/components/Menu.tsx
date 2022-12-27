@@ -18,6 +18,8 @@ import {
 } from "@ionic/react";
 import {
   addCircleOutline,
+  calendar,
+  calendarOutline,
   carOutline,
   gridOutline,
   homeOutline,
@@ -221,6 +223,24 @@ const Menu: React.FC = () => {
           >
             <IonLabel>Edycja kolejności</IonLabel>
             <IonIcon slot="start" icon={gridOutline} />
+          </IonItem>
+
+          <IonItem
+            lines="none"
+            color={"/Punishments" == url ? "primary" : undefined}
+            button
+            className="menu-item"
+            onClick={async () => {
+              setTimeout(() => {
+                history.push("/Punishments");
+              }, 1);
+              if (menuRef.current) {
+                menuRef.current.setOpen(false);
+              }
+            }}
+          >
+            <IonLabel>Podsumowanie</IonLabel>
+            <IonIcon slot="start" icon={calendarOutline} />
           </IonItem>
           
         </IonList>
