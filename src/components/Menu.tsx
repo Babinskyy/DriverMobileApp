@@ -20,6 +20,7 @@ import {
   addCircleOutline,
   calendar,
   calendarOutline,
+  cardOutline,
   carOutline,
   gridOutline,
   homeOutline,
@@ -241,6 +242,23 @@ const Menu: React.FC = () => {
           >
             <IonLabel>Podsumowanie</IonLabel>
             <IonIcon slot="start" icon={calendarOutline} />
+          </IonItem>
+          <IonItem
+            lines="none"
+            color={"/Salary" == url ? "primary" : undefined}
+            button
+            className="menu-item"
+            onClick={async () => {
+              setTimeout(() => {
+                history.push("/Salary");
+              }, 1);
+              if (menuRef.current) {
+                menuRef.current.setOpen(false);
+              }
+            }}
+          >
+            <IonLabel>Wypłata</IonLabel>
+            <IonIcon slot="start" icon={cardOutline} />
           </IonItem>
           
         </IonList>
