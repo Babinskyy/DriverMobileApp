@@ -140,13 +140,13 @@ const Punishments: React.FC = () => {
             </IonButton>
           </IonButtons>
           <div style={{width: "200px"}}>
-          <IonSelect value={"dasdasd"} interface="popover" placeholder="Wybierz miesiąc">
+          {/* <IonSelect value={"dasdasd"} interface="popover" placeholder="Wybierz miesiąc">
           <IonSelectOption defaultChecked value="dasdasd">Ostatnie 4 miesiące</IonSelectOption>
           <IonSelectOption value="apples">Styczeń</IonSelectOption>
           <IonSelectOption value="oranges">Luteń</IonSelectOption>
           <IonSelectOption value="bananas">Marzeń</IonSelectOption>
           <IonSelectOption value="asdasd">Październik</IonSelectOption>
-        </IonSelect>
+        </IonSelect> */}
         </div>
         
           

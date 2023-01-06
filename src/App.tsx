@@ -64,6 +64,7 @@ import Kafelki from "./pages/Kafelki";
 import { PushNotifications } from '@capacitor/push-notifications';
 import Punishments from "./pages/Punishments";
 import Salary from "./pages/Salary";
+import Notifications from "./pages/Notifications";
 
 // import LogRocket from 'logrocket';
 // import setupLogRocketReact from 'logrocket-react';
@@ -218,6 +219,7 @@ const App: React.FC = () => {
           <Route path="/Reorder" exact={true} component={Kafelki} />
           <Route path="/Punishments" exact={true} component={Punishments} />
           <Route path="/Salary" exact={true} component={Salary} />
+          <Route path="/Notifications" exact={true} component={Notifications} />
         </IonRouterOutlet>
       </IonReactRouter>
 

@@ -18,12 +18,14 @@ import {
 } from "@ionic/react";
 import {
   addCircleOutline,
+  alertCircleOutline,
   calendar,
   calendarOutline,
   cardOutline,
   carOutline,
   gridOutline,
   homeOutline,
+  informationCircleOutline,
   locateOutline,
   mapOutline,
   newspaperOutline,
@@ -225,6 +227,23 @@ const Menu: React.FC = () => {
             <IonLabel>Edycja kolejności</IonLabel>
             <IonIcon slot="start" icon={gridOutline} />
           </IonItem>
+          <IonItem
+            lines="none"
+            color={"/Notifications" == url ? "primary" : undefined}
+            button
+            className="menu-item"
+            onClick={async () => {
+              setTimeout(() => {
+                history.push("/Notifications");
+              }, 1);
+              if (menuRef.current) {
+                menuRef.current.setOpen(false);
+              }
+            }}
+          >
+            <IonLabel>Zgłoszenia</IonLabel>
+            <IonIcon slot="start" icon={informationCircleOutline} />
+          </IonItem>
 
           <IonItem
             lines="none"
@@ -240,7 +259,7 @@ const Menu: React.FC = () => {
               }
             }}
           >
-            <IonLabel>Podsumowanie</IonLabel>
+            <IonLabel>Uwagi/Kary</IonLabel>
             <IonIcon slot="start" icon={calendarOutline} />
           </IonItem>
           <IonItem

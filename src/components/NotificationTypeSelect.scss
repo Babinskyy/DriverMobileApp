@@ -1,0 +1,19 @@
+.select-type-item{
+  // --placeholder-color: #971e49;
+  --placeholder-opacity: 1;
+  // width: 100%;
+  // justify-content: center;
+  text-align: center;
+  // flex: 0 0 auto;
+  // padding-left: 20px;
+  padding-right: 30px;
+  
+
+  ion-select::part(text) {
+    color: #00b109;
+  }
+}
+
+
+
+
