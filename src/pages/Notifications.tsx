@@ -35,6 +35,7 @@ import {
   IonSearchbar,
   IonSelect,
   IonSelectOption,
+  IonTextarea,
   IonTitle,
   IonToggle,
   IonToolbar,
@@ -127,16 +128,34 @@ type NotificationRequest = {
   addressId?: number;
   addressDietId?: number;
   addressDietCustom?: string;
-}
+  
+  addressPackageIssue?: "damaged" | "missing";
+  addressPackageDietType?: "whole" | "part";
+
+  addressPackageDietId?: number;
+  addressPackageDietCustom?: string;
+  addressPackagePartList?: string[];
+
+
+
+};
 
 const Salary: React.FC = () => {
-
-  const [notificationRequest, setNotificationRequest] = useState<NotificationRequest>({});
+  const [notificationRequest, setNotificationRequest] =
+    useState<NotificationRequest>({});
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [present] = useIonActionSheet();
-  const [notificationButtonType, setNotificationButtonType] = useState<"" | "missing" | "damaged">("");
+  const [notificationButtonType, setNotificationButtonType] = useState<
+    "" | "missing" | "damaged"
+  >("");
+  const [damageButtonType, setDamageButtonType] = useState<
+    "" | "whole" | "part"
+  >("");
+  const [partDamageActionButton, setPartDamageActionButton] = useState<
+    "" | "swap" | "info"
+  >("");
 
   function canDismiss() {
     return new Promise<boolean>((resolve, reject) => {
@@ -156,12 +175,180 @@ const Salary: React.FC = () => {
           if (ev.detail.role === "confirm") {
             setIsNotificationModalOpen(false);
             setNotificationButtonType("");
+            setNotificationRequest({});
+            setDamageButtonType("");
+            setPartDamageActionButton("");
           } else {
             reject();
           }
         },
       });
     });
+  }
+
+  const DamageTypeFunction = () => {
+    return (
+      <div>
+        {notificationButtonType == "damaged" &&
+        notificationRequest?.addressDietId ? (
+          <div style={{ textAlign: "center", marginBottom: "10px" }}>
+            <span style={{ letterSpacing: "1px" }}>
+              WYBIERZ TYP USZKODZENIA:
+            </span>
+            <IonRow>
+              <IonCol size="6">
+                <IonButton
+                  fill={damageButtonType == "whole" ? "solid" : "outline"}
+                  className="choose-type-button"
+                  color={damageButtonType == "whole" ? "" : "medium"}
+                  onClick={() => {
+                    setDamageButtonType("whole");
+                  }}
+                >
+                  cała dieta
+                </IonButton>
+              </IonCol>
+              <IonCol size="6">
+                <IonButton
+                  fill={damageButtonType == "part" ? "solid" : "outline"}
+                  className="choose-type-button"
+                  color={damageButtonType == "part" ? "" : "medium"}
+                  onClick={() => {
+                    setDamageButtonType("part");
+                  }}
+                >
+                  tacki
+                </IonButton>
+              </IonCol>
+            </IonRow>
+          </div>
+        ) : (
+          <div>no</div>
+        )}
+      </div>
+    );
+  }
+
+  function partDamageFunction() {
+    return (
+      <div>
+        {damageButtonType == "part" ? (
+          <div style={{ marginBottom: "20px" }}>
+            <NotificationSelect
+              multiple
+              disabled={!notificationRequest?.addressId}
+              data={[
+                { id: "1/1", value: "1/1" },
+                { id: "1/2", value: "1/2" },
+                { id: "2/2", value: "2/2" },
+                { id: "1/3", value: "1/3" },
+                { id: "2/3", value: "2/3" },
+                { id: "3/3", value: "3/3" },
+                { id: "1/4", value: "1/4" },
+                { id: "2/4", value: "2/4" },
+                { id: "3/4", value: "3/4" },
+                { id: "4/4", value: "4/4" },
+                { id: "1/5", value: "1/5" },
+                { id: "2/5", value: "2/5" },
+                { id: "3/5", value: "3/5" },
+                { id: "4/5", value: "4/5" },
+                { id: "5/5", value: "5/5" },
+                
+                
+              ]}
+              placeholder="Numery tacek"
+              onChange={(val: string[]) => {
+                setNotificationRequest({
+                  ...notificationRequest,
+                  addressPackagePartList: val,
+                });
+              }}
+            />
+          </div>
+        ) : (
+          <div>no</div>
+        )}
+      </div>
+    );
+  }
+
+  const PartSelectFunction = () => {
+    return (
+      <div>
+        {notificationButtonType == "damaged" &&
+        notificationRequest?.addressId ? (
+          <div style={{ textAlign: "center", marginBottom: "10px" }}>
+            <span style={{ letterSpacing: "1px" }}>WYBIERZ DZIAŁANIE:</span>
+            <IonRow>
+              <IonCol size="6">
+                <IonButton
+                  fill={partDamageActionButton == "swap" ? "solid" : "outline"}
+                  className="choose-type-button"
+                  color={partDamageActionButton == "swap" ? "" : "medium"}
+                  onClick={() => {
+                    setPartDamageActionButton("swap");
+                  }}
+                >
+                  Wymiana
+                </IonButton>
+              </IonCol>
+              <IonCol size="6">
+                <IonButton
+                  fill={partDamageActionButton == "info" ? "solid" : "outline"}
+                  className="choose-type-button"
+                  color={partDamageActionButton == "info" ? "" : "medium"}
+                  onClick={() => {
+                    setPartDamageActionButton("info");
+                  }}
+                >
+                  Informacja
+                </IonButton>
+              </IonCol>
+            </IonRow>
+          </div>
+        ) : (
+          <div>no</div>
+        )}
+      </div>
+    );
+  }
+
+  const PartSelectInfoFunction = () => {
+
+    const [textareaValue, setTextareaValue] = useState("");
+
+    return (
+      <div>
+        {partDamageActionButton == "swap" ? (
+          <div style={{ textAlign: "center", marginBottom: "10px" }}>
+            <span style={{ letterSpacing: "1px" }}>OPISZ SYTUACJĘ1:</span>
+          </div>
+        ) : partDamageActionButton == "info" ? (
+          <div style={{ textAlign: "center" }}>
+            <span style={{ letterSpacing: "1px" }}>OPISZ SYTUACJĘ:</span>
+
+            <IonTextarea
+              onIonChange={(e) => {
+                if(e.detail.value)
+                {
+                  setTextareaValue(e.detail.value)
+                }
+                else
+                {
+                  setTextareaValue("")
+                }
+              }}
+              value={textareaValue}
+              className="damaged-textarea"
+              placeholder="Opisz sytuację"
+            ></IonTextarea>
+            <IonButton style={{marginTop: "10px"}} disabled={!textareaValue} >Potwierdź</IonButton>
+          </div>
+        ) : (
+          <div>no</div>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -485,55 +672,91 @@ const Salary: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <IonContent className="ion-padding">
-          <div style={{ textAlign: "center", marginBottom: "10px" }}><span style={{letterSpacing: "1px"}}>WYBIERZ TYP ZGŁOSZENIA:</span>
-          <IonRow>
-            <IonCol size="6">
-              <IonButton
-                fill={notificationButtonType == "missing" ? "solid" : "outline"}
-                className="choose-type-button"
-                color={notificationButtonType == "damaged" ? "medium" : ""}
-                onClick={() => {
-                  setNotificationButtonType("missing");
-                }}
-              >
-                Brak
-              </IonButton>
-            </IonCol>
-            <IonCol size="6">
-              <IonButton
-                fill={notificationButtonType == "damaged" ? "solid" : "outline"}
-                className="choose-type-button"
-                color={notificationButtonType == "missing" ? "medium" : ""}
-                onClick={() => {
-                  setNotificationButtonType("damaged");
-                }}
-              >
-                Uszkodzenie
-              </IonButton>
-            </IonCol>
-          </IonRow>
+          <div style={{ textAlign: "center", marginBottom: "10px" }}>
+            <span style={{ letterSpacing: "1px" }}>
+              WYBIERZ TYP ZGŁOSZENIA:
+            </span>
+            <IonRow>
+              <IonCol size="6">
+                <IonButton
+                  fill={
+                    notificationButtonType == "missing" ? "solid" : "outline"
+                  }
+                  className="choose-type-button"
+                  color={notificationButtonType == "damaged" ? "medium" : ""}
+                  onClick={() => {
+                    setNotificationButtonType("missing");
+                  }}
+                >
+                  Brak
+                </IonButton>
+              </IonCol>
+              <IonCol size="6">
+                <IonButton
+                  fill={
+                    notificationButtonType == "damaged" ? "solid" : "outline"
+                  }
+                  className="choose-type-button"
+                  color={notificationButtonType == "missing" ? "medium" : ""}
+                  onClick={() => {
+                    setNotificationButtonType("damaged");
+                  }}
+                >
+                  Uszkodzenie
+                </IonButton>
+              </IonCol>
+            </IonRow>
           </div>
 
-          {/* <div style={{ marginBottom: "20px" }}>
-            <NotificationTypeSelect />
-          </div> */}
           <div style={{ marginBottom: "20px" }}>
             <NotificationSelect
               disabled={!notificationButtonType}
-            placeholder="Adres"
-            onChange={(val: string) => {
-              setNotificationRequest({ ...notificationRequest, addressId: Number.parseInt(val) });
-            }} />
+              placeholder="Adres"
+              data={[
+                { id: 1, value: "Jesionowa 17" },
+                { id: 2, value: "Brzozowa 17" },
+                { id: 3, value: "Grunwaldzka 17" },
+                { id: 4, value: "Jesionowa 17" },
+              ]}
+              onChange={(val: string) => {
+                setNotificationRequest({
+                  ...notificationRequest,
+                  addressId: Number.parseInt(val),
+                });
+              }}
+            />
           </div>
           <div style={{ marginBottom: "20px" }}>
-          <NotificationSelect
-            disabled={!notificationRequest.addressId}
-            placeholder="Dieta"
-            onChange={(val: string) => {
-              setNotificationRequest({ ...notificationRequest, addressId: Number.parseInt(val) });
-            }} />
+            <NotificationSelect
+              disabled={!notificationRequest?.addressId}
+              placeholder="Dieta"
+              data={[
+                { id: 1, value: "slim 1500" },
+                { id: 2, value: "wege 2000" },
+                { id: 3, value: "keto 3000" },
+                { id: 4, value: "sport 1500" },
+              ]}
+              onChange={(val: string) => {
+                setNotificationRequest({
+                  ...notificationRequest,
+                  addressDietId: Number.parseInt(val),
+                });
+              }}
+            />
           </div>
-          
+
+          <DamageTypeFunction />
+
+          {partDamageFunction()}
+
+          {notificationRequest.addressPackageDietId ||
+          notificationRequest.addressPackagePartList ? (
+            <PartSelectFunction />
+          ) : (
+            <></>
+          )}
+
+          {PartSelectInfoFunction()}
         </IonContent>
       </IonModal>
     </IonPage>

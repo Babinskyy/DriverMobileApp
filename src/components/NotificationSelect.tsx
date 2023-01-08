@@ -9,14 +9,22 @@ import {
 
 import "./NotificationSelect.scss";
 
+type Dictionary = {
+  id: string | number;
+  value: string;
+}
+
 const NotificationSelect: React.FC<{
   placeholder: string,
-  onChange?: (value: string) => void,
+  data: Dictionary[],
+  onChange?: (value: any) => void,
   disabled?: boolean,
-}> = ({ onChange, placeholder, disabled = false }) => (
+  multiple?: boolean;
+}> = ({ onChange, data, placeholder, disabled = false, multiple = false }) => (
   <IonList>
     <div>
       <IonSelect
+        multiple={multiple}
         disabled={disabled}
         placeholder={placeholder}
         className="select-type-item"
@@ -29,15 +37,13 @@ const NotificationSelect: React.FC<{
 
         }}
       >
-        <IonSelectOption value="1">Jesionowa 17</IonSelectOption>
-        <IonSelectOption value="2">Jesionowa 17</IonSelectOption>
-        <IonSelectOption value="3">Jesionowa 17</IonSelectOption>
-        <IonSelectOption value="4">Jesionowa 17</IonSelectOption>
-        <IonSelectOption value="5">Jesionowa 17</IonSelectOption>
-        <IonSelectOption value="6">Jesionowa 17</IonSelectOption>
-        <IonSelectOption value="7">Jesionowa 17</IonSelectOption>
-        <IonSelectOption value="8">Jesionowa 17</IonSelectOption>
-        <IonSelectOption value="9">Jesionowa 17</IonSelectOption>
+        {
+          data.map((e) => {
+            return(
+              <IonSelectOption value={e.id.toString()}>{e.value}</IonSelectOption>
+            )
+          })
+        }
         
       </IonSelect>
     </div>
