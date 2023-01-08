@@ -40,7 +40,13 @@ const NotificationSelect: React.FC<{
         {
           data.map((e) => {
             return(
-              <IonSelectOption value={e.id.toString()}>{e.value}</IonSelectOption>
+              <IonSelectOption value={e.id.toString()}>{
+                e.value.split(";").map(e => {
+                  return(
+                    <div>{e}</div>
+                  )
+                })
+              }</IonSelectOption>
             )
           })
         }

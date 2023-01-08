@@ -123,27 +123,26 @@ import { v4 as uuidv4 } from "uuid";
 import NotificationTypeSelect from "../components/NotificationTypeSelect";
 import NotificationDietSelect from "../components/NotificationDietSelect";
 import NotificationSelect from "../components/NotificationSelect";
+import { AddressDietList, AddressList } from "../components/NotificationData";
 
 type NotificationRequest = {
   addressId?: number;
   addressDietId?: number;
   addressDietCustom?: string;
-  
+
   addressPackageIssue?: "damaged" | "missing";
   addressPackageDietType?: "whole" | "part";
 
   addressPackageDietId?: number;
   addressPackageDietCustom?: string;
   addressPackagePartList?: string[];
-
-
-
 };
 
 const Salary: React.FC = () => {
   const [notificationRequest, setNotificationRequest] =
     useState<NotificationRequest>({});
 
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [present] = useIonActionSheet();
@@ -156,6 +155,8 @@ const Salary: React.FC = () => {
   const [partDamageActionButton, setPartDamageActionButton] = useState<
     "" | "swap" | "info"
   >("");
+
+  const [textareaValue, setTextareaValue] = useState("");
 
   function canDismiss() {
     return new Promise<boolean>((resolve, reject) => {
@@ -178,6 +179,7 @@ const Salary: React.FC = () => {
             setNotificationRequest({});
             setDamageButtonType("");
             setPartDamageActionButton("");
+            setTextareaValue("");
           } else {
             reject();
           }
@@ -227,7 +229,7 @@ const Salary: React.FC = () => {
         )}
       </div>
     );
-  }
+  };
 
   function partDamageFunction() {
     return (
@@ -253,8 +255,6 @@ const Salary: React.FC = () => {
                 { id: "3/5", value: "3/5" },
                 { id: "4/5", value: "4/5" },
                 { id: "5/5", value: "5/5" },
-                
-                
               ]}
               placeholder="Numery tacek"
               onChange={(val: string[]) => {
@@ -311,12 +311,9 @@ const Salary: React.FC = () => {
         )}
       </div>
     );
-  }
+  };
 
   const PartSelectInfoFunction = () => {
-
-    const [textareaValue, setTextareaValue] = useState("");
-
     return (
       <div>
         {partDamageActionButton == "swap" ? (
@@ -329,27 +326,32 @@ const Salary: React.FC = () => {
 
             <IonTextarea
               onIonChange={(e) => {
-                if(e.detail.value)
-                {
-                  setTextareaValue(e.detail.value)
-                }
-                else
-                {
-                  setTextareaValue("")
+                if (e.detail.value) {
+                  setTextareaValue(e.detail.value);
+                } else {
+                  setTextareaValue("");
                 }
               }}
               value={textareaValue}
               className="damaged-textarea"
               placeholder="Opisz sytuację"
             ></IonTextarea>
-            <IonButton style={{marginTop: "10px"}} disabled={!textareaValue} >Potwierdź</IonButton>
+            <IonButton
+              style={{ marginTop: "10px" }}
+              disabled={!textareaValue}
+              onClick={() => {
+                setIsSummaryModalOpen(true);
+              }}
+            >
+              Potwierdź
+            </IonButton>
           </div>
         ) : (
           <div>no</div>
         )}
       </div>
     );
-  }
+  };
 
   return (
     <IonPage className="salary-list-container">
@@ -663,6 +665,167 @@ const Salary: React.FC = () => {
           </IonItem>
         </IonContent>
       </IonModal>
+      <IonModal
+        isOpen={isSummaryModalOpen}
+        onWillDismiss={() => setIsSummaryModalOpen(false)}
+      >
+        <IonHeader>
+          <IonToolbar>
+            <IonButtons slot="end">
+              <IonButton onClick={() => setIsSummaryModalOpen(false)}>Wyjdź</IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="ion-padding">
+          <IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+              Typ zgłoszenia
+            </IonLabel>
+            <IonLabel
+              className="wrap capitalize"
+              style={{ textAlign: "center" }}
+            >
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>{notificationButtonType == "missing" ? "Brak" : notificationButtonType == "damaged" ? "Uszkodzenie" : "Error"}</div>
+            </IonLabel>
+          </IonItem>
+
+          <IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+              Adres
+            </IonLabel>
+            <IonLabel
+              className="wrap capitalize"
+              style={{ textAlign: "center" }}
+            >
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>{
+                notificationRequest?.addressId
+                ?
+                AddressList.filter(e => e.id == notificationRequest.addressId)[0].value
+                :
+                <></>
+              }</div>
+            </IonLabel>
+          </IonItem>
+          <IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+              Dieta
+            </IonLabel>
+            <IonLabel
+              className="wrap capitalize"
+              style={{ textAlign: "center" }}
+            >
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>{
+                notificationRequest?.addressDietId
+                ?
+                AddressDietList.filter(e => e.id == notificationRequest.addressDietId)[0].value
+                :
+                <></>
+              }</div>
+            </IonLabel>
+          </IonItem>
+          <IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+              Premia - stanowisko
+            </IonLabel>
+            <IonLabel
+              className="wrap capitalize"
+              style={{ textAlign: "center", color: "green" }}
+            >
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>500.00zł</div>
+            </IonLabel>
+          </IonItem>
+          <IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+              Premia - osobista
+            </IonLabel>
+            <IonLabel
+              className="wrap capitalize"
+              style={{ textAlign: "center" }}
+            >
+              <div
+                style={{ fontWeight: 700, fontSize: "20px", color: "green" }}
+              >
+                300.00zł
+              </div>
+            </IonLabel>
+          </IonItem>
+          <IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+              Kontrakt
+            </IonLabel>
+            <IonLabel
+              className="wrap capitalize"
+              style={{ textAlign: "center" }}
+            >
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>
+                Działalność gospodarcza
+              </div>
+            </IonLabel>
+          </IonItem>
+          <IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+              Podstawa
+            </IonLabel>
+            <IonLabel className="wrap" style={{ textAlign: "center" }}>
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>
+                2000,00 zł
+              </div>
+            </IonLabel>
+          </IonItem>
+          <IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+              Kary
+            </IonLabel>
+            <IonLabel className="wrap" style={{ textAlign: "center" }}>
+              <div
+                style={{ fontWeight: 700, fontSize: "20px", color: "#bf0000" }}
+              >
+                -200,00 zł
+              </div>
+            </IonLabel>
+          </IonItem>
+          <IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+              Korekta - biuro
+            </IonLabel>
+            <IonLabel className="wrap" style={{ textAlign: "center" }}>
+              <div
+                style={{ fontWeight: 700, fontSize: "20px", color: "#bf0000" }}
+              >
+                -100,00 zł
+              </div>
+            </IonLabel>
+          </IonItem>
+          <IonItem
+            lines="none"
+            style={{
+              marginBottom: "35px",
+            }}
+          >
+            <IonLabel
+              className="wrap"
+              style={{
+                textAlign: "center",
+              }}
+            >
+              {" "}
+              Notatka
+            </IonLabel>
+          </IonItem>
+          <IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+              Podsumowanie
+            </IonLabel>
+            <IonLabel className="wrap" style={{ textAlign: "center" }}>
+              <div
+                style={{ fontWeight: 700, fontSize: "20px", color: "green" }}
+              >
+                8243,32 zł
+              </div>
+            </IonLabel>
+          </IonItem>
+        </IonContent>
+      </IonModal>
       <IonModal isOpen={isNotificationModalOpen} onWillDismiss={canDismiss}>
         <IonHeader>
           <IonToolbar>
@@ -712,12 +875,7 @@ const Salary: React.FC = () => {
             <NotificationSelect
               disabled={!notificationButtonType}
               placeholder="Adres"
-              data={[
-                { id: 1, value: "Jesionowa 17" },
-                { id: 2, value: "Brzozowa 17" },
-                { id: 3, value: "Grunwaldzka 17" },
-                { id: 4, value: "Jesionowa 17" },
-              ]}
+              data={AddressList}
               onChange={(val: string) => {
                 setNotificationRequest({
                   ...notificationRequest,
@@ -730,12 +888,7 @@ const Salary: React.FC = () => {
             <NotificationSelect
               disabled={!notificationRequest?.addressId}
               placeholder="Dieta"
-              data={[
-                { id: 1, value: "slim 1500" },
-                { id: 2, value: "wege 2000" },
-                { id: 3, value: "keto 3000" },
-                { id: 4, value: "sport 1500" },
-              ]}
+              data={AddressDietList}
               onChange={(val: string) => {
                 setNotificationRequest({
                   ...notificationRequest,
