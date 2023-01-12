@@ -477,7 +477,10 @@ const Notifications: React.FC = () => {
                   Czy chcesz dołączyć informację?
                 </div>
                 <IonToggle
-                  onIonChange={(e) => setIsInformationChecked(e.detail.checked)}
+                  onIonChange={(e) => {
+                    setIsInformationChecked(e.detail.checked);
+                    setTextareaValue("")}
+                    }
                   checked={isInformationChecked}
                   style={{ margin: "auto", paddingTop: "4px" }}
                 ></IonToggle>
@@ -1018,18 +1021,32 @@ const Notifications: React.FC = () => {
                   </div>
                 </IonLabel>
               </IonItem>
-              <IonItem style={{}}>
-                <IonLabel style={{ maxWidth: "40%" }} className="wrap">
-                  Tacki
-                </IonLabel>
-                <IonLabel className="wrap" style={{ textAlign: "center" }}>
-                  <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                    {notificationRequest.addressPackagePartList?.map((e) => {
-                      return e + ", ";
-                    })}
-                  </div>
-                </IonLabel>
-              </IonItem>
+              {replacedTypeButton == "part" ? (
+                <IonItem style={{}}>
+                  <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+                    Tacki
+                  </IonLabel>
+                  <IonLabel className="wrap" style={{ textAlign: "center" }}>
+                    <div style={{ fontWeight: 700, fontSize: "20px" }}>
+                      {notificationRequest.replacedPackagePartList?.map((e) => {
+                        return e + ", ";})}
+                    </div>
+                  </IonLabel>
+                </IonItem>
+              ) : replacedTypeButton == "whole" ? (
+                <IonItem style={{}}>
+                  <IonLabel style={{ maxWidth: "40%" }} className="wrap">
+                    Typ
+                  </IonLabel>
+                  <IonLabel className="wrap" style={{ textAlign: "center" }}>
+                    <div style={{ fontWeight: 700, fontSize: "20px" }}>
+                      Cała dieta
+                    </div>
+                  </IonLabel>
+                </IonItem>
+              ) : (
+                <></>
+              )}
             </div>
           ) : (
             <></>
