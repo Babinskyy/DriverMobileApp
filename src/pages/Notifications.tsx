@@ -412,7 +412,7 @@ const Notifications: React.FC = () => {
                 <div style={{ textAlign: "center", marginBottom: "10px" }}>
                   {/* select ze wszystkimi dietami */}
                   <NotificationSelect
-                    placeholder="Dietaaa"
+                    placeholder="Dieta"
                     data={AddressDietList}
                     onChange={(val: string) => {
                       setNotificationRequest({
@@ -479,8 +479,8 @@ const Notifications: React.FC = () => {
                 <IonToggle
                   onIonChange={(e) => {
                     setIsInformationChecked(e.detail.checked);
-                    setTextareaValue("")}
-                    }
+                    setTextareaValue("");
+                  }}
                   checked={isInformationChecked}
                   style={{ margin: "auto", paddingTop: "4px" }}
                 ></IonToggle>
@@ -614,7 +614,7 @@ const Notifications: React.FC = () => {
           <IonItem
             className="salary-item"
             onClick={() => {
-              setIsModalOpen(true);
+              setIsSummaryModalOpen(true);
             }}
           >
             <IonLabel style={{ overflow: "visible" }}>
@@ -645,7 +645,7 @@ const Notifications: React.FC = () => {
           <IonItem
             className="salary-item"
             onClick={() => {
-              setIsModalOpen(true);
+              setIsSummaryModalOpen(true);
             }}
           >
             <IonLabel style={{ overflow: "visible" }}>
@@ -688,7 +688,7 @@ const Notifications: React.FC = () => {
           <IonItem
             className="salary-item"
             onClick={() => {
-              setIsModalOpen(true);
+              setIsSummaryModalOpen(true);
             }}
           >
             <IonLabel style={{ overflow: "visible" }}>
@@ -1029,7 +1029,8 @@ const Notifications: React.FC = () => {
                   <IonLabel className="wrap" style={{ textAlign: "center" }}>
                     <div style={{ fontWeight: 700, fontSize: "20px" }}>
                       {notificationRequest.replacedPackagePartList?.map((e) => {
-                        return e + ", ";})}
+                        return e + ", ";
+                      })}
                     </div>
                   </IonLabel>
                 </IonItem>
@@ -1061,37 +1062,41 @@ const Notifications: React.FC = () => {
               </div>
             </IonLabel>
           </IonItem>
-          <div style={{ marginTop: "10px", textAlign: "center" }}>
-            <div
-              style={{
-                border: "1px solid #ff4961",
-                padding: "5px",
-                borderRadius: "10px",
-              }}
-            >
-              Czy na pewno potwierdzasz powyższe informacje i chcesz wysłać
-              raport do biura?
+          {notificationButtonType ? (
+            <div style={{ marginTop: "10px", textAlign: "center" }}>
+              <div
+                style={{
+                  border: "1px solid #ff4961",
+                  padding: "5px",
+                  borderRadius: "10px",
+                }}
+              >
+                Czy na pewno potwierdzasz powyższe informacje i chcesz wysłać
+                raport do biura?
+              </div>
+              <IonButton
+                style={{ marginTop: "10px", width: "90vw" }}
+                disabled={areInformationsConfirmed}
+                color={areInformationsConfirmed ? "" : "danger"}
+                onClick={() => {
+                  setAreInformationsConfirmed(true);
+                }}
+              >
+                {areInformationsConfirmed ? "potwierdzono" : "potwierdź"}
+              </IonButton>
+              <IonButton
+                style={{ marginTop: "10px", width: "90vw" }}
+                fill={areInformationsConfirmed ? "solid" : "outline"}
+                color={areInformationsConfirmed ? "tertiary" : "medium"}
+                disabled={!areInformationsConfirmed}
+                onClick={() => {}}
+              >
+                Wyślij
+              </IonButton>
             </div>
-            <IonButton
-              style={{ marginTop: "10px", width: "90vw" }}
-              disabled={areInformationsConfirmed}
-              color={areInformationsConfirmed ? "" : "danger"}
-              onClick={() => {
-                setAreInformationsConfirmed(true);
-              }}
-            >
-              {areInformationsConfirmed ? "potwierdzono" : "potwierdź"}
-            </IonButton>
-            <IonButton
-              style={{ marginTop: "10px", width: "90vw" }}
-              fill={areInformationsConfirmed ? "solid" : "outline"}
-              color={areInformationsConfirmed ? "tertiary" : "medium"}
-              disabled={!areInformationsConfirmed}
-              onClick={() => {}}
-            >
-              Wyślij
-            </IonButton>
-          </div>
+          ) : (
+            <></>
+          )}
         </IonContent>
       </IonModal>
       <IonModal isOpen={isNotificationModalOpen} onWillDismiss={canDismiss}>
