@@ -573,7 +573,7 @@ export const useRoute = () => {
               fileKey: "file",
               // serverUrl: "https://localhost:55931/" + "routes/addresses/" + id + "/image",
               serverUrl:
-                "https://geeko.software" +
+                "https://api.geeko.software" +
                 "/routes/addresses/" +
                 id +
                 "/image",

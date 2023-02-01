@@ -21,9 +21,15 @@ const NotificationSelect: React.FC<{
   disabled?: boolean,
   multiple?: boolean;
 }> = ({ onChange, data, placeholder, disabled = false, multiple = false }) => (
-  <IonList>
-    <div>
-      <IonSelect
+      <IonItem>
+        <IonSelect
+          interface="alert"
+          interfaceOptions={{
+            className: "ion-alert-notification-address-diets"
+          }}
+          style={{
+            margin: "auto"
+          }}
         multiple={multiple}
         disabled={disabled}
         placeholder={placeholder}
@@ -40,7 +46,7 @@ const NotificationSelect: React.FC<{
         {
           data.map((e) => {
             return(
-              <IonSelectOption value={e.id.toString()}>{
+              <IonSelectOption key={e.id.toString()} value={e.id.toString()}>{
                 e.value.split(";").map(e => {
                   return(
                     <div>{e}</div>
@@ -52,8 +58,7 @@ const NotificationSelect: React.FC<{
         }
         
       </IonSelect>
-    </div>
-  </IonList>
+      </IonItem>
 );
 
 export default NotificationSelect;

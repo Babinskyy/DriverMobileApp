@@ -118,8 +118,58 @@ import { BackgroundMode } from "@ionic-native/background-mode";
 
 import { v4 as uuidv4 } from "uuid";
 
+const Zloty = new Intl.NumberFormat('pl-PL', {
+  style: 'currency',
+  currency: 'PLN',
+});
+
+export const NumberToMoneyString = (num: number | undefined) => {
+  if(num == undefined)
+  {
+    return "";
+  }
+  else
+  {
+    return Zloty.format(num)
+  }
+}
+
+type PaymentResponse = {
+  id: number;
+  paymentMonth: string;
+  createDate: string;
+  contractName: string;
+  summarySalary: number,
+  pointsCount: number,
+  contractAmountPerPoint: number,
+  paydaysCount: number,
+  contractBonusSalary: number,
+  personalBonusSalary: number,
+  contractBaseSalary: number,
+  punishmentCost: number,
+  punishmentExtraCost: number,
+  correctionAmount: number,
+  summaryNote: string
+}
+
 const Salary: React.FC = () => {
+
+  const [paymentsList, setPaymentsList] = useState<PaymentResponse[]>([]);
+
+  useIonViewWillEnter(() => {
+
+    api.get("payments/driver").then((e) => {
+
+      const data = e.data as PaymentResponse[];
+
+      setPaymentsList(data);
+
+    })
+
+  })
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalData, setModalData] = useState<PaymentResponse>();
 
   return (
     <IonPage className="salary-list-container">
@@ -143,32 +193,42 @@ const Salary: React.FC = () => {
       </IonHeader>
       
       <IonList className="punishment-list">
-        <div>
-        <div className="month-name">Grudzień</div>
+        
+        {
+          paymentsList.map((e) => {
+            return(
+              <>
+                <div className="month-name capitalize">{e.paymentMonth}</div>
         <IonItem
           className="salary-item"
           onClick={() => {
+            setModalData(e);
             setIsModalOpen(true);
           }}
         >
           <IonLabel style={{overflow: "visible"}}>
-            <div
+            <IonRow>
+              <IonCol size="12">
+              <div
               style={{
                 fontSize: "22px",
                 fontWeight: "550",
-                paddingBottom: "5px",
               }}
             >
-              Umowa zlecenie
+              {e.contractName}
             </div>
-            <div style={{
+              </IonCol>
+            </IonRow>
+            <IonRow className="ion-justify-content-between">
+              <IonCol size="auto">
+              <div style={{
+                lineHeight: "38px",
                 fontSize: "15px",
                 opacity: "0.7"
-              }}>Dodano <span>09 listopad 2021</span></div>
-            
-          </IonLabel>
-          <IonLabel>
-            <div
+              }}>Dodano <span>{e.createDate}</span></div>
+              </IonCol>
+              <IonCol size="auto">
+              <div
               style={{
                 textAlign: "right",
                 fontSize: "25px",
@@ -176,91 +236,19 @@ const Salary: React.FC = () => {
                 color: "green",
               }}
             >
-              7549,33
+              {NumberToMoneyString(e.summarySalary)}
             </div>
-          </IonLabel>
-          {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
-        </IonItem>
-        </div>
-        <div>
-        <div className="month-name">Listopad</div>
-        <IonItem
-          className="salary-item"
-          onClick={() => {
-            setIsModalOpen(true);
-          }}
-        >
-          <IonLabel style={{overflow: "visible"}}>
-            <div
-              style={{
-                fontSize: "22px",
-                fontWeight: "550",
-                paddingBottom: "5px",
-              }}
-            >
-              Umowa zlecenie
-            </div>
-            <div style={{
-                fontSize: "15px",
-                opacity: "0.7"
-              }}>Dodano <span>09 listopad 2021</span></div>
+              </IonCol>
+            </IonRow>
             
-          </IonLabel>
-          <IonLabel>
-            <div
-              style={{
-                textAlign: "right",
-                fontSize: "25px",
-                fontWeight: "700",
-                color: "green",
-              }}
-            >
-              8243,32
-            </div>
             
           </IonLabel>
           {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
         </IonItem>
-        </div>
-        <div>
-        <div className="month-name">Październik</div>
-        <IonItem
-          className="salary-item"
-          onClick={() => {
-            setIsModalOpen(true);
-          }}
-        >
-          <IonLabel style={{overflow: "visible"}}>
-            <div
-              style={{
-                fontSize: "22px",
-                fontWeight: "550",
-                paddingBottom: "5px",
-              }}
-            >
-              Umowa zlecenie
-            </div>
-            <div style={{
-                fontSize: "15px",
-                opacity: "0.7"
-              }}>Dodano <span>09 listopad 2021</span></div>
-            
-          </IonLabel>
-          <IonLabel>
-            <div
-              style={{
-                textAlign: "right",
-                fontSize: "25px",
-                fontWeight: "700",
-                color: "green",
-              }}
-            >
-              7412,02
-            </div>
-          </IonLabel>
-          {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
-        </IonItem>
-        </div>
+              </>
+            )
+          })
+        }
         
       </IonList>
       <IonModal
@@ -281,19 +269,19 @@ const Salary: React.FC = () => {
               className="wrap capitalize"
               style={{ textAlign: "center" }}
             >
-              <div style={{ fontWeight: 700, fontSize: "20px" }}>1892</div>
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>{modalData?.pointsCount}</div>
               
             </IonLabel>
           </IonItem>
 
           <IonItem>
-            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Stawka</IonLabel>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Stawka za punkt</IonLabel>
             <IonLabel
-              className="wrap capitalize"
+              className="wrap"
               style={{ textAlign: "center" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                2.70zł
+                {NumberToMoneyString(modalData?.contractAmountPerPoint)}
               </div>
             </IonLabel>
           </IonItem>
@@ -303,63 +291,110 @@ const Salary: React.FC = () => {
               className="wrap capitalize"
               style={{ textAlign: "center" }}
             >
-              <div style={{ fontWeight: 700, fontSize: "20px" }}>21</div>
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>{modalData?.paydaysCount}</div>
             </IonLabel>
           </IonItem>
           <IonItem>
-            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Premia - stanowisko</IonLabel>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Premia</IonLabel>
             <IonLabel
               className="wrap capitalize"
               style={{ textAlign: "center", color: "green" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                500.00zł
+                {NumberToMoneyString(modalData?.contractBonusSalary)}
               </div>
             </IonLabel>
           </IonItem>
           <IonItem>
-            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Premia - osobista</IonLabel>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Dodatki</IonLabel>
             <IonLabel
               className="wrap capitalize"
               style={{ textAlign: "center" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px", color: "green" }}>
-                300.00zł
+                {NumberToMoneyString(modalData?.personalBonusSalary)}
               </div>
             </IonLabel>
           </IonItem>
           <IonItem>
-            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Kontrakt</IonLabel>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Typ umowy</IonLabel>
             <IonLabel
               className="wrap capitalize"
               style={{ textAlign: "center" }}
             >
-              <div style={{ fontWeight: 700, fontSize: "20px" }}>Działalność gospodarcza</div>
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>
+                {modalData?.contractName}
+              </div>
             </IonLabel>
           </IonItem>
           <IonItem>
             <IonLabel style={{ maxWidth: "40%" }} className="wrap">Podstawa</IonLabel>
             <IonLabel className="wrap" style={{ textAlign: "center" }}>
-              <div style={{ fontWeight: 700, fontSize: "20px" }}>2000,00 zł</div>
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>
+                {NumberToMoneyString(modalData?.contractBaseSalary)}
+              </div>
             </IonLabel>
           </IonItem>
-          <IonItem>
-            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Kary</IonLabel>
+          {
+            modalData
+            ?
+            modalData?.punishmentCost > 0
+            ?
+<IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Kary niedowozy i pomyłki</IonLabel>
             <IonLabel className="wrap" style={{ textAlign: "center" }}>
-              <div style={{ fontWeight: 700, fontSize: "20px", color: "#bf0000" }}>-200,00 zł</div>
+              <div style={{ fontWeight: 700, fontSize: "20px", color: "#bf0000" }}>
+                {NumberToMoneyString(modalData?.punishmentCost)}
+              </div>
             </IonLabel>
           </IonItem>
-          <IonItem>
+          :
+          <></>
+          :
+          <></>
+          }
+          {
+            modalData
+            ?
+            modalData?.punishmentExtraCost > 0
+            ?
+<IonItem>
+            <IonLabel style={{ maxWidth: "40%" }} className="wrap">Kary dodatkowe</IonLabel>
+            <IonLabel className="wrap" style={{ textAlign: "center" }}>
+              <div style={{ fontWeight: 700, fontSize: "20px", color: "#bf0000" }}>
+                {NumberToMoneyString(modalData?.punishmentExtraCost)}
+              </div>
+            </IonLabel>
+          </IonItem>
+          :
+          <></>
+          :
+          <></>
+          }
+          {
+            modalData
+            ?
+            modalData?.correctionAmount > 0
+            ?
+<IonItem>
             <IonLabel style={{ maxWidth: "40%" }} className="wrap">Korekta - biuro</IonLabel>
             <IonLabel className="wrap" style={{ textAlign: "center" }}>
-              <div style={{ fontWeight: 700, fontSize: "20px", color: "#bf0000" }}>-100,00 zł</div>
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>
+                {NumberToMoneyString(modalData?.correctionAmount)}
+              </div>
             </IonLabel>
           </IonItem>
-          <IonItem
+          :
+          <></>
+          :
+          <></>
+          }
+          
+          {
+            modalData?.summaryNote
+            ?
+<IonItem
             lines="none"
-            style={{
-              marginBottom: "35px",
-            }}
           >
             <IonLabel
               className="wrap"
@@ -367,14 +402,22 @@ const Salary: React.FC = () => {
                 textAlign: "center",
               }}
             >
-              {" "}
-              Notatka
+              {modalData.summaryNote}
             </IonLabel>
           </IonItem>
-          <IonItem>
+          :
+          <></>
+          }
+
+          
+          <IonItem style={{
+              marginTop: "25px",
+            }}>
             <IonLabel style={{ maxWidth: "40%" }} className="wrap">Podsumowanie</IonLabel>
             <IonLabel className="wrap" style={{ textAlign: "center" }}>
-              <div style={{ fontWeight: 700, fontSize: "20px", color: "green" }}>8243,32 zł</div>
+              <div style={{ fontWeight: 700, fontSize: "20px", color: "green" }}>
+                {NumberToMoneyString(modalData?.summarySalary)}
+              </div>
             </IonLabel>
           </IonItem>
           

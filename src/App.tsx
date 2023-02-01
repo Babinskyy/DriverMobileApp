@@ -44,14 +44,21 @@ import Login from "./pages/Login";
 import Warehouse from "./pages/Warehouse";
 import Map from "./pages/Map";
 
-import { useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import auth from "./services/auth.service";
 
 import { User } from "./services/userProps";
 import Menu from "./components/Menu";
 
-import { Preferences } from '@capacitor/preferences';
+import { Preferences } from "@capacitor/preferences";
 import { Network } from "@capacitor/network";
 
 import "./theme/Global.scss";
@@ -61,10 +68,11 @@ import { OfflineRequestProps } from "./components/Types";
 import Startup from "./components/Startup";
 import Kafelki from "./pages/Kafelki";
 
-import { PushNotifications } from '@capacitor/push-notifications';
+import { PushNotifications } from "@capacitor/push-notifications";
 import Punishments from "./pages/Punishments";
 import Salary from "./pages/Salary";
 import Notifications from "./pages/Notifications";
+import { createTheme, ThemeProvider, useTheme } from "@mui/material";
 
 // import LogRocket from 'logrocket';
 // import setupLogRocketReact from 'logrocket-react';
@@ -73,85 +81,124 @@ import Notifications from "./pages/Notifications";
 
 setupIonicReact();
 
-export const themeCheck = async () => {
-  const { value } = await Preferences.get({ key: "theme" });
+const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
-  if (value) {
-    if (value == "dark") {
-      document.body.classList.add("dark");
-    } else {
-      document.body.classList.remove("dark");
-    }
-  } else {
-    // Use matchMedia to check the user preference
-    // const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+function MyApp() {
+  const theme = useTheme();
+  const colorMode = useContext(ColorModeContext);
+  return (
+    <IonApp>
+      <IonReactRouter>
+        <Menu />
 
-    // if(prefersDark)
-    // {
-    //   document.body.classList.add("dark");
-    // }
+        <IonRouterOutlet animated={false}>
+          <Route path="/login" exact={true} component={Login} />
+          <Route path="/Warehouse" exact={true} component={Warehouse} />
+          <Route path="/" exact={true} component={Home} />
+          <Route path="/Map" exact={true} component={Map} />
+          <Route path="/Reorder" exact={true} component={Kafelki} />
+          <Route path="/Punishments" exact={true} component={Punishments} />
+          <Route path="/Salary" exact={true} component={Salary} />
+          <Route path="/Notifications" exact={true} component={Notifications} />
+        </IonRouterOutlet>
+      </IonReactRouter>
 
-    document.body.classList.add("dark");
-  }
-};
+      <Startup />
+    </IonApp>
+  );
+}
+
+// export const themeCheck = async () => {
+//   const { value } = await Preferences.get({ key: "theme" });
+
+//   if (value) {
+//     if (value == "dark") {
+//       document.body.classList.add("dark");
+//     } else {
+//       document.body.classList.remove("dark");
+//     }
+//   } else {
+
+//     document.body.classList.add("dark");
+//   }
+// };
 
 const addListeners = async () => {
-  await PushNotifications.addListener('registration', async token => {
-
-    if(token.value)
-    {
-      api.patch("fcm", {
-        token: token.value
-      }).then((response) => {
-
-        
-
-      })
+  await PushNotifications.addListener("registration", async (token) => {
+    if (token.value) {
+      api
+        .patch("fcm", {
+          token: token.value,
+        })
+        .then((response) => {});
     }
 
-    console.info('Registration token: ', token.value);
+    console.info("Registration token: ", token.value);
   });
 
-  await PushNotifications.addListener('registrationError', err => {
-    console.error('Registration error: ', err.error);
+  await PushNotifications.addListener("registrationError", (err) => {
+    console.error("Registration error: ", err.error);
   });
 
-  await PushNotifications.addListener('pushNotificationReceived', notification => {
-    console.log('Push notification received: ', notification);
-  });
+  await PushNotifications.addListener(
+    "pushNotificationReceived",
+    (notification) => {
+      console.log("Push notification received: ", notification);
+    }
+  );
 
-  await PushNotifications.addListener('pushNotificationActionPerformed', notification => {
-    console.log('Push notification action performed', notification.actionId, notification.inputValue);
-  });
-}
+  await PushNotifications.addListener(
+    "pushNotificationActionPerformed",
+    (notification) => {
+      console.log(
+        "Push notification action performed",
+        notification.actionId,
+        notification.inputValue
+      );
+    }
+  );
+};
 
 const registerNotifications = async () => {
   let permStatus = await PushNotifications.checkPermissions();
 
-  if (permStatus.receive === 'prompt') {
+  if (permStatus.receive === "prompt") {
     permStatus = await PushNotifications.requestPermissions();
   }
 
-  if (permStatus.receive !== 'granted') {
-    throw new Error('User denied permissions!');
+  if (permStatus.receive !== "granted") {
+    throw new Error("User denied permissions!");
   }
 
   await PushNotifications.register();
-}
-
+};
 
 const initPushNotifiactions = async () => {
-
   await addListeners();
 
   await registerNotifications();
-
-}
-
+};
 
 const App: React.FC = () => {
-  const [presentLoading, dismissLoading] = useIonLoading();
 
+  const themeCheck = async () => {
+    const { value } = await Preferences.get({ key: "theme" });
+  
+    if (value) {
+      if (value == "dark") {
+        setMode("dark");
+        document.body.classList.add("dark");
+      } else {
+        setMode("light");
+        document.body.classList.remove("dark");
+      }
+    } else {
+      setMode("dark");
+      document.body.classList.add("dark");
+    }
+  };
+
+  const [presentLoading, dismissLoading] = useIonLoading();
 
   // function OneSignalInit(): void {
 
@@ -159,16 +206,16 @@ const App: React.FC = () => {
   //   OneSignal.setAppId("bbb01c9c-8681-48c3-9a1d-64ca15b7b4b8");
   //   OneSignal.setNotificationOpenedHandler(function(jsonData) {
   //       console.log('notificationOpenedCallback: ' + JSON.stringify(jsonData));
-  
+
   //       OneSignal.clearOneSignalNotifications();
 
   //   });
-  
+
   //   OneSignal.setNotificationWillShowInForegroundHandler(function(jsonData) {
   //     console.log('otrzymano: ' + JSON.stringify(jsonData));
-  
+
   //     OneSignal.clearOneSignalNotifications();
-  
+
   //   });
   // }
 
@@ -190,41 +237,42 @@ const App: React.FC = () => {
   //     }
   //   });
 
-
   // }, [])
 
-
-
-  
   useEffect(() => {
-    
     initPushNotifiactions();
-
   }, []);
 
   useEffect(() => {
     themeCheck();
   }, []);
 
+  const [mode, setMode] = useState<"light" | "dark">("light");
+  const colorMode = useMemo(
+    () => ({
+      toggleColorMode: () => {
+        setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
+      },
+    }),
+    []
+  );
+
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode,
+        },
+      }),
+    [mode]
+  );
+
   return (
-    <IonApp>
-      <IonReactRouter>
-        <Menu />
-
-        <IonRouterOutlet animated={false}>
-          <Route path="/login" exact={true} component={Login} />
-          <Route path="/Warehouse" exact={true} component={Warehouse} />
-          <Route path="/" exact={true} component={Home} />
-          <Route path="/Map" exact={true} component={Map} />
-          <Route path="/Reorder" exact={true} component={Kafelki} />
-          <Route path="/Punishments" exact={true} component={Punishments} />
-          <Route path="/Salary" exact={true} component={Salary} />
-          <Route path="/Notifications" exact={true} component={Notifications} />
-        </IonRouterOutlet>
-      </IonReactRouter>
-
-      <Startup />
-    </IonApp>
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <MyApp />
+      </ThemeProvider>
+    </ColorModeContext.Provider>
   );
 };
 

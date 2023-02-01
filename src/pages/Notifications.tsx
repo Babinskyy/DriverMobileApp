@@ -128,23 +128,43 @@ import {
   AddressList,
   DietParts,
 } from "../components/NotificationData";
+import AddressAutocomplete from "../components/Notification/AddressAutocomplete";
+import DietsAutocomplete from "../components/Notification/DietsAutocomplete";
+
+type NotificationResponse = {
+  id: number;
+  created: string;
+  issueTypeName: string;
+  receiverName: string;
+  address: string;
+  addressDiet: string;
+  note: string;
+  replacedDiet: string;
+  replacedPackageParts: number[] | undefined;
+  addressPackageParts: number[] | undefined;
+};
 
 type NotificationRequest = {
   addressId?: number;
+  addressName?: string;
   addressDietId?: number;
   addressDietCustom?: string;
 
   addressPackageIssue?: "damaged" | "missing";
   addressPackageDietType?: "whole" | "part";
 
-  addressPackagePartList?: string[];
+  addressPackagePartList?: number[];
 
-  replacedPackageDietId?: number;
+  replacedPackageDietName?: string;
   replacedPackageDietCustom?: string;
-  replacedPackagePartList?: string[];
+  replacedPackagePartList?: number[];
 };
 
 const Notifications: React.FC = () => {
+  const [presentLoading, dismissLoading] = useIonLoading();
+
+  const [resetKey, setResetKey] = useState(false);
+
   const [notificationRequest, setNotificationRequest] =
     useState<NotificationRequest>({});
 
@@ -158,7 +178,16 @@ const Notifications: React.FC = () => {
   const [damageButtonType, setDamageButtonType] = useState<
     "" | "whole" | "part"
   >("");
+
   const [partDamageActionButton, setPartDamageActionButton] = useState<
+    "" | "swap" | "info"
+  >("");
+
+  const [wholeDamageActionButton, setWholeDamageActionButton] = useState<
+    "" | "swap" | "info"
+  >("");
+
+  const [missingActionButton, setMissingActionButton] = useState<
     "" | "swap" | "info"
   >("");
 
@@ -170,6 +199,44 @@ const Notifications: React.FC = () => {
     useState<boolean>(false);
   const [areInformationsConfirmed, setAreInformationsConfirmed] =
     useState<boolean>(false);
+
+  type AddressDietListType = {
+    id: number;
+    value: string;
+  };
+
+  const [addressDietList, setAddressDietList] = useState<AddressDietListType[]>(
+    []
+  );
+
+  const [dietPartsList, setDietPartsList] = useState<AddressDietListType[]>([]);
+
+  useEffect(() => {
+    if (dietPartsList.length <= 0) {
+      api.get("issueDiet/autocomplete/all-diet-parts").then((response) => {
+        setDietPartsList(response.data);
+      });
+    }
+  }, []);
+
+  // useEffect(() => {
+
+  // }, [notificationButtonType])
+
+  const [issueDietResponseList, setIssueDietResponseList] = useState<
+    NotificationResponse[]
+  >([]);
+
+  const [issueDietResponse, setIssueDietResponse] =
+    useState<NotificationResponse>();
+
+  useEffect(() => {
+    api.get("issueDiet").then((e) => {
+      const data = e.data as NotificationResponse[];
+
+      setIssueDietResponseList(data);
+    });
+  }, []);
 
   function canDismiss() {
     return new Promise<boolean>((resolve, reject) => {
@@ -195,6 +262,9 @@ const Notifications: React.FC = () => {
             setTextareaValue("");
             setIsInformationChecked(false);
             setReplacedTypeButton("");
+
+            setMissingActionButton("");
+            setWholeDamageActionButton("");
           } else {
             reject();
           }
@@ -213,6 +283,9 @@ const Notifications: React.FC = () => {
             <IonRow>
               <IonCol size="6">
                 <IonButton
+                  disabled={
+                    !!wholeDamageActionButton || !!partDamageActionButton
+                  }
                   fill={damageButtonType == "whole" ? "solid" : "outline"}
                   className="choose-type-button"
                   color={damageButtonType == "whole" ? "" : "medium"}
@@ -225,6 +298,9 @@ const Notifications: React.FC = () => {
               </IonCol>
               <IonCol size="6">
                 <IonButton
+                  disabled={
+                    !!wholeDamageActionButton || !!partDamageActionButton
+                  }
                   fill={damageButtonType == "part" ? "solid" : "outline"}
                   className="choose-type-button"
                   color={damageButtonType == "part" ? "" : "medium"}
@@ -244,11 +320,12 @@ const Notifications: React.FC = () => {
             <IonRow>
               <IonCol size="6">
                 <IonButton
-                  fill={partDamageActionButton == "swap" ? "solid" : "outline"}
+                  disabled={!!replacedTypeButton}
+                  fill={missingActionButton == "swap" ? "solid" : "outline"}
                   className="choose-type-button"
-                  color={partDamageActionButton == "swap" ? "" : "medium"}
+                  color={missingActionButton == "swap" ? "" : "medium"}
                   onClick={() => {
-                    setPartDamageActionButton("swap");
+                    setMissingActionButton("swap");
                   }}
                 >
                   Wymiana
@@ -256,11 +333,12 @@ const Notifications: React.FC = () => {
               </IonCol>
               <IonCol size="6">
                 <IonButton
-                  fill={partDamageActionButton == "info" ? "solid" : "outline"}
+                  disabled={!!replacedTypeButton}
+                  fill={missingActionButton == "info" ? "solid" : "outline"}
                   className="choose-type-button"
-                  color={partDamageActionButton == "info" ? "" : "medium"}
+                  color={missingActionButton == "info" ? "" : "medium"}
                   onClick={() => {
-                    setPartDamageActionButton("info");
+                    setMissingActionButton("info");
                   }}
                 >
                   Informacja
@@ -282,13 +360,14 @@ const Notifications: React.FC = () => {
           <div style={{ marginBottom: "20px" }}>
             <NotificationSelect
               multiple
-              disabled={!notificationRequest?.addressId}
-              data={DietParts}
+              disabled={!!partDamageActionButton}
+              data={dietPartsList}
               placeholder="Numery tacek"
               onChange={(val: string[]) => {
                 setNotificationRequest({
                   ...notificationRequest,
-                  addressPackagePartList: val,
+                  addressPackagePartList:
+                    val.length > 0 ? val.map(Number) : undefined,
                 });
               }}
             />
@@ -300,11 +379,12 @@ const Notifications: React.FC = () => {
             <IonRow>
               <IonCol size="6">
                 <IonButton
-                  fill={partDamageActionButton == "swap" ? "solid" : "outline"}
+                  disabled={!!replacedTypeButton}
+                  fill={wholeDamageActionButton == "swap" ? "solid" : "outline"}
                   className="choose-type-button"
-                  color={partDamageActionButton == "swap" ? "" : "medium"}
+                  color={wholeDamageActionButton == "swap" ? "" : "medium"}
                   onClick={() => {
-                    setPartDamageActionButton("swap");
+                    setWholeDamageActionButton("swap");
                   }}
                 >
                   Wymiana
@@ -312,11 +392,12 @@ const Notifications: React.FC = () => {
               </IonCol>
               <IonCol size="6">
                 <IonButton
-                  fill={partDamageActionButton == "info" ? "solid" : "outline"}
+                  disabled={!!replacedTypeButton}
+                  fill={wholeDamageActionButton == "info" ? "solid" : "outline"}
                   className="choose-type-button"
-                  color={partDamageActionButton == "info" ? "" : "medium"}
+                  color={wholeDamageActionButton == "info" ? "" : "medium"}
                   onClick={() => {
-                    setPartDamageActionButton("info");
+                    setWholeDamageActionButton("info");
                   }}
                 >
                   Informacja
@@ -342,6 +423,7 @@ const Notifications: React.FC = () => {
             <IonRow>
               <IonCol size="6">
                 <IonButton
+                  disabled={!!replacedTypeButton}
                   fill={partDamageActionButton == "swap" ? "solid" : "outline"}
                   className="choose-type-button"
                   color={partDamageActionButton == "swap" ? "" : "medium"}
@@ -354,6 +436,7 @@ const Notifications: React.FC = () => {
               </IonCol>
               <IonCol size="6">
                 <IonButton
+                  disabled={!!replacedTypeButton}
                   fill={partDamageActionButton == "info" ? "solid" : "outline"}
                   className="choose-type-button"
                   color={partDamageActionButton == "info" ? "" : "medium"}
@@ -373,10 +456,16 @@ const Notifications: React.FC = () => {
     );
   };
 
-  const PartSelectInfoFunction = () => {
+  type PartSelectInfoFunctionType = {
+    _type: "swap" | "info" | "";
+  };
+
+  const PartSelectInfoFunction: React.FC<PartSelectInfoFunctionType> = ({
+    _type,
+  }) => {
     return (
       <div>
-        {partDamageActionButton == "swap" ? (
+        {_type == "swap" ? (
           <div>
             <div style={{ textAlign: "center", marginBottom: "10px" }}>
               <span style={{ letterSpacing: "1px" }}>NA CO WYMIENIASZ?</span>
@@ -417,7 +506,7 @@ const Notifications: React.FC = () => {
                     onChange={(val: string) => {
                       setNotificationRequest({
                         ...notificationRequest,
-                        replacedPackageDietId: Number.parseInt(val),
+                        replacedPackageDietName: val,
                       });
                     }}
                   />
@@ -426,13 +515,14 @@ const Notifications: React.FC = () => {
                   <div style={{ textAlign: "center", marginBottom: "10px" }}>
                     <NotificationSelect
                       multiple
-                      disabled={!notificationRequest?.replacedPackageDietId}
-                      data={DietParts}
+                      disabled={!notificationRequest?.replacedPackageDietName}
+                      data={dietPartsList}
                       placeholder="Numery tacek"
                       onChange={(val: string[]) => {
                         setNotificationRequest({
                           ...notificationRequest,
-                          replacedPackagePartList: val,
+                          replacedPackagePartList:
+                            val.length > 0 ? val.map(Number) : undefined,
                         });
                       }}
                     />
@@ -463,7 +553,7 @@ const Notifications: React.FC = () => {
             ) : (
               <></>
             )} */}
-            {replacedTypeButton == "whole" ||
+            {/* {replacedTypeButton == "whole" ||
             notificationRequest.replacedPackagePartList ? (
               <div style={{ textAlign: "center" }}>
                 <div
@@ -503,9 +593,9 @@ const Notifications: React.FC = () => {
               </div>
             ) : (
               <></>
-            )}
+            )} */}
           </div>
-        ) : partDamageActionButton == "info" && notificationButtonType ? (
+        ) : _type == "info" && notificationButtonType ? (
           <div style={{ textAlign: "center" }}>
             <span style={{ letterSpacing: "1px" }}>OPISZ SYTUACJĘ:</span>
 
@@ -525,30 +615,28 @@ const Notifications: React.FC = () => {
         ) : (
           <></>
         )}
-
-        <div style={{ textAlign: "center" }}>
-          <IonButton
-            style={{ marginTop: "10px" }}
-            disabled={
-              !(
-                (replacedTypeButton == "whole" &&
-                  notificationRequest.replacedPackageDietId) ||
-                (partDamageActionButton == "info" && textareaValue) ||
-                (replacedTypeButton == "part" &&
-                  notificationRequest.replacedPackagePartList) ||
-                (replacedTypeButton == "part" && textareaValue)
-              )
-            }
-            onClick={() => {
-              setIsSummaryModalOpen(true);
-            }}
-          >
-            Potwierdź
-          </IonButton>
-        </div>
       </div>
     );
   };
+
+  const DismissPage = () => {
+    setNotificationButtonType("");
+    setNotificationRequest({});
+    setDamageButtonType("");
+    setPartDamageActionButton("");
+    setTextareaValue("");
+    setIsInformationChecked(false);
+    setReplacedTypeButton("");
+
+    setMissingActionButton("");
+    setWholeDamageActionButton("");
+
+    setResetKey(!resetKey);
+  };
+
+  useIonViewDidLeave(() => {
+    DismissPage();
+  });
 
   return (
     <IonPage className="salary-list-container">
@@ -568,7 +656,7 @@ const Notifications: React.FC = () => {
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton>
           </IonButtons>
-          <div style={{ width: "200px" }}>
+          {/* <div style={{ width: "200px" }}>
             <IonSelect
               value={"dasdasd"}
               interface="popover"
@@ -582,7 +670,7 @@ const Notifications: React.FC = () => {
               <IonSelectOption value="bananas">Marzeń</IonSelectOption>
               <IonSelectOption value="asdasd">Październik</IonSelectOption>
             </IonSelect>
-          </div>
+          </div> */}
         </IonToolbar>
       </IonHeader>
 
@@ -609,109 +697,52 @@ const Notifications: React.FC = () => {
       <IonItem>Twoje zgłoszenia:</IonItem>
 
       <IonList className="punishment-list">
-        <div>
-          <div className="month-name">Grudzień</div>
-          <IonItem
-            className="salary-item"
-            onClick={() => {
-              setIsSummaryModalOpen(true);
-            }}
-          >
-            <IonLabel style={{ overflow: "visible" }}>
-              <div
-                style={{
-                  fontSize: "22px",
-                  fontWeight: "550",
-                  paddingBottom: "5px",
-                }}
-              >
-                Uszkodzenie diety
-              </div>
-              <div
-                style={{
-                  fontSize: "15px",
-                  opacity: "0.7",
-                }}
-              >
-                Dodano <span>09 listopad 2021</span>
-              </div>
-            </IonLabel>
+        {/* <div className="month-name">Grudzień</div> */}
 
-            {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
-          </IonItem>
-        </div>
-        <div>
-          <div className="month-name">Listopad</div>
-          <IonItem
-            className="salary-item"
-            onClick={() => {
-              setIsSummaryModalOpen(true);
-            }}
-          >
-            <IonLabel style={{ overflow: "visible" }}>
-              <div
-                style={{
-                  fontSize: "22px",
-                  fontWeight: "550",
-                  paddingBottom: "5px",
-                }}
-              >
-                Brak diety
-              </div>
-              <div
-                style={{
-                  fontSize: "15px",
-                  opacity: "0.7",
-                }}
-              >
-                Dodano <span>09 listopad 2021</span>
-              </div>
-            </IonLabel>
-            {/* <IonLabel>
-            <div
+        {issueDietResponseList.map((e) => {
+          return (
+            <IonItem
               style={{
-                textAlign: "right",
-                fontSize: "25px",
-                fontWeight: "700",
-                color: "green",
+                marginTop: "15px",
+              }}
+              className="salary-item"
+              onClick={() => {
+                setIssueDietResponse(e);
+                setIsSummaryModalOpen(true);
               }}
             >
-              8243,32
-            </div>
-            
-          </IonLabel> */}
-            {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
-          </IonItem>
-        </div>
-        <div>
-          <div className="month-name">Październik</div>
-          <IonItem
-            className="salary-item"
-            onClick={() => {
-              setIsSummaryModalOpen(true);
-            }}
-          >
-            <IonLabel style={{ overflow: "visible" }}>
-              <div
-                style={{
-                  fontSize: "22px",
-                  fontWeight: "550",
-                  paddingBottom: "5px",
-                }}
-              >
-                Uszkodzenie diety
-              </div>
-              <div
-                style={{
-                  fontSize: "15px",
-                  opacity: "0.7",
-                }}
-              >
-                Dodano <span>09 listopad 2021</span>
-              </div>
-            </IonLabel>
-          </IonItem>
-        </div>
+              <IonLabel style={{ whiteSpace: "normal", textOverflow: "unset" }}>
+                <div
+                  style={{
+                    fontSize: "19px",
+                    fontWeight: "550",
+                  }}
+                >
+                  <IonRow>
+                    <IonCol>{e.issueTypeName}</IonCol>
+                  </IonRow>
+                </div>
+                <div
+                  style={{
+                    fontSize: "15px",
+                    opacity: "0.7",
+                  }}
+                >
+                  <IonRow className="ion-justify-content-between">
+                    <IonCol size="auto">
+                      Dodano <span>{e.created}</span>
+                    </IonCol>
+                    <IonCol size="auto">
+                      {e.receiverName ? "Odczytano" : "Przesłano"}
+                    </IonCol>
+                  </IonRow>
+                </div>
+              </IonLabel>
+
+              {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
+            </IonItem>
+          );
+        })}
       </IonList>
       <IonModal
         isOpen={isModalOpen}
@@ -870,7 +901,10 @@ const Notifications: React.FC = () => {
       </IonModal>
       <IonModal
         isOpen={isSummaryModalOpen}
-        onWillDismiss={() => setIsSummaryModalOpen(false)}
+        onWillDismiss={() => {
+          setIsSummaryModalOpen(false);
+          setIssueDietResponse(undefined);
+        }}
       >
         <IonHeader>
           <IonToolbar>
@@ -896,11 +930,13 @@ const Notifications: React.FC = () => {
               style={{ textAlign: "center" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                {notificationButtonType == "missing"
+                {issueDietResponse
+                  ? issueDietResponse.issueTypeName
+                  : notificationButtonType == "missing"
                   ? "Brak"
                   : notificationButtonType == "damaged"
                   ? "Uszkodzenie"
-                  : "Error"}
+                  : ""}
               </div>
             </IonLabel>
           </IonItem>
@@ -914,13 +950,16 @@ const Notifications: React.FC = () => {
               style={{ textAlign: "center" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                {notificationRequest?.addressId ? (
+                {/* {notificationRequest?.addressId ? (
                   AddressList.filter(
                     (e) => e.id == notificationRequest.addressId
                   )[0].value
                 ) : (
                   <></>
-                )}
+                )} */}
+                {issueDietResponse
+                  ? issueDietResponse.address
+                  : notificationRequest?.addressName}
               </div>
             </IonLabel>
           </IonItem>
@@ -933,10 +972,18 @@ const Notifications: React.FC = () => {
               style={{ textAlign: "center" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                {notificationRequest?.addressDietId ? (
-                  AddressDietList.filter(
+                {issueDietResponse ? (
+                  issueDietResponse.addressDiet
+                ) : notificationRequest?.addressDietId ? (
+                  addressDietList.some(
                     (e) => e.id == notificationRequest.addressDietId
-                  )[0].value
+                  ) ? (
+                    addressDietList.filter(
+                      (e) => e.id == notificationRequest.addressDietId
+                    )[0].value
+                  ) : (
+                    <></>
+                  )
                 ) : (
                   <></>
                 )}
@@ -965,7 +1012,8 @@ const Notifications: React.FC = () => {
             <></>
           )}
 
-          {damageButtonType == "part" ? (
+          {notificationRequest.addressPackagePartList ||
+          issueDietResponse?.addressPackageParts ? (
             <IonItem>
               <IonLabel style={{ maxWidth: "40%" }} className="wrap">
                 Numery tacek
@@ -975,9 +1023,21 @@ const Notifications: React.FC = () => {
                 style={{ textAlign: "center" }}
               >
                 <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                  {notificationRequest.addressPackagePartList?.map((e) => {
-                    return e + ", ";
-                  })}
+                  {issueDietResponse
+                    ? issueDietResponse.addressPackageParts?.map((e) => {
+                        return dietPartsList
+                          .filter((j) => j.id == e)
+                          .map((k) => {
+                            return k.value + " ";
+                          });
+                      })
+                    : notificationRequest.addressPackagePartList?.map((e) => {
+                        return dietPartsList
+                          .filter((j) => j.id == e)
+                          .map((k) => {
+                            return k.value + " ";
+                          });
+                      })}
                 </div>
               </IonLabel>
             </IonItem>
@@ -985,7 +1045,7 @@ const Notifications: React.FC = () => {
             <></>
           )}
 
-          <IonItem style={{}}>
+          {/* <IonItem style={{}}>
             <IonLabel style={{ maxWidth: "40%" }} className="wrap">
               Działanie
             </IonLabel>
@@ -994,15 +1054,12 @@ const Notifications: React.FC = () => {
               style={{ textAlign: "center" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                {partDamageActionButton == "swap"
-                  ? "Wymiana"
-                  : partDamageActionButton == "info"
-                  ? "Niemożliwość wymiany"
-                  : ""}
+                {}
               </div>
             </IonLabel>
-          </IonItem>
-          {partDamageActionButton == "swap" ? (
+          </IonItem> */}
+          {notificationRequest.replacedPackageDietName ||
+          issueDietResponse?.replacedDiet ? (
             <div style={{ marginTop: "25px" }}>
               <span>Wymieniasz na:</span>
               <IonItem style={{ marginTop: "10px" }}>
@@ -1011,26 +1068,40 @@ const Notifications: React.FC = () => {
                 </IonLabel>
                 <IonLabel className="wrap" style={{ textAlign: "center" }}>
                   <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                    {notificationRequest?.replacedPackageDietId ? (
-                      AddressDietList.filter(
-                        (e) => e.id == notificationRequest.replacedPackageDietId
-                      )[0].value
-                    ) : (
-                      <></>
-                    )}
+                    {issueDietResponse
+                      ? issueDietResponse?.replacedDiet
+                      : notificationRequest.replacedPackageDietName}
                   </div>
                 </IonLabel>
               </IonItem>
-              {replacedTypeButton == "part" ? (
+              {notificationRequest.replacedPackagePartList ||
+              issueDietResponse?.replacedPackageParts ? (
                 <IonItem style={{}}>
                   <IonLabel style={{ maxWidth: "40%" }} className="wrap">
-                    Tacki
+                    Numery tacek
                   </IonLabel>
                   <IonLabel className="wrap" style={{ textAlign: "center" }}>
                     <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                      {notificationRequest.replacedPackagePartList?.map((e) => {
+                      {issueDietResponse
+                        ? issueDietResponse.replacedPackageParts?.map((e) => {
+                            return dietPartsList
+                              .filter((j) => j.id == e)
+                              .map((k) => {
+                                return k.value + " ";
+                              });
+                          })
+                        : notificationRequest.replacedPackagePartList?.map(
+                            (e) => {
+                              return dietPartsList
+                                .filter((j) => j.id == e)
+                                .map((k) => {
+                                  return k.value + " ";
+                                });
+                            }
+                          )}
+                      {/* {notificationRequest.replacedPackagePartList?.map((e) => {
                         return e + ", ";
-                      })}
+                      })} */}
                     </div>
                   </IonLabel>
                 </IonItem>
@@ -1058,7 +1129,11 @@ const Notifications: React.FC = () => {
             </IonLabel>
             <IonLabel className="wrap" style={{ textAlign: "center" }}>
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                {textareaValue ? textareaValue : "brak"}
+                {issueDietResponse
+                  ? issueDietResponse.note
+                  : textareaValue
+                  ? textareaValue
+                  : "brak"}
               </div>
             </IonLabel>
           </IonItem>
@@ -1089,7 +1164,34 @@ const Notifications: React.FC = () => {
                 fill={areInformationsConfirmed ? "solid" : "outline"}
                 color={areInformationsConfirmed ? "tertiary" : "medium"}
                 disabled={!areInformationsConfirmed}
-                onClick={() => {}}
+                onClick={async () => {
+                  await presentLoading("Wysyłanie zgłoszenia...");
+
+                  const requestData = {
+                    ...notificationRequest,
+                    addressPackageIssue: notificationButtonType,
+                    addressPackageDietType: damageButtonType,
+                    note: textareaValue,
+                  };
+
+                  api
+                    .post("IssueDiet", { ...requestData })
+                    .then(async (response) => {
+                      DismissPage();
+
+                      setIsSummaryModalOpen(false);
+
+                      api.get("issueDiet").then((e) => {
+                        const data = e.data as NotificationResponse[];
+                        setIssueDietResponseList(data);
+                      });
+
+                      await dismissLoading();
+                    })
+                    .catch(async () => {
+                      await dismissLoading();
+                    });
+                }}
               >
                 Wyślij
               </IonButton>
@@ -1101,18 +1203,34 @@ const Notifications: React.FC = () => {
       </IonModal>
       <IonModal isOpen={isNotificationModalOpen} onWillDismiss={canDismiss}>
         <IonHeader>
-          <IonToolbar>
+          <IonToolbar
+            style={{
+              padding: "0 10px",
+            }}
+          >
+            <IonButtons slot="start">
+              <IonButton
+                color={"primary"}
+                fill={"solid"}
+                onClick={() => {
+                  DismissPage();
+                }}
+              >
+                Resetuj dane
+              </IonButton>
+            </IonButtons>
             <IonButtons slot="end">
               <IonButton onClick={canDismiss}>Wyjdź</IonButton>
             </IonButtons>
           </IonToolbar>
         </IonHeader>
-        <IonContent className="ion-padding">
+        <IonContent key={resetKey.toString()} className="ion-padding">
           <div style={{ textAlign: "center", marginBottom: "10px" }}>
             <span style={{ letterSpacing: "1px" }}>TYP ZGŁOSZENIA</span>
             <IonRow>
               <IonCol size="6">
                 <IonButton
+                  disabled={!!missingActionButton || !!damageButtonType}
                   fill={
                     notificationButtonType == "missing" ? "solid" : "outline"
                   }
@@ -1127,6 +1245,7 @@ const Notifications: React.FC = () => {
               </IonCol>
               <IonCol size="6">
                 <IonButton
+                  disabled={!!missingActionButton || !!damageButtonType}
                   fill={
                     notificationButtonType == "damaged" ? "solid" : "outline"
                   }
@@ -1143,8 +1262,8 @@ const Notifications: React.FC = () => {
           </div>
 
           <div style={{ marginBottom: "20px" }}>
-            <NotificationSelect
-              disabled={!notificationButtonType}
+            {/* <NotificationSelect
+              disabled={!notificationButtonType || (!!missingActionButton || !!damageButtonType)}
               placeholder="Adres"
               data={AddressList}
               onChange={(val: string) => {
@@ -1153,13 +1272,43 @@ const Notifications: React.FC = () => {
                   addressId: Number.parseInt(val),
                 });
               }}
+            /> */}
+            <AddressAutocomplete
+              disabled={
+                !notificationButtonType ||
+                !!missingActionButton ||
+                !!damageButtonType
+              }
+              onChange={(val) => {
+                if (val) {
+                  setNotificationRequest({
+                    ...notificationRequest,
+                    addressId: val?.id,
+                    addressName: val?.value,
+                  });
+
+                  setAddressDietList(val.packages);
+                } else {
+                  setNotificationRequest({
+                    ...notificationRequest,
+                    addressId: undefined,
+                    addressName: undefined,
+                  });
+
+                  setAddressDietList([]);
+                }
+              }}
             />
           </div>
           <div style={{ marginBottom: "20px" }}>
             <NotificationSelect
-              disabled={!notificationRequest?.addressId}
+              disabled={
+                !notificationRequest?.addressId ||
+                !!missingActionButton ||
+                !!damageButtonType
+              }
               placeholder="Dieta"
-              data={AddressDietList}
+              data={addressDietList}
               onChange={(val: string) => {
                 setNotificationRequest({
                   ...notificationRequest,
@@ -1173,14 +1322,219 @@ const Notifications: React.FC = () => {
 
           {partDamageFunction()}
 
-          {notificationRequest.replacedPackageDietId ||
+          {notificationRequest.replacedPackageDietName ||
           notificationRequest.addressPackagePartList ? (
             <PartSelectFunction />
           ) : (
             <></>
           )}
 
-          {PartSelectInfoFunction()}
+          <div>
+            {missingActionButton == "swap" ||
+            wholeDamageActionButton == "swap" ||
+            partDamageActionButton == "swap" ? (
+              <div>
+                <div style={{ textAlign: "center", marginBottom: "10px" }}>
+                  <span style={{ letterSpacing: "1px" }}>
+                    NA CO WYMIENIASZ?
+                  </span>
+                  <IonRow>
+                    <IonCol size="6">
+                      <IonButton
+                        disabled={!!notificationRequest.replacedPackageDietName}
+                        fill={
+                          replacedTypeButton == "whole" ? "solid" : "outline"
+                        }
+                        className="choose-type-button"
+                        color={replacedTypeButton == "whole" ? "" : "medium"}
+                        onClick={() => {
+                          setReplacedTypeButton("whole");
+                        }}
+                      >
+                        cała dieta
+                      </IonButton>
+                    </IonCol>
+                    <IonCol size="6">
+                      <IonButton
+                        disabled={!!notificationRequest.replacedPackageDietName}
+                        fill={
+                          replacedTypeButton == "part" ? "solid" : "outline"
+                        }
+                        className="choose-type-button"
+                        color={replacedTypeButton == "part" ? "" : "medium"}
+                        onClick={() => {
+                          setReplacedTypeButton("part");
+                        }}
+                      >
+                        tacki
+                      </IonButton>
+                    </IonCol>
+                  </IonRow>
+                </div>
+                {replacedTypeButton ? (
+                  <>
+                    <div style={{ textAlign: "center", marginBottom: "10px" }}>
+                      {/* select ze wszystkimi dietami */}
+                      {/* <NotificationSelect
+                    placeholder="Dieta"
+                    data={AddressDietList}
+                    onChange={(val: string) => {
+                      setNotificationRequest({
+                        ...notificationRequest,
+                        replacedPackageDietName: val,
+                      });
+                    }}
+                  /> */}
+                      <DietsAutocomplete
+                        onChange={(val) => {
+                          setNotificationRequest({
+                            ...notificationRequest,
+                            replacedPackageDietName: val?.value,
+                          });
+                        }}
+                      />
+                    </div>
+                    {replacedTypeButton == "part" ? (
+                      <div
+                        style={{ textAlign: "center", marginBottom: "10px" }}
+                      >
+                        <NotificationSelect
+                          multiple
+                          disabled={
+                            !notificationRequest?.replacedPackageDietName
+                          }
+                          data={dietPartsList}
+                          placeholder="Numery tacek"
+                          onChange={(val: string[]) => {
+                            setNotificationRequest({
+                              ...notificationRequest,
+                              replacedPackagePartList:
+                                val.length > 0 ? val.map(Number) : undefined,
+                            });
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <></>
+                    )}
+                  </>
+                ) : (
+                  <></>
+                )}
+
+                {/* {damageButtonType == "part" && replacedTypeButton == "part" ?(
+              <div style={{ textAlign: "center", marginBottom: "10px" }}>
+                <NotificationSelect
+                  multiple
+                  disabled={!notificationRequest?.replacedPackageDietId}
+                  data={DietParts}
+                  placeholder="Numery tacekk"
+                  onChange={(val: string[]) => {
+                    setNotificationRequest({
+                      ...notificationRequest,
+                      replacedPackagePartList: val,
+                    });
+                  }}
+                />
+              </div>
+            ) : (
+              <></>
+            )} */}
+                {replacedTypeButton == "whole" ||
+                notificationRequest.replacedPackagePartList ? (
+                  <div style={{ textAlign: "center" }}>
+                    <div
+                      style={{
+                        textAlign: "center",
+                        display: "inline-flex",
+                        verticalAlign: "top",
+                      }}
+                    >
+                      {" "}
+                      Czy chcesz dołączyć informację?
+                    </div>
+                    <IonToggle
+                      onIonChange={(e) => {
+                        setIsInformationChecked(e.detail.checked);
+                        setTextareaValue("");
+                      }}
+                      checked={isInformationChecked}
+                      style={{ margin: "auto", paddingTop: "4px" }}
+                    ></IonToggle>
+                    {isInformationChecked ? (
+                      <IonTextarea
+                        onIonChange={(e) => {
+                          if (e.detail.value) {
+                            setTextareaValue(e.detail.value);
+                          } else {
+                            setTextareaValue("");
+                          }
+                        }}
+                        value={textareaValue}
+                        className="damaged-textarea"
+                        placeholder="Opisz sytuację"
+                      ></IonTextarea>
+                    ) : (
+                      <></>
+                    )}
+                  </div>
+                ) : (
+                  <></>
+                )}
+              </div>
+            ) : (missingActionButton == "info" ||
+                wholeDamageActionButton == "info" ||
+                partDamageActionButton == "info") &&
+              notificationButtonType ? (
+              <div style={{ textAlign: "center" }}>
+                <span style={{ letterSpacing: "1px" }}>OPISZ SYTUACJĘ:</span>
+
+                <IonTextarea
+                  onIonChange={(e) => {
+                    if (e.detail.value) {
+                      setTextareaValue(e.detail.value);
+                    } else {
+                      setTextareaValue("");
+                    }
+                  }}
+                  value={textareaValue}
+                  className="damaged-textarea"
+                  placeholder="Opisz sytuację"
+                ></IonTextarea>
+              </div>
+            ) : (
+              <></>
+            )}
+          </div>
+
+          {missingActionButton ||
+          wholeDamageActionButton ||
+          partDamageActionButton ? (
+            <div style={{ textAlign: "center" }}>
+              <IonButton
+                style={{ marginTop: "10px" }}
+                disabled={
+                  !(
+                    (replacedTypeButton == "whole" &&
+                      notificationRequest.replacedPackageDietName) ||
+                    (replacedTypeButton == "part" &&
+                      notificationRequest.replacedPackagePartList) ||
+                    (replacedTypeButton == "part" && textareaValue) ||
+                    (partDamageActionButton == "info" && textareaValue) ||
+                    (missingActionButton == "info" && textareaValue) ||
+                    (wholeDamageActionButton == "info" && textareaValue)
+                  )
+                }
+                onClick={() => {
+                  setIsSummaryModalOpen(true);
+                }}
+              >
+                Potwierdź
+              </IonButton>
+            </div>
+          ) : (
+            <></>
+          )}
         </IonContent>
       </IonModal>
     </IonPage>

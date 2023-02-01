@@ -1,5 +1,5 @@
 export const AddressList = [
-  { id: 1, value: "42-500 Będzin;Jesionowa 17" },
+  { id: 1, value: "Jesionowa 17" },
   { id: 2, value: "Brzozowa 17" },
   { id: 3, value: "Grunwaldzka 17" },
   { id: 4, value: "Jesionowa 17" },

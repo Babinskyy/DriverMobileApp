@@ -65,7 +65,7 @@ const Startup: React.FC = () => {
 
       api.get("version", {
         params: {
-          Version: "v20112022"
+          Version: "v30012023"
         }
       }).then((e) => {
 

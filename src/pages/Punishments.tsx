@@ -117,12 +117,38 @@ import {
 import { BackgroundMode } from "@ionic-native/background-mode";
 
 import { v4 as uuidv4 } from "uuid";
+import { NumberToMoneyString } from "./Salary";
+
+type PunishmentResponse = {
+  id: number;
+  title: string;
+  created: string;
+  punishmentCost: number;
+  routeAddressPostcode: string;
+  routeAddressCity: string;
+  routeAddressStreet: string;
+  routeAddressHouseNumber: string;
+  driverName: string;
+  photo: string;
+  description: string;
+};
 
 const Punishments: React.FC = () => {
+  const [punishments, setPunishments] = useState<PunishmentResponse[]>([]);
+
+  useIonViewWillEnter(() => {
+    api.get("punishments").then((e) => {
+      const data = e.data as PunishmentResponse[];
+
+      setPunishments(data);
+    });
+  });
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalData, setModalData] = useState<PunishmentResponse>();
 
   return (
-    <IonPage className="list-container">
+    <IonPage className="salary-list-container">
       <IonHeader collapse="fade" translucent={isPlatform("mobile")} mode={"md"}>
         <IonToolbar>
           <IonButtons slot="start">
@@ -139,17 +165,15 @@ const Punishments: React.FC = () => {
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton>
           </IonButtons>
-          <div style={{width: "200px"}}>
-          {/* <IonSelect value={"dasdasd"} interface="popover" placeholder="Wybierz miesiąc">
+          <div style={{ width: "200px" }}>
+            {/* <IonSelect value={"dasdasd"} interface="popover" placeholder="Wybierz miesiąc">
           <IonSelectOption defaultChecked value="dasdasd">Ostatnie 4 miesiące</IonSelectOption>
           <IonSelectOption value="apples">Styczeń</IonSelectOption>
           <IonSelectOption value="oranges">Luteń</IonSelectOption>
           <IonSelectOption value="bananas">Marzeń</IonSelectOption>
           <IonSelectOption value="asdasd">Październik</IonSelectOption>
         </IonSelect> */}
-        </div>
-        
-          
+          </div>
         </IonToolbar>
       </IonHeader>
       {/* <IonItem style={{}}>
@@ -161,38 +185,58 @@ const Punishments: React.FC = () => {
         </IonSelect></IonLabel>
       </IonItem> */}
       <IonList className="punishment-list">
-        
+        {punishments.map((e) => {
+          return (
         <IonItem
-          className="punish-item"
+            style={{
+              marginTop: "15px"
+            }}
+          className="salary-item"
           onClick={() => {
             setIsModalOpen(true);
+            setModalData(e);
           }}
         >
-          <IonLabel>
-            <div
+          <IonLabel style={{overflow: "visible"}}>
+            <IonRow>
+              <IonCol size="12">
+              <div
               style={{
-                fontSize: "24px",
+                fontSize: "22px",
                 fontWeight: "550",
-                paddingBottom: "5px",
               }}
             >
-              Niedowóz
+              {e.title}
             </div>
-            <div style={{ opacity: "0.7" }}>24.11.2021</div>
-          </IonLabel>
-          <IonLabel>
-            <div
+              </IonCol>
+            </IonRow>
+            <IonRow className="ion-justify-content-between">
+              <IonCol size="auto">
+              <div style={{
+                lineHeight: "38px",
+                fontSize: "15px",
+                opacity: "0.7"
+              }}>Dodano <span>{e.created}</span></div>
+              </IonCol>
+              <IonCol size="auto">
+              <div
               style={{
                 textAlign: "right",
                 fontSize: "25px",
+                fontWeight: "700",
+                color: "green",
               }}
             >
-              -500
+              {NumberToMoneyString(e.punishmentCost)}
             </div>
+              </IonCol>
+            </IonRow>
+            
+            
           </IonLabel>
-          {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
         </IonItem>
-        
+          );
+        })}
       </IonList>
       <IonModal
         isOpen={isModalOpen}
@@ -200,42 +244,68 @@ const Punishments: React.FC = () => {
       >
         <IonHeader>
           <IonToolbar>
-            
             <IonButtons slot="end">
               <IonButton onClick={() => setIsModalOpen(false)}>Wyjdź</IonButton>
             </IonButtons>
           </IonToolbar>
         </IonHeader>
         <IonContent className="ion-padding">
-        <IonItem>
+          <IonItem>
             <IonLabel style={{ maxWidth: "30%" }}>Uwaga</IonLabel>
             <IonLabel
               className="wrap capitalize"
               style={{ textAlign: "center" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                Niedowóz
+                {modalData?.title}
               </div>
-              <div style={{ fontWeight: 300 }}>26 maj, 2022 22:59</div>
-
-              
+              <div style={{ fontWeight: 300 }}>{modalData?.created}</div>
             </IonLabel>
           </IonItem>
-        
-          <IonItem>
+
+          {
+            modalData?.routeAddressStreet && modalData?.routeAddressHouseNumber && modalData?.routeAddressPostcode && modalData?.routeAddressCity
+            ?
+<IonItem>
             <IonLabel style={{ maxWidth: "30%" }}>Adres</IonLabel>
             <IonLabel
               className="wrap capitalize"
               style={{ textAlign: "center" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                Jesionowa 17
+                {modalData?.routeAddressStreet}{" "}
+                {modalData?.routeAddressHouseNumber}
               </div>
 
-              <div style={{ fontWeight: 300 }}>00-250 Górnicza Dolina</div>
+              <div style={{ fontWeight: 300 }}>
+                {modalData?.routeAddressPostcode} {modalData?.routeAddressCity}
+              </div>
             </IonLabel>
           </IonItem>
-          <IonItem>
+          :
+          <></>
+          }
+
+          {
+            modalData?.driverName
+            ?
+<IonItem>
+            <IonLabel style={{ maxWidth: "30%" }}>Numer trasy</IonLabel>
+            <IonLabel
+              className="wrap capitalize"
+              style={{ textAlign: "center" }}
+            >
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>
+                pojazd {modalData?.driverName}
+              </div>
+            </IonLabel>
+          </IonItem>
+          :
+          <></>
+          }
+
+          
+          {/* <IonItem>
             <IonLabel style={{ maxWidth: "30%" }}>Tytuł</IonLabel>
             <IonLabel
               className="wrap capitalize"
@@ -247,50 +317,47 @@ const Punishments: React.FC = () => {
 
               
             </IonLabel>
-          </IonItem>
-          <IonItem>
-            <IonLabel style={{ maxWidth: "30%" }}>Numer trasy</IonLabel>
-            <IonLabel
-              className="wrap capitalize"
-              style={{ textAlign: "center" }}
-            >
-              <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                pojazd 125
-              </div>
-            </IonLabel>
-          </IonItem>
+          </IonItem> */}
+          
           <IonItem>
             <IonLabel style={{ maxWidth: "30%" }}>Zdjęcie</IonLabel>
             <IonLabel
               className="wrap capitalize"
               style={{ textAlign: "center" }}
             >
-              <div style={{ fontWeight: 700, fontSize: "20px" }}>Przesłane</div>
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>
+                {modalData?.photo ? "Przesłano" : "Brak"}
+              </div>
             </IonLabel>
           </IonItem>
           <IonItem>
             <IonLabel style={{ maxWidth: "30%" }}>Kwota</IonLabel>
-            <IonLabel
-              className="wrap"
-              style={{ textAlign: "center" }}
-            >
-              <div style={{ fontWeight: 700, fontSize: "20px" }}>500,00 zł</div>
+            <IonLabel className="wrap" style={{ textAlign: "center" }}>
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>
+                {NumberToMoneyString(modalData?.punishmentCost)}
+              </div>
             </IonLabel>
           </IonItem>
           <IonItem
-          lines="none"
-          style={{
-            marginBottom: "35px"
-          }}>
-            <IonLabel className="wrap" style={{
-              textAlign: "center"
-            }}> Niedowóz zupa 1 Xl uszkodzone Niedowóz zupa 1 Xl uszkodzone Niedowóz zupa 1 Xl uszkodzone</IonLabel>
+            lines="none"
+            style={{
+              marginBottom: "35px",
+            }}
+          >
+            <IonLabel
+              className="wrap"
+              style={{
+                textAlign: "center",
+              }}
+            >
+              {modalData?.description}
+            </IonLabel>
           </IonItem>
           {/* <IonItem lines="none" style={{marginTop: "30px", marginBottom: "30px"}}>
               Niedowóz zupa 1 Xl uszkodzone
               
             </IonItem> */}
-          <IonImg src="https://broccolihot.z16.web.core.windows.net/packages/fc4ce2a5-f87e-4b6d-886c-fc3bdb83fcbe.jpg" />
+          {modalData?.photo ? <IonImg src={modalData.photo} /> : <></>}
         </IonContent>
       </IonModal>
     </IonPage>

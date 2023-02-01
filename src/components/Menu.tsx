@@ -5,15 +5,21 @@ import {
   IonHeader,
   IonIcon,
   IonImg,
+  IonInput,
   IonItem,
   IonLabel,
   IonList,
   IonMenu,
+  IonModal,
   IonRange,
+  IonSelect,
+  IonSelectOption,
   IonText,
   IonTitle,
   IonToggle,
   IonToolbar,
+  NavContext,
+  useIonAlert,
   useIonLoading,
 } from "@ionic/react";
 import {
@@ -31,7 +37,7 @@ import {
   newspaperOutline,
   readerOutline,
 } from "ionicons/icons";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router";
 
 import auth from "./../services/auth.service";
@@ -54,11 +60,16 @@ import {
   useGlobalState,
   GlobalStateInterface,
 } from "./../GlobalStateProvider";
+import { User } from "../services/userProps";
+
+import { PushNotifications } from "@capacitor/push-notifications";
+
 
 const Menu: React.FC = () => {
   const { setState, state } = useGlobalState();
 
   const [presentLoading, dismissLoading] = useIonLoading();
+  const [present] = useIonAlert();
 
   const history = useHistory();
 
@@ -74,6 +85,23 @@ const Menu: React.FC = () => {
 
   const [accountName, setAccountName] = useState("");
 
+  const [driverUsername, setDriverUsername] = useState<string>("");
+  const [driverPassword, setDriverPassword] = useState<string>("");
+
+  const [drivers, setDrivers] = useState<string[]>([]);
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (drivers.length <= 0) {
+      api.get("autocomplete/drivers-visible").then((e) => {
+        const data = e.data;
+
+        setDrivers(data);
+      });
+    }
+  }, []);
+
   useEffect(() => {
     setTimeout(() => {
       if (document.body.classList.contains("dark")) {
@@ -81,6 +109,65 @@ const Menu: React.FC = () => {
       }
     }, 500);
   }, []);
+
+  const { navigate } = useContext(NavContext);
+
+  const LogoutData = async () => {
+    const { value } = await Preferences.get({ key: "OfflineRequests" });
+            await Preferences.clear();
+            if (value) {
+              await Preferences.set({
+                key: "OfflineRequests",
+                value: value,
+              });
+            }
+  }
+
+  const Logout = async () => {
+    await LogoutData();
+
+            auth.logout().finally(() => {
+              setTimeout(() => {
+                history.replace("/login");
+              }, 1);
+
+              if (menuRef.current) {
+                menuRef.current.setOpen(false);
+              }
+            });
+  }
+
+  const onIonWillOpen = () => {
+    api.get("accounts/name").then((response) => {
+
+      const responseData = response.data as string;
+
+      if(accountName != responseData)
+      {
+        setAccountName(responseData);
+      }
+
+    })
+
+    api.get("drivers/name").then((response) => {
+
+      const responseData = response.data as string;
+
+      if(username != responseData)
+      {
+        setUsername(responseData);
+      }
+
+    })
+
+    setUrl(history.location.pathname);
+
+    api.get("autocomplete/drivers-visible").then((e) => {
+      const data = e.data;
+
+      setDrivers(data);
+    });
+  }
 
   return (
     <IonMenu
@@ -93,32 +180,7 @@ const Menu: React.FC = () => {
       // menuId="first"
       // contentId="main"
       type="overlay"
-      onIonWillOpen={() => {
-
-        api.get("accounts/name").then((response) => {
-
-          const responseData = response.data as string;
-  
-          if(accountName != responseData)
-          {
-            setAccountName(responseData);
-          }
-  
-        })
-
-        api.get("drivers/name").then((response) => {
-
-          const responseData = response.data as string;
-  
-          if(username != responseData)
-          {
-            setUsername(responseData);
-          }
-  
-        })
-
-        setUrl(history.location.pathname);
-      }}
+      onIonWillOpen={() => onIonWillOpen()}
       onIonWillClose={() => {
         setTimeout(() => {
           setUrl(history.location.pathname);
@@ -135,8 +197,119 @@ const Menu: React.FC = () => {
         }}><strong>{accountName}</strong></IonTitle>
         </IonItem>
         <IonItem lines={"none"}>
-        <IonTitle>Pojazd <strong>{username}</strong></IonTitle>
+        <IonTitle>Pojazd <strong>{username}</strong></IonTitle><IonButton onClick={() => setIsModalVisible(true)} >Zmień pojazd</IonButton>
         </IonItem>
+        
+
+        <IonModal style={{
+          "--width": "85%",
+          "--height": "auto"
+        }} isOpen={isModalVisible} onDidDismiss={() => setIsModalVisible(false)}>
+        <div style={{
+          margin: "15px 20px"
+        }}>
+                    <IonLabel className="header">Pojazd</IonLabel>
+                    {/* <IonItem style={{ marginBottom: "5px" }}>
+            <IonInput
+              value={username}
+              placeholder="Nazwa trasy"
+              onIonChange={(e) => setUsername(e.detail.value!)}
+            ></IonInput>
+          </IonItem> */}
+                    <IonList style={{ marginBottom: "10px" }}>
+                      <IonItem>
+                        <IonSelect
+                          onIonChange={(ev) =>
+                            setDriverUsername(ev.detail.value)
+                          }
+                          cancelText="Anuluj"
+                          okText="Wybierz"
+                          placeholder="Nazwa trasy"
+                        >
+                          {drivers.map((e) => {
+                            return (
+                              <IonSelectOption key={e} value={e}>
+                                {e.toUpperCase()}
+                              </IonSelectOption>
+                            );
+                          })}
+                        </IonSelect>
+                      </IonItem>
+                    </IonList>
+
+                    <IonItem style={{}}>
+                      <IonInput
+                        value={driverPassword}
+                        placeholder="Hasło"
+                        onIonChange={(e) => setDriverPassword(e.detail.value!)}
+                        type="password"
+                      ></IonInput>
+                    </IonItem>
+                    <IonButton
+                      onClick={async () => {
+                        await presentLoading({
+                          spinner: "crescent",
+                          message: "Logowanie...",
+                          duration: 10000,
+                        });
+
+                        // navigate("/Home", "forward", "replace")
+
+                        await auth
+                          .login(
+                            "",
+                            "",
+                            driverUsername,
+                            driverPassword
+                          )
+                          .then(async (response) => {
+                            console.log(auth);
+
+                            const data = response as User;
+
+                            await dismissLoading();
+
+                            if (data.jwtToken) {
+
+                              try {
+                                await PushNotifications.register();
+                              } catch (error) {}
+
+                              setIsModalVisible(false);
+
+                              onIonWillOpen();
+
+                              await Preferences.remove({
+                                key: "WarehousePackages"
+                              });
+
+                              navigate("/", "forward", "replace");
+                              window.location.reload();
+                            } else {
+                              present("Niepoprawne dane logowanie", [
+                                { text: "Zamknij" },
+                              ]);
+                            }
+
+
+
+                          })
+                          .catch(async (exception) => {
+                            await dismissLoading();
+                            present("Niepoprawne dane logowanie", [
+                              { text: "Zamknij" },
+                            ]);
+                          });
+                      }}
+                      expand="block"
+                      color="primary"
+                      style={{ marginTop: "15px" }}
+                    >
+                      ZALOGUJ
+                    </IonButton>
+                  </div>
+        </IonModal>
+
         <IonItem lines={"none"}>
 
         <IonTitle style={{
@@ -146,7 +319,7 @@ const Menu: React.FC = () => {
           textAlign: "right",
           "--min-height": "30px",
           letterSpacing: "1px"
-        }}>v20112022</IonTitle>
+        }}>v30012023</IonTitle>
           </IonItem>
         
       </IonHeader>
@@ -369,24 +542,7 @@ const Menu: React.FC = () => {
           className="menu-item"
           color="danger"
           onClick={async () => {
-            const { value } = await Preferences.get({ key: "OfflineRequests" });
-            await Preferences.clear();
-            if (value) {
-              await Preferences.set({
-                key: "OfflineRequests",
-                value: value,
-              });
-            }
-
-            auth.logout().finally(() => {
-              setTimeout(() => {
-                history.replace("/login");
-              }, 1);
-
-              if (menuRef.current) {
-                menuRef.current.setOpen(false);
-              }
-            });
+            await Logout();
           }}
         >
           <IonLabel
