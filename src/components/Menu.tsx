@@ -46,7 +46,7 @@ import "./Menu.scss";
 
 import brokulImage from "../images/brokul-athlete.png";
 
-import { Preferences } from '@capacitor/preferences';
+import { Preferences } from "@capacitor/preferences";
 
 import { Network } from "@capacitor/network";
 import { CheckOfflineRequests, useRoute } from "../services/Utility";
@@ -63,7 +63,6 @@ import {
 import { User } from "../services/userProps";
 
 import { PushNotifications } from "@capacitor/push-notifications";
-
 
 const Menu: React.FC = () => {
   const { setState, state } = useGlobalState();
@@ -114,51 +113,45 @@ const Menu: React.FC = () => {
 
   const LogoutData = async () => {
     const { value } = await Preferences.get({ key: "OfflineRequests" });
-            await Preferences.clear();
-            if (value) {
-              await Preferences.set({
-                key: "OfflineRequests",
-                value: value,
-              });
-            }
-  }
+    await Preferences.clear();
+    if (value) {
+      await Preferences.set({
+        key: "OfflineRequests",
+        value: value,
+      });
+    }
+  };
 
   const Logout = async () => {
     await LogoutData();
 
-            auth.logout().finally(() => {
-              setTimeout(() => {
-                history.replace("/login");
-              }, 1);
+    auth.logout().finally(() => {
+      setTimeout(() => {
+        history.replace("/login");
+      }, 1);
 
-              if (menuRef.current) {
-                menuRef.current.setOpen(false);
-              }
-            });
-  }
+      if (menuRef.current) {
+        menuRef.current.setOpen(false);
+      }
+    });
+  };
 
   const onIonWillOpen = () => {
     api.get("accounts/name").then((response) => {
-
       const responseData = response.data as string;
 
-      if(accountName != responseData)
-      {
+      if (accountName != responseData) {
         setAccountName(responseData);
       }
-
-    })
+    });
 
     api.get("drivers/name").then((response) => {
-
       const responseData = response.data as string;
 
-      if(username != responseData)
-      {
+      if (username != responseData) {
         setUsername(responseData);
       }
-
-    })
+    });
 
     setUrl(history.location.pathname);
 
@@ -167,7 +160,7 @@ const Menu: React.FC = () => {
 
       setDrivers(data);
     });
-  }
+  };
 
   return (
     <IonMenu
@@ -191,137 +184,142 @@ const Menu: React.FC = () => {
         <IonImg src={brokulImage} className="image" />
       </IonHeader> */}
       <IonHeader>
-      <IonItem lines={"none"}>
-        <IonTitle style={{
-          marginTop: "15px",
-        }}><strong>{accountName}</strong></IonTitle>
+        <IonItem lines={"none"}>
+          <IonTitle
+            style={{
+              marginTop: "15px",
+            }}
+          >
+            <strong>{accountName}</strong>
+          </IonTitle>
         </IonItem>
         <IonItem lines={"none"}>
-        <IonTitle>Pojazd <strong>{username}</strong></IonTitle><IonButton onClick={() => setIsModalVisible(true)} >Zmień pojazd</IonButton>
+          <IonTitle>
+            Pojazd <strong>{username}</strong>
+          </IonTitle>
+          <IonButton onClick={() => setIsModalVisible(true)}>
+            Zmień pojazd
+          </IonButton>
         </IonItem>
-        
 
-        <IonModal style={{
-          "--width": "85%",
-          "--height": "auto"
-        }} isOpen={isModalVisible} onDidDismiss={() => setIsModalVisible(false)}>
-        <div style={{
-          margin: "15px 20px"
-        }}>
-                    <IonLabel className="header">Pojazd</IonLabel>
-                    {/* <IonItem style={{ marginBottom: "5px" }}>
+        <IonModal
+          style={{
+            "--width": "85%",
+            "--height": "auto",
+          }}
+          isOpen={isModalVisible}
+          onDidDismiss={() => setIsModalVisible(false)}
+        >
+          <div
+            style={{
+              margin: "15px 20px",
+            }}
+          >
+            <IonLabel className="header">Pojazd</IonLabel>
+            {/* <IonItem style={{ marginBottom: "5px" }}>
             <IonInput
               value={username}
               placeholder="Nazwa trasy"
               onIonChange={(e) => setUsername(e.detail.value!)}
             ></IonInput>
           </IonItem> */}
-                    <IonList style={{ marginBottom: "10px" }}>
-                      <IonItem>
-                        <IonSelect
-                          onIonChange={(ev) =>
-                            setDriverUsername(ev.detail.value)
-                          }
-                          cancelText="Anuluj"
-                          okText="Wybierz"
-                          placeholder="Nazwa trasy"
-                        >
-                          {drivers.map((e) => {
-                            return (
-                              <IonSelectOption key={e} value={e}>
-                                {e.toUpperCase()}
-                              </IonSelectOption>
-                            );
-                          })}
-                        </IonSelect>
-                      </IonItem>
-                    </IonList>
+            <IonList style={{ marginBottom: "10px" }}>
+              <IonItem>
+                <IonSelect
+                  onIonChange={(ev) => setDriverUsername(ev.detail.value)}
+                  cancelText="Anuluj"
+                  okText="Wybierz"
+                  placeholder="Nazwa trasy"
+                >
+                  {drivers.map((e) => {
+                    return (
+                      <IonSelectOption key={e} value={e}>
+                        {e.toUpperCase()}
+                      </IonSelectOption>
+                    );
+                  })}
+                </IonSelect>
+              </IonItem>
+            </IonList>
 
-                    <IonItem style={{}}>
-                      <IonInput
-                        value={driverPassword}
-                        placeholder="Hasło"
-                        onIonChange={(e) => setDriverPassword(e.detail.value!)}
-                        type="password"
-                      ></IonInput>
-                    </IonItem>
-                    <IonButton
-                      onClick={async () => {
-                        await presentLoading({
-                          spinner: "crescent",
-                          message: "Logowanie...",
-                          duration: 10000,
-                        });
+            <IonItem style={{}}>
+              <IonInput
+                value={driverPassword}
+                placeholder="Hasło"
+                onIonChange={(e) => setDriverPassword(e.detail.value!)}
+                type="password"
+              ></IonInput>
+            </IonItem>
+            <IonButton
+              onClick={async () => {
+                await presentLoading({
+                  spinner: "crescent",
+                  message: "Logowanie...",
+                  duration: 10000,
+                });
 
-                        // navigate("/Home", "forward", "replace")
+                // navigate("/Home", "forward", "replace")
 
-                        await auth
-                          .login(
-                            "",
-                            "",
-                            driverUsername,
-                            driverPassword
-                          )
-                          .then(async (response) => {
-                            console.log(auth);
+                await auth
+                  .login("", "", driverUsername, driverPassword)
+                  .then(async (response) => {
+                    console.log(auth);
 
-                            const data = response as User;
+                    const data = response as User;
 
-                            await dismissLoading();
+                    await dismissLoading();
 
-                            if (data.jwtToken) {
+                    if (data.jwtToken) {
+                      try {
+                        await PushNotifications.register();
+                      } catch (error) {}
 
-                              try {
-                                await PushNotifications.register();
-                              } catch (error) {}
+                      setIsModalVisible(false);
 
-                              setIsModalVisible(false);
+                      onIonWillOpen();
 
-                              onIonWillOpen();
+                      await Preferences.remove({
+                        key: "WarehousePackages",
+                      });
 
-                              await Preferences.remove({
-                                key: "WarehousePackages"
-                              });
-
-                              navigate("/", "forward", "replace");
-                              window.location.reload();
-                            } else {
-                              present("Niepoprawne dane logowanie", [
-                                { text: "Zamknij" },
-                              ]);
-                            }
-
-
-
-                          })
-                          .catch(async (exception) => {
-                            await dismissLoading();
-                            present("Niepoprawne dane logowanie", [
-                              { text: "Zamknij" },
-                            ]);
-                          });
-                      }}
-                      expand="block"
-                      color="primary"
-                      style={{ marginTop: "15px" }}
-                    >
-                      ZALOGUJ
-                    </IonButton>
-                  </div>
+                      navigate("/", "forward", "replace");
+                      window.location.reload();
+                    } else {
+                      present("Niepoprawne dane logowanie", [
+                        { text: "Zamknij" },
+                      ]);
+                    }
+                  })
+                  .catch(async (exception) => {
+                    await dismissLoading();
+                    present("Niepoprawne dane logowanie", [
+                      { text: "Zamknij" },
+                    ]);
+                  });
+              }}
+              expand="block"
+              color="primary"
+              style={{ marginTop: "15px" }}
+            >
+              ZALOGUJ
+            </IonButton>
+          </div>
         </IonModal>
 
         <IonItem lines={"none"}>
-
-        <IonTitle style={{
-          fontSize: "11px",
-          fontWeight: 300,
-          marginLeft: "auto",
-          textAlign: "right",
-          "--min-height": "30px",
-          letterSpacing: "1px"
-        }}>v30012023</IonTitle>
-          </IonItem>
-        
+          <IonTitle
+            style={{
+              fontSize: "11px",
+              fontWeight: 300,
+              marginLeft: "auto",
+              textAlign: "right",
+              "--min-height": "30px",
+              letterSpacing: "1px",
+            }}
+          >
+            v30012023
+          </IonTitle>
+        </IonItem>
       </IonHeader>
       <IonContent
         style={{
@@ -365,7 +363,7 @@ const Menu: React.FC = () => {
             <IonLabel>Magazyn</IonLabel>
             <IonIcon slot="start" icon={homeOutline} />
           </IonItem>
-          <IonItem
+          {/* <IonItem
             lines="none"
             color={"/Map" == url ? "primary" : undefined}
             button
@@ -381,7 +379,7 @@ const Menu: React.FC = () => {
           >
             <IonLabel>Mapa</IonLabel>
             <IonIcon slot="start" icon={mapOutline} />
-          </IonItem>
+          </IonItem> */}
 
           <IonItem
             lines="none"
@@ -452,37 +450,35 @@ const Menu: React.FC = () => {
             <IonLabel>Wypłata</IonLabel>
             <IonIcon slot="start" icon={cardOutline} />
           </IonItem>
-          
         </IonList>
       </IonContent>
       <IonFooter style={{ padding: "10px" }}>
-      <IonItem lines="none" className="menu-item">
-            {state.menuFontSize ? (
-              <IonRange
-                onIonChange={(e) => {
-                  if (!isNaN(parseInt(e.detail.value.toString()))) {
-                    setState((prev) => ({
-                      ...prev,
-                      ...{
-                        menuFontSize: e.detail.value as number,
-                      },
-                    }));
+        <IonItem lines="none" className="menu-item">
+          {state.menuFontSize ? (
+            <IonRange
+              onIonChange={(e) => {
+                if (!isNaN(parseInt(e.detail.value.toString()))) {
+                  setState((prev) => ({
+                    ...prev,
+                    ...{
+                      menuFontSize: e.detail.value as number,
+                    },
+                  }));
 
-                    console.log(e.detail.value as number);
-                  }
-                }}
-                min={1}
-                max={4}
-                step={1}
-                value={state.menuFontSize}
-                snaps
-                color="primary"
-              ></IonRange>
-            ) : (
-              <></>
-            )}
-
-          </IonItem>
+                  console.log(e.detail.value as number);
+                }
+              }}
+              min={1}
+              max={4}
+              step={1}
+              value={state.menuFontSize}
+              snaps
+              color="primary"
+            ></IonRange>
+          ) : (
+            <></>
+          )}
+        </IonItem>
         <IonItem lines="none" className="menu-item">
           <IonLabel>Ciemny motyw</IonLabel>
           <IonToggle
