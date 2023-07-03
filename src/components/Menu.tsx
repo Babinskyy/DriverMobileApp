@@ -381,7 +381,7 @@ const Menu: React.FC = () => {
             <IonIcon slot="start" icon={mapOutline} />
           </IonItem> */}
 
-          <IonItem
+          {/* <IonItem
             lines="none"
             color={"/Reorder" == url ? "primary" : undefined}
             button
@@ -397,7 +397,7 @@ const Menu: React.FC = () => {
           >
             <IonLabel>Edycja kolejności</IonLabel>
             <IonIcon slot="start" icon={gridOutline} />
-          </IonItem>
+          </IonItem> */}
           <IonItem
             lines="none"
             color={"/Notifications" == url ? "primary" : undefined}
