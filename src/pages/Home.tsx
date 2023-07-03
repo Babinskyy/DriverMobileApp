@@ -2030,7 +2030,7 @@ const Home: React.FC = () => {
                 slot="end"
                 style={{ marginTop: "0", marginBottom: "0" }}
               >
-                {state.routeEndLength}/{state.routeLength}
+                {/* {state.routeEndLength}/{state.routeLength} */}
               </IonLabel>
             </IonItem>
           )}
@@ -2159,100 +2159,6 @@ const Home: React.FC = () => {
                                     _e.id.toString()
                                   );
                                   await UpdateRoutePackageImage(_e.id, image);
-
-                                  // setChoosedItem(_e);
-
-                                  // const newItem = items.find(
-                                  //   (e) => e.id == choosedItem.id
-                                  // );
-                                  // if (newItem) {
-                                  //   const tempPackageIndex =
-                                  //     newItem.packages.findIndex(
-                                  //       (x) => x.id == _e.id
-                                  //     );
-
-                                  //   newItem.packages[tempPackageIndex].scanned =
-                                  //     true;
-                                  //   newItem.packages[tempPackageIndex].image =
-                                  //     image.webPath;
-
-                                  //   newItem.packagesCompleted =
-                                  //     newItem.packages.every((e) => e.scanned);
-
-                                  //   console.log(newItem);
-
-                                  //   UpdateRouteElement(
-                                  //     undefined,
-                                  //     newItem,
-                                  //     "undelivered",
-                                  //     setItems,
-                                  //     setItemsStatic,
-                                  //     setFooterItem,
-                                  //     footerItem,
-                                  //     true
-                                  //   );
-
-                                  //   setChoosedItem(newItem);
-                                  // }
-
-                                  // presentPhotoLoading({spinner: "crescent", message: "Wysyłanie"});
-                                  // api
-                                  //   .post(
-                                  //     "routes/addresses/packages/" +
-                                  //       _e.id +
-                                  //       "/image",
-                                  //     {
-                                  //       image: image.base64,
-                                  //     }
-                                  //   )
-                                  //   .then((response) => {
-                                  //     console.log(response);
-                                  //   })
-                                  //   .finally(() => {
-                                  //     dismissPhotoLoading();
-                                  //   });
-
-                                  // let tempItems = items;
-                                  // let tempChoosedItem = choosedItem;
-
-                                  // let scannedAddress: RouteProps | undefined =
-                                  //   undefined;
-
-                                  // tempItems.map((x) => {
-                                  //   x.packages.map((_x) => {
-                                  //     if (_x.id == _e.id) {
-                                  //       _x.scanned = true;
-                                  //       scannedAddress = x;
-                                  //     }
-                                  //   });
-                                  // });
-
-                                  // if (scannedAddress) {
-                                  //   const _scannedAddress: RouteProps =
-                                  //     scannedAddress;
-
-                                  //   if (
-                                  //     _scannedAddress.packages.every((x) => {
-                                  //       return x.scanned;
-                                  //     })
-                                  //   ) {
-                                  //     tempItems.map((x) => {
-                                  //       if (x.id == _scannedAddress.id) {
-                                  //         x.packagesCompleted = true;
-                                  //       }
-                                  //     });
-                                  //   }
-                                  // }
-
-                                  // tempChoosedItem.packages.map((x) => {
-                                  //   if (x.id == _e.id) {
-                                  //     x.scanned = true;
-                                  //   }
-                                  // });
-
-                                  // setItems(tempItems);
-                                  // setChoosedItem(undefined);
-                                  // setChoosedItem(tempChoosedItem);
                                 },
                               },
                             ],
