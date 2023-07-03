@@ -203,7 +203,7 @@ const Punishments: React.FC = () => {
                 paddingBottom: "5px",
               }}
             >
-              Niedowóz
+              Uszkodzenie
             </div>
             <div style={{ opacity: "0.7" }}>24.11.2021</div>
           </IonLabel>
@@ -215,6 +215,36 @@ const Punishments: React.FC = () => {
               }}
             >
               -500
+            </div>
+          </IonLabel>
+          {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
+        </IonItem>
+        <IonItem
+          className="punish-item"
+          onClick={() => {
+            setIsModalOpen(true);
+          }}
+        >
+          <IonLabel>
+            <div
+              style={{
+                fontSize: "24px",
+                fontWeight: "550",
+                paddingBottom: "5px",
+              }}
+            >
+              Niedowóz
+            </div>
+            <div style={{ opacity: "0.7" }}>24.11.2021</div>
+          </IonLabel>
+          <IonLabel>
+            <div
+              style={{
+                textAlign: "right",
+                fontSize: "25px",
+              }}
+            >
+              -600
             </div>
           </IonLabel>
           {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
