@@ -139,17 +139,15 @@ const Punishments: React.FC = () => {
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton>
           </IonButtons>
-          <div style={{width: "200px"}}>
-          {/* <IonSelect value={"dasdasd"} interface="popover" placeholder="Wybierz miesiąc">
+          <div style={{ width: "200px" }}>
+            {/* <IonSelect value={"dasdasd"} interface="popover" placeholder="Wybierz miesiąc">
           <IonSelectOption defaultChecked value="dasdasd">Ostatnie 4 miesiące</IonSelectOption>
           <IonSelectOption value="apples">Styczeń</IonSelectOption>
           <IonSelectOption value="oranges">Luteń</IonSelectOption>
           <IonSelectOption value="bananas">Marzeń</IonSelectOption>
           <IonSelectOption value="asdasd">Październik</IonSelectOption>
         </IonSelect> */}
-        </div>
-        
-          
+          </div>
         </IonToolbar>
       </IonHeader>
       {/* <IonItem style={{}}>
@@ -161,7 +159,6 @@ const Punishments: React.FC = () => {
         </IonSelect></IonLabel>
       </IonItem> */}
       <IonList className="punishment-list">
-        
         <IonItem
           className="punish-item"
           onClick={() => {
@@ -192,7 +189,36 @@ const Punishments: React.FC = () => {
           </IonLabel>
           {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
         </IonItem>
-        
+        <IonItem
+          className="punish-item"
+          onClick={() => {
+            setIsModalOpen(true);
+          }}
+        >
+          <IonLabel>
+            <div
+              style={{
+                fontSize: "24px",
+                fontWeight: "550",
+                paddingBottom: "5px",
+              }}
+            >
+              Niedowóz
+            </div>
+            <div style={{ opacity: "0.7" }}>24.11.2021</div>
+          </IonLabel>
+          <IonLabel>
+            <div
+              style={{
+                textAlign: "right",
+                fontSize: "25px",
+              }}
+            >
+              -500
+            </div>
+          </IonLabel>
+          {/* <IonIcon icon={informationCircleOutline} className="item-icon" /> */}
+        </IonItem>
       </IonList>
       <IonModal
         isOpen={isModalOpen}
@@ -200,28 +226,23 @@ const Punishments: React.FC = () => {
       >
         <IonHeader>
           <IonToolbar>
-            
             <IonButtons slot="end">
               <IonButton onClick={() => setIsModalOpen(false)}>Wyjdź</IonButton>
             </IonButtons>
           </IonToolbar>
         </IonHeader>
         <IonContent className="ion-padding">
-        <IonItem>
+          <IonItem>
             <IonLabel style={{ maxWidth: "30%" }}>Uwaga</IonLabel>
             <IonLabel
               className="wrap capitalize"
               style={{ textAlign: "center" }}
             >
-              <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                Niedowóz
-              </div>
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>Niedowóz</div>
               <div style={{ fontWeight: 300 }}>26 maj, 2022 22:59</div>
-
-              
             </IonLabel>
           </IonItem>
-        
+
           <IonItem>
             <IonLabel style={{ maxWidth: "30%" }}>Adres</IonLabel>
             <IonLabel
@@ -241,11 +262,7 @@ const Punishments: React.FC = () => {
               className="wrap capitalize"
               style={{ textAlign: "center" }}
             >
-              <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                Niedowóz
-              </div>
-
-              
+              <div style={{ fontWeight: 700, fontSize: "20px" }}>Niedowóz</div>
             </IonLabel>
           </IonItem>
           <IonItem>
@@ -270,21 +287,26 @@ const Punishments: React.FC = () => {
           </IonItem>
           <IonItem>
             <IonLabel style={{ maxWidth: "30%" }}>Kwota</IonLabel>
-            <IonLabel
-              className="wrap"
-              style={{ textAlign: "center" }}
-            >
+            <IonLabel className="wrap" style={{ textAlign: "center" }}>
               <div style={{ fontWeight: 700, fontSize: "20px" }}>500,00 zł</div>
             </IonLabel>
           </IonItem>
           <IonItem
-          lines="none"
-          style={{
-            marginBottom: "35px"
-          }}>
-            <IonLabel className="wrap" style={{
-              textAlign: "center"
-            }}> Niedowóz zupa 1 Xl uszkodzone Niedowóz zupa 1 Xl uszkodzone Niedowóz zupa 1 Xl uszkodzone</IonLabel>
+            lines="none"
+            style={{
+              marginBottom: "35px",
+            }}
+          >
+            <IonLabel
+              className="wrap"
+              style={{
+                textAlign: "center",
+              }}
+            >
+              {" "}
+              Niedowóz zupa 1 Xl uszkodzone Niedowóz zupa 1 Xl uszkodzone
+              Niedowóz zupa 1 Xl uszkodzone
+            </IonLabel>
           </IonItem>
           {/* <IonItem lines="none" style={{marginTop: "30px", marginBottom: "30px"}}>
               Niedowóz zupa 1 Xl uszkodzone
