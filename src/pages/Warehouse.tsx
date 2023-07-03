@@ -177,23 +177,22 @@ const Warehouse: React.FC = () => {
     CountString: string;
   };
 
-
   type PackageScanBulkRequest = {
     scanned: _PackageScanRequest[];
     unscanned: _PackageScanAllRequest[];
-  }
+  };
 
   type _PackageScanAllRequest = {
     isScanned: boolean;
     name: string;
     routeId: string;
-  }
+  };
 
   type _PackageScanRequest = {
     id: number;
     isScanned: boolean;
     confirmationString: string;
-  }
+  };
 
   const removeWarehousePackagesToSend = async () => {
     await Preferences.remove({
@@ -288,6 +287,100 @@ const Warehouse: React.FC = () => {
   const [isLoaderOpen, setIsLoaderOpen] = useState(false);
   const [loadingText, setLoadingText] = useState<string>("");
 
+  const exampleDietsArray = [
+    {
+      name: "slim-1500",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "wege-1500",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "sport-1500",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "keto-1500",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "keto-2500",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "keto-3500",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "fish-1500",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "fish-2000",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "fish-2500",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "fish-3500",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "wege-1200",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "wege-1600",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+    {
+      name: "wege-2000",
+      routeId: "1",
+      owner: "Catering",
+      count: 10,
+      scanCount: 0,
+    },
+  ];
+
   const getData = async () => {
     const networkStatus = await Network.getStatus();
     if (!networkStatus.connected) {
@@ -307,8 +400,8 @@ const Warehouse: React.FC = () => {
 
     let toSend: PackageScanBulkRequest = {
       scanned: [],
-      unscanned: []
-    }
+      unscanned: [],
+    };
 
     // if (packagesToSend) {
     //   for (const n of packagesToSend.filter((e) => !e.All)) {
@@ -352,41 +445,33 @@ const Warehouse: React.FC = () => {
     //   }
     // }
 
-
     if (packagesToSend) {
-
       setLoadingText("Wysyłanie magazynu na serwer");
 
       for (const n of packagesToSend.filter((e) => !e.All)) {
-
         toSend.scanned.push({
           isScanned: n.isScanned,
           confirmationString: n.ConfirmationString,
-          id: n.Id
+          id: n.Id,
         });
-
       }
       for (const n of packagesToSend.filter((e) => e.All)) {
-        
         toSend.unscanned.push({
           isScanned: n.isScanned,
           name: n.Name,
           routeId: n.RouteId,
         });
-
       }
 
-
-          const scanAllRequest = await api.patch("routes/addresses/packages/warehouse-bulk",
-          {
-            scanned: toSend.scanned,
-            unscanned: toSend.unscanned
-          }
-        );
-        const scanAllRequestResult = await scanAllRequest.data;
-
+      const scanAllRequest = await api.patch(
+        "routes/addresses/packages/warehouse-bulk",
+        {
+          scanned: toSend.scanned,
+          unscanned: toSend.unscanned,
+        }
+      );
+      const scanAllRequestResult = await scanAllRequest.data;
     }
-
 
     setLoadingText("Synchronizacja danych");
 
@@ -788,7 +873,7 @@ const Warehouse: React.FC = () => {
                         {
                           text: "Kontynuuj",
                           handler: async () => {
-                            await getData();
+                            // await getData();
                           },
                         },
                       ],
@@ -857,8 +942,8 @@ const Warehouse: React.FC = () => {
         className={"background-lightgrey " + (scanning ? "hide-bg" : "")}
       >
         <IonList className="list-order">
-          {dietsWithNumber?.map((e) => {
-            console.log(e);
+          {/* {dietsWithNumber?.map((e) => { */}
+          {exampleDietsArray?.map((e) => {
             return (
               <IonItem
                 style={{
@@ -933,66 +1018,68 @@ const Warehouse: React.FC = () => {
                     return;
                   }
 
-                  presentAlert({
-                    mode: "ios",
-                    // cssClass: "missing-qr-alert",
-                    header: "Czy chcesz ustawić status na zeskanowany?",
-                    subHeader: "Wybrany rodzaj diety:",
-                    message: e.name,
-                    buttons: [
-                      "Anuluj",
-                      {
-                        text: "Ustaw",
-                        handler: async () => {
-                          let tempItems = packages;
+                  // presentAlert({
+                  //   mode: "ios",
+                  //   // cssClass: "missing-qr-alert",
+                  //   header: "Czy chcesz ustawić status na zeskanowany?",
+                  //   subHeader: "Wybrany rodzaj diety:",
+                  //   message: e.name,
+                  //   buttons: [
+                  //     "Anuluj",
+                  //     {
+                  //       text: "Ustaw",
+                  //       handler: async () => {
+                  //         let tempItems = packages;
+                  //         console.log(e);
+                  //         e.scanCount = e.count;
+                  //         tempItems.map((x) => {
+                  //           if (x.name == e.name) {
+                  //             x.scanned = true;
+                  //             x.confirmationString = "-";
+                  //           }
 
-                          tempItems.map((x) => {
-                            if (x.name == e.name) {
-                              x.scanned = true;
-                              x.confirmationString = "-";
-                            }
-                          });
+                  //         });
 
-                          await generateDictionary(tempItems);
+                  //         await generateDictionary(tempItems);
 
-                          // api
-                          //   .patch("routes/addresses/packages/warehouse-all", {
-                          //     isScanned: true,
-                          //     name: e.name,
-                          //   })
-                          //   .finally(async () => {});
+                  //         // api
+                  //         //   .patch("routes/addresses/packages/warehouse-all", {
+                  //         //     isScanned: true,
+                  //         //     name: e.name,
+                  //         //   })
+                  //         //   .finally(async () => {});
 
-                          await addWarehousePackagesToSend({
-                            Id: -1,
-                            ConfirmationString: "",
-                            isScanned: true,
-                            All: true,
-                            Name: e.name,
-                            RouteId: e.routeId,
-                            CountString:
-                              e.name +
-                              " " +
-                              tempItems.filter(function (item) {
-                                if (item.name == e.name && item.scanned) {
-                                  return true;
-                                } else {
-                                  return false;
-                                }
-                              }).length +
-                              "/" +
-                              tempItems.filter(function (item) {
-                                if (item.name == e.name) {
-                                  return true;
-                                } else {
-                                  return false;
-                                }
-                              }).length,
-                          });
-                        },
-                      },
-                    ],
-                    onDidDismiss: (e) => console.log("did dismiss"),
-                  });
+                  //         await addWarehousePackagesToSend({
+                  //           Id: -1,
+                  //           ConfirmationString: "",
+                  //           isScanned: true,
+                  //           All: true,
+                  //           Name: e.name,
+                  //           RouteId: e.routeId,
+                  //           CountString:
+                  //             e.name +
+                  //             " " +
+                  //             tempItems.filter(function (item) {
+                  //               if (item.name == e.name && item.scanned) {
+                  //                 return true;
+                  //               } else {
+                  //                 return false;
+                  //               }
+                  //             }).length +
+                  //             "/" +
+                  //             tempItems.filter(function (item) {
+                  //               if (item.name == e.name) {
+                  //                 return true;
+                  //               } else {
+                  //                 return false;
+                  //               }
+                  //             }).length,
+                  //         });
+                  //       },
+                  //     },
+                  //   ],
+                  //   onDidDismiss: (e) => console.log("did dismiss"),
+                  // });
                 }}
               >
                 <IonLabel

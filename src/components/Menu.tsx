@@ -40,7 +40,7 @@ import "./Menu.scss";
 
 import brokulImage from "../images/brokul-athlete.png";
 
-import { Preferences } from '@capacitor/preferences';
+import { Preferences } from "@capacitor/preferences";
 
 import { Network } from "@capacitor/network";
 import { CheckOfflineRequests, useRoute } from "../services/Utility";
@@ -94,28 +94,21 @@ const Menu: React.FC = () => {
       // contentId="main"
       type="overlay"
       onIonWillOpen={() => {
-
         api.get("accounts/name").then((response) => {
-
           const responseData = response.data as string;
-  
-          if(accountName != responseData)
-          {
+
+          if (accountName != responseData) {
             setAccountName(responseData);
           }
-  
-        })
+        });
 
         api.get("drivers/name").then((response) => {
-
           const responseData = response.data as string;
-  
-          if(username != responseData)
-          {
+
+          if (username != responseData) {
             setUsername(responseData);
           }
-  
-        })
+        });
 
         setUrl(history.location.pathname);
       }}
@@ -129,26 +122,34 @@ const Menu: React.FC = () => {
         <IonImg src={brokulImage} className="image" />
       </IonHeader> */}
       <IonHeader>
-      <IonItem lines={"none"}>
-        <IonTitle style={{
-          marginTop: "15px",
-        }}><strong>{accountName}</strong></IonTitle>
+        <IonItem lines={"none"}>
+          <IonTitle
+            style={{
+              marginTop: "15px",
+            }}
+          >
+            <strong>{accountName}</strong>
+          </IonTitle>
         </IonItem>
         <IonItem lines={"none"}>
-        <IonTitle>Pojazd <strong>{username}</strong></IonTitle>
+          <IonTitle>
+            Pojazd <strong>{username}</strong>
+          </IonTitle>
         </IonItem>
         <IonItem lines={"none"}>
-
-        <IonTitle style={{
-          fontSize: "11px",
-          fontWeight: 300,
-          marginLeft: "auto",
-          textAlign: "right",
-          "--min-height": "30px",
-          letterSpacing: "1px"
-        }}>v20112022</IonTitle>
-          </IonItem>
-        
+          <IonTitle
+            style={{
+              fontSize: "11px",
+              fontWeight: 300,
+              marginLeft: "auto",
+              textAlign: "right",
+              "--min-height": "30px",
+              letterSpacing: "1px",
+            }}
+          >
+            v20112022
+          </IonTitle>
+        </IonItem>
       </IonHeader>
       <IonContent
         style={{
@@ -192,7 +193,7 @@ const Menu: React.FC = () => {
             <IonLabel>Magazyn</IonLabel>
             <IonIcon slot="start" icon={homeOutline} />
           </IonItem>
-          <IonItem
+          {/* <IonItem
             lines="none"
             color={"/Map" == url ? "primary" : undefined}
             button
@@ -208,9 +209,9 @@ const Menu: React.FC = () => {
           >
             <IonLabel>Mapa</IonLabel>
             <IonIcon slot="start" icon={mapOutline} />
-          </IonItem>
+          </IonItem> */}
 
-          <IonItem
+          {/* <IonItem
             lines="none"
             color={"/Reorder" == url ? "primary" : undefined}
             button
@@ -226,7 +227,7 @@ const Menu: React.FC = () => {
           >
             <IonLabel>Edycja kolejności</IonLabel>
             <IonIcon slot="start" icon={gridOutline} />
-          </IonItem>
+          </IonItem> */}
           <IonItem
             lines="none"
             color={"/Notifications" == url ? "primary" : undefined}
@@ -279,37 +280,35 @@ const Menu: React.FC = () => {
             <IonLabel>Wypłata</IonLabel>
             <IonIcon slot="start" icon={cardOutline} />
           </IonItem>
-          
         </IonList>
       </IonContent>
       <IonFooter style={{ padding: "10px" }}>
-      <IonItem lines="none" className="menu-item">
-            {state.menuFontSize ? (
-              <IonRange
-                onIonChange={(e) => {
-                  if (!isNaN(parseInt(e.detail.value.toString()))) {
-                    setState((prev) => ({
-                      ...prev,
-                      ...{
-                        menuFontSize: e.detail.value as number,
-                      },
-                    }));
+        <IonItem lines="none" className="menu-item">
+          {state.menuFontSize ? (
+            <IonRange
+              onIonChange={(e) => {
+                if (!isNaN(parseInt(e.detail.value.toString()))) {
+                  setState((prev) => ({
+                    ...prev,
+                    ...{
+                      menuFontSize: e.detail.value as number,
+                    },
+                  }));
 
-                    console.log(e.detail.value as number);
-                  }
-                }}
-                min={1}
-                max={4}
-                step={1}
-                value={state.menuFontSize}
-                snaps
-                color="primary"
-              ></IonRange>
-            ) : (
-              <></>
-            )}
-
-          </IonItem>
+                  console.log(e.detail.value as number);
+                }
+              }}
+              min={1}
+              max={4}
+              step={1}
+              value={state.menuFontSize}
+              snaps
+              color="primary"
+            ></IonRange>
+          ) : (
+            <></>
+          )}
+        </IonItem>
         <IonItem lines="none" className="menu-item">
           <IonLabel>Ciemny motyw</IonLabel>
           <IonToggle

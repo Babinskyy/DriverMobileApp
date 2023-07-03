@@ -76,7 +76,7 @@ import PhonePopover from "../components/PhonePopover";
 import "./Home.scss";
 
 import axios from "axios";
-import { Preferences } from '@capacitor/preferences';
+import { Preferences } from "@capacitor/preferences";
 import { Virtuoso } from "react-virtuoso";
 
 import api from "./../services/api";
@@ -195,12 +195,16 @@ const Home: React.FC = () => {
 
   const [unscannedWarningPopup, setUnscannedWarningPopup] = useState(false);
 
-  const [unscannedWarningMessage, setUnscannedWarningMessage] = useState<string[]>([]);
+  const [unscannedWarningMessage, setUnscannedWarningMessage] = useState<
+    string[]
+  >([]);
 
   const [unscannedWarningModal, setUnscannedWarningModal] = useState(false);
 
-  const [unscannedWarningTextAreaText, setUnscannedWarningTextAreaText] = useState("");
-  const [unscannedWarningTextAreaCount, setUnscannedWarningTextAreaCount] = useState(0);
+  const [unscannedWarningTextAreaText, setUnscannedWarningTextAreaText] =
+    useState("");
+  const [unscannedWarningTextAreaCount, setUnscannedWarningTextAreaCount] =
+    useState(0);
 
   useIonViewDidEnter(() => {
     api.get("report/is-driver-scanned").then((response) => {
@@ -209,14 +213,11 @@ const Home: React.FC = () => {
       try {
         setUnscannedWarningPopup(!data.status);
 
-        if(!data.status)
-        {
-          if(data.messages)
-          {
+        if (!data.status) {
+          if (data.messages) {
             setUnscannedWarningMessage(data.messages);
           }
         }
-
       } catch (error) {}
     });
   });
@@ -228,14 +229,11 @@ const Home: React.FC = () => {
       try {
         setUnscannedWarningPopup(!data.status);
 
-        if(!data.status)
-        {
-          if(data.messages)
-          {
+        if (!data.status) {
+          if (data.messages) {
             setUnscannedWarningMessage(data.messages);
           }
         }
-
       } catch (error) {}
     });
   }, [state.routeCurrent]);
@@ -673,9 +671,11 @@ const Home: React.FC = () => {
             </IonButtons>
           </IonToolbar>
         </IonHeader>
-        <IonContent style={{
-          "--padding-bottom": "20px"
-        }}>
+        <IonContent
+          style={{
+            "--padding-bottom": "20px",
+          }}
+        >
           <IonListHeader>
             <IonLabel style={{ fontWeight: 700 }}>
               Dlaczego musisz odblokować robienie zdjęć?
@@ -706,56 +706,62 @@ const Home: React.FC = () => {
           </IonListHeader>
           <IonListHeader>
             <IonLabel style={{ fontWeight: 400, minHeight: "0" }}>
-              Poniżej wytłumacz, dlaczego nie zeskanowałeś wymaganej ilości diet.
-              Przykładowo, jeżeli powodem będą:
+              Poniżej wytłumacz, dlaczego nie zeskanowałeś wymaganej ilości
+              diet. Przykładowo, jeżeli powodem będą:
             </IonLabel>
           </IonListHeader>
 
           <IonListHeader>
-            <IonLabel
-              style={{ fontWeight: 400, minHeight: "0" }}
-            >
-              - złe warunki pogodowe, opóźnienie dostawy lub inne problemy spowodowane przez odgórne sytuacje, to biuro skontaktuje się bezpośrednio z <strong style={{ color: "var(--ion-color-tertiary, #5260ff)" }}>Kierownikiem Regionu</strong>.
+            <IonLabel style={{ fontWeight: 400, minHeight: "0" }}>
+              - złe warunki pogodowe, opóźnienie dostawy lub inne problemy
+              spowodowane przez odgórne sytuacje, to biuro skontaktuje się
+              bezpośrednio z{" "}
+              <strong style={{ color: "var(--ion-color-tertiary, #5260ff)" }}>
+                Kierownikiem Regionu
+              </strong>
+              .
             </IonLabel>
           </IonListHeader>
           <IonListHeader>
-            <IonLabel
-              style={{ fontWeight: 400, minHeight: "0" }}
-            >
-              - jednostkowy problem, który napotkał Ciebie np. problem z telefonem, to biuro skontaktuje się bezpośrednio z <strong style={{ color: "var(--ion-color-tertiary, #5260ff)" }}>Tobą</strong>, żeby wytłumaczyć daną sytuację.
+            <IonLabel style={{ fontWeight: 400, minHeight: "0" }}>
+              - jednostkowy problem, który napotkał Ciebie np. problem z
+              telefonem, to biuro skontaktuje się bezpośrednio z{" "}
+              <strong style={{ color: "var(--ion-color-tertiary, #5260ff)" }}>
+                Tobą
+              </strong>
+              , żeby wytłumaczyć daną sytuację.
             </IonLabel>
           </IonListHeader>
           <IonListHeader>
-            <IonLabel
-              style={{ fontWeight: 400, minHeight: "0" }}
-            >
-              - jednostkowy problem w działaniu aplikacji poważnie utrudniający skanowanie diet, to biuro wraz z pomocą techniczną skontaktuje się bezpośrednio z <strong style={{ color: "var(--ion-color-tertiary, #5260ff)" }}>Tobą</strong>, żeby jak najszybciej rozwiązać problem.
+            <IonLabel style={{ fontWeight: 400, minHeight: "0" }}>
+              - jednostkowy problem w działaniu aplikacji poważnie utrudniający
+              skanowanie diet, to biuro wraz z pomocą techniczną skontaktuje się
+              bezpośrednio z{" "}
+              <strong style={{ color: "var(--ion-color-tertiary, #5260ff)" }}>
+                Tobą
+              </strong>
+              , żeby jak najszybciej rozwiązać problem.
             </IonLabel>
           </IonListHeader>
 
           <IonTextarea
-          onIonChange={(e) => {
-            const text = e.detail.value;
-            if(text)
-            {
-              setUnscannedWarningTextAreaText(text);
-              setUnscannedWarningTextAreaCount(text.length);
-            }
-            else
-            {
-              setUnscannedWarningTextAreaText("");
-              setUnscannedWarningTextAreaCount(0);
-            }
-            
+            onIonChange={(e) => {
+              const text = e.detail.value;
+              if (text) {
+                setUnscannedWarningTextAreaText(text);
+                setUnscannedWarningTextAreaCount(text.length);
+              } else {
+                setUnscannedWarningTextAreaText("");
+                setUnscannedWarningTextAreaCount(0);
+              }
+            }}
+            rows={6}
+            autoGrow={true}
+            maxlength={400}
+            placeholder="Wpisz powód (w przypadku jednostkowych problemów postaraj się szczegółowo rozpisać daną sytuację)"
+          ></IonTextarea>
 
-          }}
-          rows={6}
-          autoGrow={true}
-          maxlength={400}
-      placeholder="Wpisz powód (w przypadku jednostkowych problemów postaraj się szczegółowo rozpisać daną sytuację)"
-    ></IonTextarea>
-
-    <IonListHeader>
+          <IonListHeader>
             <IonLabel
               style={{ fontWeight: 400, minHeight: "0", textAlign: "end" }}
             >
@@ -763,58 +769,55 @@ const Home: React.FC = () => {
             </IonLabel>
           </IonListHeader>
 
-          <IonButton disabled={unscannedWarningTextAreaCount < 6} color="primary" expand="full" style={{
-            margin: "0 16px"
-          }}
-          
-          onClick={() => {
+          <IonButton
+            disabled={unscannedWarningTextAreaCount < 6}
+            color="primary"
+            expand="full"
+            style={{
+              margin: "0 16px",
+            }}
+            onClick={() => {
+              presentLoading("Przesyłanie prośby");
 
-            presentLoading("Przesyłanie prośby");
-            
-            api.patch("report/unscanned-reason", {
-              Reason: unscannedWarningTextAreaText
-            }).then(async (response) => {
-
-              await dismissLoading();
-              
-              const data = response.data as boolean;
-
-              if(data)
-              {
-                setUnscannedWarningPopup(false);
-                setUnscannedWarningModal(false);
-              }
-              else
-              {
-                presentAlert({
-                  message: "Nie udało się przesłać zapytania. Spróbuj ponownie.",
-                  buttons: [
-                    {
-                      text: "Powrót"
-                    }
-                  ]
+              api
+                .patch("report/unscanned-reason", {
+                  Reason: unscannedWarningTextAreaText,
                 })
-              }
+                .then(async (response) => {
+                  await dismissLoading();
 
-            }).catch(() => {
+                  const data = response.data as boolean;
 
-              presentAlert({
-                message: "Nie udało się przesłać zapytania. Spróbuj ponownie.",
-                buttons: [
-                  {
-                    text: "Powrót"
+                  if (data) {
+                    setUnscannedWarningPopup(false);
+                    setUnscannedWarningModal(false);
+                  } else {
+                    presentAlert({
+                      message:
+                        "Nie udało się przesłać zapytania. Spróbuj ponownie.",
+                      buttons: [
+                        {
+                          text: "Powrót",
+                        },
+                      ],
+                    });
                   }
-                ]
-              })
-
-            });
-
-          }}
+                })
+                .catch(() => {
+                  presentAlert({
+                    message:
+                      "Nie udało się przesłać zapytania. Spróbuj ponownie.",
+                    buttons: [
+                      {
+                        text: "Powrót",
+                      },
+                    ],
+                  });
+                });
+            }}
           >
             Odblokuj robienie zdjęć
           </IonButton>
-
-
         </IonContent>
       </IonModal>
 
@@ -1273,7 +1276,11 @@ const Home: React.FC = () => {
         className={"background-lightgrey " + (scanning ? "hide-bg" : "")}
       >
         <>
-          <IonList className={"list-order " + (unscannedWarningPopup ? "hide-scan-icons" : "")}>
+          <IonList
+            className={
+              "list-order " + (unscannedWarningPopup ? "hide-scan-icons" : "")
+            }
+          >
             {(itemsMode == "undelivered" ? state.routeCurrent : state.routeEnd)
               ?.slice(0, infinityCounter)
               .map((e, i) => {

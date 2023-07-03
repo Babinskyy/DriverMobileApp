@@ -1,8 +1,8 @@
 export const AddressList = [
-  { id: 1, value: "42-500 Będzin;Jesionowa 17" },
-  { id: 2, value: "Brzozowa 17" },
-  { id: 3, value: "Grunwaldzka 17" },
-  { id: 4, value: "Jesionowa 17" },
+  { id: 1, value: "Baker Street 15" },
+  { id: 2, value: "High Avanue 17" },
+  { id: 3, value: "Walker Street 244" },
+  { id: 4, value: "Downing Street 1" },
 ];
 
 export const AddressDietList = [
@@ -28,4 +28,4 @@ export const DietParts = [
   { id: "3/5", value: "3/5" },
   { id: "4/5", value: "4/5" },
   { id: "5/5", value: "5/5" },
-]
+];
