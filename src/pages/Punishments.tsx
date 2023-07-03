@@ -118,6 +118,8 @@ import { BackgroundMode } from "@ionic-native/background-mode";
 
 import { v4 as uuidv4 } from "uuid";
 
+import amazonDelivery from "./../images/amazonDelivery.jpg";
+
 const Punishments: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -310,7 +312,7 @@ const Punishments: React.FC = () => {
               style={{ textAlign: "center" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                Jesionowa 17
+                Baker Street
               </div>
 
               <div style={{ fontWeight: 300 }}>00-250 Górnicza Dolina</div>
@@ -332,7 +334,7 @@ const Punishments: React.FC = () => {
               style={{ textAlign: "center" }}
             >
               <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                pojazd 125
+                Driver Frank 123
               </div>
             </IonLabel>
           </IonItem>
@@ -372,7 +374,7 @@ const Punishments: React.FC = () => {
               Niedowóz zupa 1 Xl uszkodzone
               
             </IonItem> */}
-          <IonImg src="https://broccolihot.z16.web.core.windows.net/packages/fc4ce2a5-f87e-4b6d-886c-fc3bdb83fcbe.jpg" />
+          <IonImg src={amazonDelivery} />
         </IonContent>
       </IonModal>
     </IonPage>
