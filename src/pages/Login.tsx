@@ -58,6 +58,7 @@ import axios from "axios";
 import { Preferences } from "@capacitor/preferences";
 
 import brokulImage from "../images/brokul-athlete.png";
+import logoImage from "../images/mark1_png.png";
 
 import api from "./../services/api";
 import auth from "./../services/auth.service";
@@ -121,7 +122,7 @@ const Login: React.FC = () => {
             style={{ height: "100%" }}
           >
             <div style={{ marginBottom: "100px" }}>
-              <IonImg src={brokulImage} className="image" />
+              <IonImg src={logoImage} className="image" />
               {step == 1 ? (
                 <>
                   <IonLabel className="header">
@@ -145,34 +146,35 @@ const Login: React.FC = () => {
                   </IonItem>
                   <IonButton
                     onClick={async () => {
+                      // presentLoading({
+                      //   spinner: "crescent",
+                      //   message: "Logowanie...",
+                      //   duration: 10000,
+                      // });
 
-                      presentLoading({
-                        spinner: "crescent",
-                        message: "Logowanie...",
-                        duration: 10000,
-                      });
+                      setStep(2);
 
-                      api
-                        .post("/accounts/authenticate-check", {
-                          username,
-                          password,
-                        })
-                        .then(async (response) => {
-                          const data = response.data as boolean;
+                      // api
+                      //   .post("/accounts/authenticate-check", {
+                      //     username,
+                      //     password,
+                      //   })
+                      //   .then(async (response) => {
+                      //     const data = response.data as boolean;
 
-                          await dismissLoading();
+                      //     await dismissLoading();
 
-                          if (data) {
-                            setStep(2);
-                          } else {
-                            present("Niepoprawne dane logowanie", [
-                              { text: "Zamknij" },
-                            ]);
-                          }
-                        })
-                        .catch(() => {
-                          dismissLoading();
-                        });
+                      //     if (data) {
+                      //       setStep(2);
+                      //     } else {
+                      //       present("Niepoprawne dane logowanie", [
+                      //         { text: "Zamknij" },
+                      //       ]);
+                      //     }
+                      //   })
+                      //   .catch(() => {
+                      //     dismissLoading();
+                      //   });
                     }}
                     expand="block"
                     color="primary"
@@ -233,46 +235,47 @@ const Login: React.FC = () => {
                     </IonButton>
                     <IonButton
                       onClick={async () => {
-                        presentLoading({
-                          spinner: "crescent",
-                          message: "Logowanie...",
-                          duration: 10000,
-                        });
+                        // presentLoading({
+                        //   spinner: "crescent",
+                        //   message: "Logowanie...",
+                        //   duration: 10000,
+                        // });
 
                         // navigate("/Home", "forward", "replace")
+                        navigate("/", "forward", "replace");
 
-                        await auth
-                          .login(
-                            username,
-                            password,
-                            driverUsername,
-                            driverPassword
-                          )
-                          .then(async (response) => {
-                            console.log(auth);
+                        // await auth
+                        //   .login(
+                        //     username,
+                        //     password,
+                        //     driverUsername,
+                        //     driverPassword
+                        //   )
+                        //   .then(async (response) => {
+                        //     console.log(auth);
 
-                            const data = response as User;
+                        //     const data = response as User;
 
-                            dismissLoading();
+                        //     dismissLoading();
 
-                            if (data.jwtToken) {
-                              try {
-                                await PushNotifications.register();
-                              } catch (error) {}
+                        //     if (data.jwtToken) {
+                        //       try {
+                        //         await PushNotifications.register();
+                        //       } catch (error) {}
 
-                              navigate("/", "forward", "replace");
-                            } else {
-                              present("Niepoprawne dane logowanie", [
-                                { text: "Zamknij" },
-                              ]);
-                            }
-                          })
-                          .catch((exception) => {
-                            dismissLoading();
-                            present("Niepoprawne dane logowanie", [
-                              { text: "Zamknij" },
-                            ]);
-                          });
+                        //       navigate("/", "forward", "replace");
+                        //     } else {
+                        //       present("Niepoprawne dane logowanie", [
+                        //         { text: "Zamknij" },
+                        //       ]);
+                        //     }
+                        //   })
+                        //   .catch((exception) => {
+                        //     dismissLoading();
+                        //     present("Niepoprawne dane logowanie", [
+                        //       { text: "Zamknij" },
+                        //     ]);
+                        //   });
                       }}
                       expand="block"
                       color="primary"

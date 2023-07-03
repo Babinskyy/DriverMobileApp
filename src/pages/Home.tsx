@@ -206,6 +206,273 @@ const Home: React.FC = () => {
   const [unscannedWarningTextAreaCount, setUnscannedWarningTextAreaCount] =
     useState(0);
 
+  const exampleAddresses = [
+    {
+      id: 1,
+      city: "London",
+      comment:
+        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit, quod.",
+      commentExtra:
+        "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate, veniam reiciendis iste molestias ad adipisci quis non voluptatum obcaecati eum.",
+      houseNumber: "12/55",
+      lat: "lat",
+      lng: "lng",
+      postCode: "90-712",
+      packages: [
+        {
+          id: "1",
+          name: "slim-1500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+      ],
+      phone: "+03 532 444 122",
+      order: 1,
+      routeId: "1",
+      street: "Long Street",
+      customerId: 1,
+      image: null,
+      packagesCompleted: true,
+      sms: false,
+      imageProcessed: false,
+      smsReceiptRequested: false,
+    },
+    {
+      id: 2,
+      city: "London",
+      comment:
+        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit, quod.",
+      commentExtra:
+        "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate, veniam reiciendis iste molestias ad adipisci quis non voluptatum obcaecati eum.",
+      houseNumber: "12/55",
+      lat: "lat",
+      lng: "lng",
+      postCode: "90-712",
+      packages: [
+        {
+          id: "1",
+          name: "wege-1500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+        {
+          id: "1",
+          name: "slim-2500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+      ],
+      phone: "+03 532 444 122",
+      order: 1,
+      routeId: "1",
+      street: "Baker Street",
+      customerId: 1,
+      image: null,
+      packagesCompleted: true,
+      sms: false,
+      imageProcessed: false,
+      smsReceiptRequested: false,
+    },
+    {
+      id: 3,
+      city: "London",
+      comment:
+        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit, quod.",
+      commentExtra:
+        "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate, veniam reiciendis iste molestias ad adipisci quis non voluptatum obcaecati eum.",
+      houseNumber: "12/55",
+      lat: "lat",
+      lng: "lng",
+      postCode: "90-712",
+      packages: [
+        {
+          id: "1",
+          name: "sport-2500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+        {
+          id: "1",
+          name: "sport-3000",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+        {
+          id: "1",
+          name: "sport-3500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+      ],
+      phone: "+03 532 444 122",
+      order: 1,
+      routeId: "1",
+      street: "Walker Avenue",
+      customerId: 1,
+      image: null,
+      packagesCompleted: true,
+      sms: false,
+      imageProcessed: false,
+      smsReceiptRequested: false,
+    },
+    {
+      id: 4,
+      city: "London",
+      comment:
+        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit, quod.",
+      commentExtra:
+        "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate, veniam reiciendis iste molestias ad adipisci quis non voluptatum obcaecati eum.",
+      houseNumber: "12/55",
+      lat: "lat",
+      lng: "lng",
+      postCode: "90-712",
+      packages: [
+        {
+          id: "1",
+          name: "slim-1500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+      ],
+      phone: "+03 532 444 122",
+      order: 1,
+      routeId: "1",
+      street: "Abbey Road",
+      customerId: 1,
+      image: null,
+      packagesCompleted: true,
+      sms: false,
+      imageProcessed: false,
+      smsReceiptRequested: false,
+    },
+    {
+      id: 5,
+      city: "London",
+      comment:
+        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit, quod.",
+      commentExtra:
+        "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate, veniam reiciendis iste molestias ad adipisci quis non voluptatum obcaecati eum.",
+      houseNumber: "12/55",
+      lat: "lat",
+      lng: "lng",
+      postCode: "90-712",
+      packages: [
+        {
+          id: "1",
+          name: "wege-1500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+        {
+          id: "1",
+          name: "wege-2500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+      ],
+      phone: "+03 532 444 122",
+      order: 1,
+      routeId: "1",
+      street: "Bond Street",
+      customerId: 1,
+      image: null,
+      packagesCompleted: true,
+      sms: false,
+      imageProcessed: false,
+      smsReceiptRequested: false,
+    },
+    {
+      id: 6,
+      city: "London",
+      comment:
+        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit, quod.",
+      commentExtra:
+        "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate, veniam reiciendis iste molestias ad adipisci quis non voluptatum obcaecati eum.",
+      houseNumber: "12/55",
+      lat: "lat",
+      lng: "lng",
+      postCode: "90-712",
+      packages: [
+        {
+          id: "1",
+          name: "fish-1500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+        {
+          id: "1",
+          name: "fish-1500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+      ],
+      phone: "+03 532 444 122",
+      order: 1,
+      routeId: "1",
+      street: "Short Street",
+      customerId: 1,
+      image: null,
+      packagesCompleted: true,
+      sms: false,
+      imageProcessed: false,
+      smsReceiptRequested: false,
+    },
+    {
+      id: 7,
+      city: "London",
+      comment:
+        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit, quod.",
+      commentExtra:
+        "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate, veniam reiciendis iste molestias ad adipisci quis non voluptatum obcaecati eum.",
+      houseNumber: "12/55",
+      lat: "lat",
+      lng: "lng",
+      postCode: "90-712",
+      packages: [
+        {
+          id: "1",
+          name: "keto-1500",
+          scanned: false,
+          code: "1",
+          image: null,
+          confirmationString: "1",
+        },
+      ],
+      phone: "+03 532 444 122",
+      order: 1,
+      routeId: "1",
+      street: "Brick Lane",
+      customerId: 1,
+      image: null,
+      packagesCompleted: true,
+      sms: false,
+      imageProcessed: false,
+      smsReceiptRequested: false,
+    },
+  ];
+
   useIonViewDidEnter(() => {
     api.get("report/is-driver-scanned").then((response) => {
       const data = response.data as IsDriverScannedResponse;
@@ -1105,7 +1372,7 @@ const Home: React.FC = () => {
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton>
           </IonButtons>
-          <IonSearchbar
+          {/* <IonSearchbar
             placeholder="Wyszukaj"
             style={{
               "--box-shadow": "none",
@@ -1122,7 +1389,7 @@ const Home: React.FC = () => {
 
               Init(undefined, text == undefined ? "" : text);
             }}
-          ></IonSearchbar>
+          ></IonSearchbar> */}
           <IonButtons slot="end">
             {/* <IonButton
               className={rotate ? "rotated" : ""}
@@ -1149,7 +1416,7 @@ const Home: React.FC = () => {
             >
               <IonIcon slot="icon-only" icon={refreshOutline} />
             </IonButton> */}
-            <IonButton
+            {/* <IonButton
               onClick={(event) => {
                 presentThreeDots({
                   event: event.nativeEvent,
@@ -1157,7 +1424,7 @@ const Home: React.FC = () => {
               }}
             >
               <IonIcon slot="icon-only" icon={ellipsisVerticalOutline} />
-            </IonButton>
+            </IonButton> */}
           </IonButtons>
         </IonToolbar>
 
@@ -1281,9 +1548,10 @@ const Home: React.FC = () => {
               "list-order " + (unscannedWarningPopup ? "hide-scan-icons" : "")
             }
           >
-            {(itemsMode == "undelivered" ? state.routeCurrent : state.routeEnd)
-              ?.slice(0, infinityCounter)
-              .map((e, i) => {
+            {
+              // (itemsMode == "undelivered" ? state.routeCurrent : state.routeEnd)
+              //   ?.slice(0, infinityCounter)
+              exampleAddresses.map((e, i) => {
                 return (
                   <div
                     key={e.id}
@@ -1307,12 +1575,12 @@ const Home: React.FC = () => {
                           slot="start"
                           icon={navigateOutline}
                           onClick={(event) => {
-                            setAddress(
-                              `${e.city} ${e.postCode} ${e.street} ${e.houseNumber}`
-                            );
-                            present({
-                              event: event.nativeEvent,
-                            });
+                            // setAddress(
+                            //   `${e.city} ${e.postCode} ${e.street} ${e.houseNumber}`
+                            // );
+                            // present({
+                            //   event: event.nativeEvent,
+                            // });
                           }}
                         />
 
@@ -1321,7 +1589,7 @@ const Home: React.FC = () => {
                           onClick={() => {
                             if (items) {
                               setShowOrderInfoModal(true);
-                              setItemModalInfo(e);
+                              // setItemModalInfo(e);
                             }
                           }}
                         >
@@ -1439,7 +1707,7 @@ const Home: React.FC = () => {
                                   body.style.background = "transparent";
                                 }
                                 setScanning(true);
-                                startScan(e);
+                                // startScan(e);
                               }
                             }
                           }}
@@ -1449,7 +1717,7 @@ const Home: React.FC = () => {
                         onClick={() => {
                           if (items) {
                             setShowOrderInfoModal(true);
-                            setItemModalInfo(e);
+                            // setItemModalInfo(e);
                           }
                         }}
                       >
@@ -1478,7 +1746,8 @@ const Home: React.FC = () => {
                     </IonLabel>
                   </div>
                 );
-              })}
+              })
+            }
           </IonList>
 
           <IonInfiniteScroll

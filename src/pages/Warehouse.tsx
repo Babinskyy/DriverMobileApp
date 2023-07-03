@@ -843,14 +843,14 @@ const Warehouse: React.FC = () => {
               <IonIcon slot="icon-only" icon={reorderFourOutline} />
             </IonButton>
           </IonButtons>
-          <IonSearchbar
+          {/* <IonSearchbar
             placeholder="Wyszukaj"
             style={{
               "--box-shadow": "none",
               "--background": "none",
             }}
             onIonChange={(e) => setSearchText(e.detail.value!)}
-          ></IonSearchbar>
+          ></IonSearchbar> */}
         </IonToolbar>
         <IonToolbar
           style={{

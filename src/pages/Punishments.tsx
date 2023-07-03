@@ -366,8 +366,9 @@ const Punishments: React.FC = () => {
               }}
             >
               {" "}
-              Niedowóz zupa 1 Xl uszkodzone Niedowóz zupa 1 Xl uszkodzone
-              Niedowóz zupa 1 Xl uszkodzone
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorum
+              tempora mollitia accusamus voluptate quod delectus ipsa non
+              assumenda optio sunt.
             </IonLabel>
           </IonItem>
           {/* <IonItem lines="none" style={{marginTop: "30px", marginBottom: "30px"}}>
