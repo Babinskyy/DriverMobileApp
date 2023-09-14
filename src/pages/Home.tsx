@@ -1133,12 +1133,12 @@ const Home: React.FC = () => {
                 style={{ textAlign: "center" }}
               >
                 <div style={{ fontWeight: 700, fontSize: "20px" }}>
-                  {`${itemModalInfo?.street} ${itemModalInfo?.houseNumber}`}
+                  {`${exampleAddresses[0]?.street} ${exampleAddresses[0]?.houseNumber}`}
                 </div>
 
                 <div
                   style={{ fontWeight: 300 }}
-                >{`${itemModalInfo?.postCode} ${itemModalInfo?.city}`}</div>
+                >{`${exampleAddresses[0]?.postCode} ${exampleAddresses[0]?.city}`}</div>
               </IonLabel>
             </IonItem>
             <IonItem>
@@ -1150,7 +1150,7 @@ const Home: React.FC = () => {
                 onClick={(event) => {
                   console.log(itemModalInfo);
                   console.log(itemModalInfo?.phone);
-                  setPhoneNumber(itemModalInfo ? itemModalInfo.phone : "");
+                  setPhoneNumber( exampleAddresses[0].phone);
                   presentPhoneNumber({
                     event: event.nativeEvent,
                   });
@@ -1169,7 +1169,7 @@ const Home: React.FC = () => {
                     transform: "translateY(4px)",
                   }}
                 />
-                {`${itemModalInfo?.phone}`}
+                {`${exampleAddresses[0].phone}`}
               </IonLabel>
             </IonItem>
           </IonList>
@@ -1192,9 +1192,9 @@ const Home: React.FC = () => {
                   marginBottom: "5px",
                 }}
               >
-                {itemModalInfo?.comment}
+                {exampleAddresses[0]?.comment}
               </div>
-              <span>{itemModalInfo?.commentExtra}</span>
+              <span>{exampleAddresses[0]?.commentExtra}</span>
             </IonLabel>
           </IonItem>
 
@@ -1202,14 +1202,14 @@ const Home: React.FC = () => {
             <IonLabel style={{ fontWeight: 700 }}>Diety</IonLabel>
           </IonListHeader>
           <IonList>
-            {itemModalInfo?.packages.map((e) => {
+            {exampleAddresses[0]?.packages.map((e) => {
               return (
                 <IonItem>
                   <IonLabel className="wrap">{e.name}</IonLabel>
                   {e.image ? (
                     <IonButton
                       onClick={() => {
-                        setAssignedImage(e.image);
+                        // setAssignedImage(e.image);
                         setShowOrderPhoto(true);
                       }}
                     >
