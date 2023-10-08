@@ -1150,7 +1150,7 @@ const Home: React.FC = () => {
                 onClick={(event) => {
                   console.log(itemModalInfo);
                   console.log(itemModalInfo?.phone);
-                  setPhoneNumber( exampleAddresses[0].phone);
+                  setPhoneNumber(exampleAddresses[0].phone);
                   presentPhoneNumber({
                     event: event.nativeEvent,
                   });
